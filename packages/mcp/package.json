@@ -1,0 +1,19 @@
+{
+  "name": "@capy-kit/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "capy-mcp — MCP server over @capy-kit/core (stdio + streamable-HTTP). Tools auto-registered from the ops registry.",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "bin": {
+    "capy-mcp": "./dist/capy-mcp.js",
+    "capy-mcp-http": "./dist/capy-mcp-http.js"
+  },
+  "files": ["dist"],
+  "dependencies": {
+    "@capy-kit/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.0"
+  }
+}

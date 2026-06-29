@@ -1,0 +1,16 @@
+{
+  "name": "@capy-kit/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "capy — CLI over @capy-kit/core. Every command is a projection of the ops registry (Citty).",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "bin": { "capy": "./dist/capy.js" },
+  "files": ["dist"],
+  "dependencies": {
+    "@capy-kit/core": "workspace:*",
+    "@clack/prompts": "^0.11.0",
+    "citty": "^0.2.2"
+  }
+}

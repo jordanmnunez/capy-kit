@@ -1,0 +1,20 @@
+{
+  "name": "@capy-kit/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Capy API ops core: typed transport, resource client, and agent-shaped composite operations — the single source of truth all surfaces project from.",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": ["dist"],
+  "dependencies": {
+    "openapi-fetch": "^0.17.0",
+    "zod": "^4.4.0"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "capy-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TypeScript toolkit for the Capy API: one ops core projected into an SDK, a CLI, an MCP server, and Claude Code skills.",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "workspaces": [
+    "packages/core",
+    "packages/cli",
+    "packages/mcp"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "gen": "openapi-typescript spec/capy.openapi.json -o packages/core/src/client/schema.d.ts",
+    "gen:check": "npm run gen && git diff --exit-code packages/core/src/client/schema.d.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "openapi-typescript": "^7.13.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.0"
+  }
+}
