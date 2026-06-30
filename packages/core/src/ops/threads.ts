@@ -1,10 +1,22 @@
 import { z } from "zod";
 
 import type { CapyContext } from "../client/context.js";
-import { resources, type ListThreadsQuery, type ThreadListItem } from "../client/resources.js";
-import { ListThreadsResponseSchema, ThreadListItemSchema } from "../client/schemas.js";
-import { ORIGINS, PR_STATES, THREAD_STATUSES } from "../model.js";
-import { defineOp } from "./define.js";
+import {
+  resources,
+  type ListMessagesQuery,
+  type ListThreadsQuery,
+  type SendThreadMessageBody,
+  type ThreadListItem,
+  type ThreadMessage,
+} from "../client/resources.js";
+import {
+  ListMessagesResponseSchema,
+  ListThreadsResponseSchema,
+  SendMessageResponseSchema,
+  ThreadListItemSchema,
+} from "../client/schemas.js";
+import { ORIGINS, PR_STATES, THREAD_STATUSES, resolveModelAlias } from "../model.js";
+import { csvArray, defineOp } from "./define.js";
 import { requireProject } from "./shared.js";
 
 // Full faithful filter set from ListThreadsQuery.
@@ -79,5 +91,61 @@ export const threadsGet = defineOp({
   output: ThreadListItemSchema,
   async run(args, ctx) {
     return resources(ctx).threads.get(args.id);
+  },
+});
+
+export const threadsMessage = defineOp({
+  name: "threads.message",
+  summary: "Send a message to a live thread to steer Captain (keeps its accumulated context).",
+  description:
+    "POST a message to an existing thread — the faithful way to RE-STEER without spawning a new " +
+    "thread (which loses Captain's context). `model` takes an alias (opus/sonnet/haiku) or a full id; " +
+    "omit it to continue with the thread's current model. capy-kit does not gate or judge the reply.",
+  effect: "create",
+  input: z.object({
+    id: z.string().min(1),
+    message: z.string().min(1),
+    model: z.string().optional(),
+    attachmentUrls: csvArray(z.string()).optional(),
+    impersonateUserEmail: z.string().optional(),
+  }),
+  output: SendMessageResponseSchema,
+  async run(args, ctx) {
+    const body: SendThreadMessageBody = { message: args.message };
+    const model = resolveModelAlias(args.model);
+    if (model) body.model = model as SendThreadMessageBody["model"];
+    if (args.attachmentUrls && args.attachmentUrls.length > 0) body.attachmentUrls = args.attachmentUrls;
+    if (args.impersonateUserEmail) body.impersonateUserEmail = args.impersonateUserEmail;
+    return resources(ctx).threads.message(args.id, body);
+  },
+});
+
+export const threadsMessages = defineOp({
+  name: "threads.messages",
+  summary: "Read a thread's messages, oldest→newest (the conversation log).",
+  description:
+    "List the messages on a thread. The API is newest-first; this op returns them oldest→newest " +
+    "within the set (so the newest message is last and the log reads top-to-bottom). `nextCursor` " +
+    "pages to OLDER messages; --all collects every page and returns the full log chronologically.",
+  effect: "read",
+  input: z.object({
+    id: z.string().min(1),
+    cursor: z.string().optional(),
+    limit: z.coerce.number().int().min(1).max(100).optional(),
+    all: z.boolean().optional(),
+  }),
+  output: ListMessagesResponseSchema,
+  async run(args, ctx) {
+    if (args.all) {
+      const collected: ThreadMessage[] = [];
+      for await (const m of resources(ctx).threads.listAllMessages(args.id)) collected.push(m);
+      collected.reverse(); // API yields newest-first across pages -> oldest-first
+      return { items: collected, nextCursor: null, hasMore: false };
+    }
+    const query: ListMessagesQuery = {};
+    if (args.cursor !== undefined) query.cursor = args.cursor;
+    if (args.limit !== undefined) query.limit = args.limit;
+    const page = await resources(ctx).threads.listMessages(args.id, query);
+    return { ...page, items: [...page.items].reverse() };
   },
 });

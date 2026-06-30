@@ -11,8 +11,8 @@ work.** You hand Capy a goal and the quality bar; its Captain plans, spawns task
 reviews, and iterates on its own. This skill does **not** gate, retry, or judge the work — it
 surfaces faithful state and faithful controls. Quality comes from the delegation prompt.
 
-> Scope: this is the M1 surface (delegate / wait / threads / status). `env` and `usage` arrive
-> in later milestones. Every command supports `--json` for machine-readable output.
+> Scope: delegate / wait / threads (list/get/message/messages) / status / projects. `env` and `usage`
+> arrive in later milestones. Every command supports `--json` for machine-readable output.
 
 ## Setup (once)
 - Auth: `CAPY_API_KEY` (a `capy_…` token) — set it in the env or `~/.capy/.env` (0600), or run `capy init`.
@@ -41,7 +41,15 @@ capy projects list --json                  # discover project ids ({id,name,task
 capy status --json                         # active threads: real status/runState/waitingOn/blockedOn/PR (no buckets)
 capy threads list --json                   # full filters: --status --branch --pr --pr-state --authorEmail --tag -q --limit --all
 capy threads get <threadId> --json         # one thread: status, runState, tasks, PRs, tags
+capy threads messages <threadId> --json    # the conversation log, oldest→newest (--all for the full history)
 capy wait <threadId> --timeoutSec 900      # poll until it settles (done / blocked / timeout)
+```
+
+**Steer a live thread** — send a message to the *existing* thread (keeps Captain's context); only
+re-delegate when you genuinely want a fresh thread:
+```bash
+capy threads message <threadId> "you didn't fix the rest of the stack — finish PRs #2–#5, keep CI green"
+# --model opus|sonnet|haiku to switch models for the turn; --attachmentUrls <url>; --json → { id, status:"sent" }
 ```
 Read the real `runState` and decide yourself — there are no recommendations:
 - `running`/`queued` — working. `waiting` (+`waitingOn`: ci/review/task/…) — progressing on async deps.
@@ -54,8 +62,8 @@ Read the real `runState` and decide yourself — there are no recommendations:
 1. Confirm `CAPY_API_KEY` (and a project) are set.
 2. Run the relevant `capy … --json` command via Bash and read the JSON — don't reimplement API logic.
 3. For delegation, put the goal **and the quality bar** in the prompt; surface the returned `url`.
-4. Let Capy run the work; use `capy wait` / `capy threads get` to follow it. Steer by re-delegating
-   or with thread messages (later milestone), not by gating.
+4. Let Capy run the work; use `capy wait` / `capy threads get` to follow it. Steer by sending a thread
+   message (`capy threads message <id> "…"`) or, for a fresh start, by re-delegating — not by gating.
 
 ## Errors & exit codes
 JSON errors print `{ "error": { code, message, requestId? } }`; human errors go to stderr as `capy: …`.

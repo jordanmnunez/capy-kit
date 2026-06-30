@@ -34,6 +34,8 @@ export const globalArgs = {
 const POSITIONALS: Readonly<Record<string, string[]>> = {
   delegate: ["prompt"],
   "threads.get": ["id"],
+  "threads.message": ["id", "message"],
+  "threads.messages": ["id"],
   "projects.get": ["id"],
   wait: ["id"],
 };

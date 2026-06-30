@@ -156,6 +156,25 @@ function renderProject(p: ProjectShape): string {
   return lines.join("\n");
 }
 
+interface MessageShape {
+  id: string;
+  source: string;
+  content: string;
+  createdAt: string;
+}
+
+function renderSendMessage(m: { id: string; status: string }): string {
+  return `message ${m.status} → ${m.id}`;
+}
+
+function renderMessages(page: { items: MessageShape[]; hasMore: boolean }): string {
+  if (page.items.length === 0) return "No messages.";
+  // items arrive oldest→newest; print as a top-to-bottom log.
+  const lines = page.items.map((m) => `[${m.source}] ${truncate(m.content.replace(/\s+/g, " "), 200)}`);
+  const footer = `\n${page.items.length} message(s)${page.hasMore ? " (older available — use --all or --cursor)" : ""}`;
+  return lines.join("\n") + footer;
+}
+
 function renderWait(w: WaitResultShape): string {
   const verdict = w.terminal
     ? "done"
@@ -175,6 +194,10 @@ export function render(opName: string, data: unknown, format: OutputFormat): str
       return renderThreadsList(data as { items: ThreadItem[]; hasMore: boolean });
     case "threads.get":
       return renderThread(data as ThreadItem);
+    case "threads.message":
+      return renderSendMessage(data as { id: string; status: string });
+    case "threads.messages":
+      return renderMessages(data as { items: MessageShape[]; hasMore: boolean });
     case "status":
       return renderStatus(data as StatusResult);
     case "projects.list":

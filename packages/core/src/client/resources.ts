@@ -15,6 +15,12 @@ export type ListProjectsResponse = Schemas["ListProjectsResponse"];
 export type ProjectListItem = ListProjectsResponse["items"][number];
 export type ListProjectsQuery = NonNullable<operations["listProjects"]["parameters"]["query"]>;
 
+export type SendThreadMessageBody = Schemas["SendThreadMessageBody"];
+export type SendMessageResponse = Schemas["SendMessageResponse"];
+export type ListMessagesResponse = Schemas["ListMessagesResponse"];
+export type ThreadMessage = ListMessagesResponse["items"][number];
+export type ListMessagesQuery = NonNullable<operations["listThreadMessages"]["parameters"]["query"]>;
+
 function encodeId(id: string): string {
   return encodeURIComponent(id);
 }
@@ -36,6 +42,48 @@ export function resources(ctx: CapyContext) {
           path: `/v1/threads/${encodeId(threadId)}`,
           signal,
         }),
+
+      /** Send a message to a live thread (steer Captain without spawning a new thread). */
+      message: (threadId: string, body: SendThreadMessageBody, signal?: AbortSignal): Promise<SendMessageResponse> =>
+        request<SendMessageResponse>(ctx, {
+          method: "POST",
+          path: `/v1/threads/${encodeId(threadId)}/message`,
+          body,
+          signal,
+        }),
+
+      /** One page of a thread's messages (API order: newest-first). */
+      listMessages: (
+        threadId: string,
+        query: ListMessagesQuery = {},
+        signal?: AbortSignal,
+      ): Promise<ListMessagesResponse> =>
+        request<ListMessagesResponse>(ctx, {
+          method: "GET",
+          path: `/v1/threads/${encodeId(threadId)}/messages`,
+          query: query as Record<string, string | number | boolean | undefined>,
+          signal,
+        }),
+
+      /** Auto-follow nextCursor across every page (yields in API order: newest-first). */
+      listAllMessages: async function* (
+        threadId: string,
+        query: Omit<ListMessagesQuery, "cursor"> = {},
+        signal?: AbortSignal,
+      ): AsyncGenerator<ThreadMessage, void, void> {
+        let cursor: string | undefined;
+        for (;;) {
+          const page: ListMessagesResponse = await request<ListMessagesResponse>(ctx, {
+            method: "GET",
+            path: `/v1/threads/${encodeId(threadId)}/messages`,
+            query: { ...query, cursor } as Record<string, string | number | boolean | undefined>,
+            signal,
+          });
+          for (const item of page.items) yield item;
+          if (!page.hasMore || !page.nextCursor) return;
+          cursor = page.nextCursor;
+        }
+      },
 
       list: (query: ListThreadsQuery, signal?: AbortSignal): Promise<ListThreadsResponse> =>
         request<ListThreadsResponse>(ctx, {

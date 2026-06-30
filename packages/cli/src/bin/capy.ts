@@ -1,4 +1,14 @@
-import { delegate, projectsGet, projectsList, status, threadsGet, threadsList, wait } from "@capy-kit/core";
+import {
+  delegate,
+  projectsGet,
+  projectsList,
+  status,
+  threadsGet,
+  threadsList,
+  threadsMessage,
+  threadsMessages,
+  wait,
+} from "@capy-kit/core";
 import { defineCommand, runMain } from "citty";
 
 import { argsForOp, buildCtx, driveWait, emit, fail, formatOf, globalArgs, numOpt, opCommand } from "../build.js";
@@ -61,10 +71,12 @@ const waitCommand = defineCommand({
 });
 
 const threadsCommand = defineCommand({
-  meta: { name: "threads", description: "List, get, and observe threads." },
+  meta: { name: "threads", description: "List, get, observe, and steer threads." },
   subCommands: {
     list: opCommand(threadsList),
     get: opCommand(threadsGet),
+    message: opCommand(threadsMessage),
+    messages: opCommand(threadsMessages),
   },
 });
 

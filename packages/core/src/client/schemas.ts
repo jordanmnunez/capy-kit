@@ -142,11 +142,37 @@ export const ListProjectsResponseSchema = z
   })
   .strict();
 
+export const ThreadMessageSchema = z
+  .object({
+    id: z.string(),
+    source: z.enum(["user", "assistant"]),
+    content: z.string(),
+    createdAt: z.string(),
+  })
+  .strict();
+
+export const ListMessagesResponseSchema = z
+  .object({
+    items: z.array(ThreadMessageSchema),
+    nextCursor: z.string().nullable(),
+    hasMore: z.boolean(),
+  })
+  .strict();
+
+export const SendMessageResponseSchema = z
+  .object({
+    id: z.string(),
+    status: z.literal("sent"),
+  })
+  .strict();
+
 export type ThreadListItem = z.infer<typeof ThreadListItemSchema>;
 export type ListThreadsResponse = z.infer<typeof ListThreadsResponseSchema>;
 export type CreateThreadResponse = z.infer<typeof CreateThreadResponseSchema>;
 export type Project = z.infer<typeof ProjectSchema>;
 export type ListProjectsResponse = z.infer<typeof ListProjectsResponseSchema>;
+export type ListMessagesResponse = z.infer<typeof ListMessagesResponseSchema>;
+export type SendMessageResponse = z.infer<typeof SendMessageResponseSchema>;
 
 // --- drift guards: zod mirror must equal the generated wire type, both directions ---
 type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : never) : never;
@@ -161,3 +187,7 @@ const _checkCreateThread: Exact<CreateThreadResponse, Wire["CreateThreadResponse
 const _checkProject: Exact<Project, Wire["Project"]> = true;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _checkListProjects: Exact<ListProjectsResponse, Wire["ListProjectsResponse"]> = true;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _checkListMessages: Exact<ListMessagesResponse, Wire["ListMessagesResponse"]> = true;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _checkSendMessage: Exact<SendMessageResponse, Wire["SendMessageResponse"]> = true;

@@ -33,6 +33,11 @@ export {
   type ListProjectsResponse,
   type ProjectListItem,
   type ListProjectsQuery,
+  type SendThreadMessageBody,
+  type SendMessageResponse,
+  type ListMessagesResponse,
+  type ThreadMessage,
+  type ListMessagesQuery,
 } from "./client/resources.js";
 
 export * from "./model.js";
@@ -44,6 +49,8 @@ export {
   delegate,
   threadsList,
   threadsGet,
+  threadsMessage,
+  threadsMessages,
   wait,
   status,
   projectsList,
@@ -66,4 +73,7 @@ export {
   CreateThreadResponseSchema,
   ProjectSchema,
   ListProjectsResponseSchema,
+  ThreadMessageSchema,
+  ListMessagesResponseSchema,
+  SendMessageResponseSchema,
 } from "./client/schemas.js";
