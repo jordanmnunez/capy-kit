@@ -4,6 +4,8 @@ import { join } from "node:path";
 
 import type { CommandDef } from "citty";
 
+// Convenience SNAPSHOT of a few ids — can lag the platform. The full alias map comes from
+// /v1/models (later milestone); any id the API accepts still works via `capy delegate --model`.
 const MODEL_CHOICES = [
   { value: "claude-opus-4-8", label: "claude-opus-4-8 (default)" },
   { value: "claude-sonnet-4-6", label: "claude-sonnet-4-6" },

@@ -20,7 +20,7 @@ The single source of truth: a typed transport + resource client over the Capy AP
 
 ## `capy` — the CLI
 
-A thin shell over the ops core. Five commands today — `init`, `delegate`, `wait`, `threads`, `status` — and every one takes `--json`.
+A thin shell over the ops core — `init`, `delegate`, `wait`, `threads` (list / get / message / messages), `status`, `projects` (list / get) — and every one takes `--json` (and `--debug`).
 
 ```bash
 capy delegate "Implement ENG-123 backfill; keep behavior identical; \
@@ -77,17 +77,27 @@ Surface only *Needs-you* and *Ready-to-land*; in-flight work is Captain's job.
 ```bash
 git clone https://github.com/jordanmnunez/capy-kit && cd capy-kit
 bun install && npm run build                                 # npm also works
-ln -s "$PWD/packages/cli/dist/capy.js" ~/.local/bin/capy     # put `capy` on PATH (ensure ~/.local/bin is on it)
-capy init                                                    # or export CAPY_API_KEY=capy_…  (+ a project via --project / CAPY_PROJECT_ID)
+
+# put `capy` on your PATH — create ~/.local/bin and symlink the built bin into it:
+mkdir -p ~/.local/bin && ln -s "$PWD/packages/cli/dist/capy.js" ~/.local/bin/capy
+# if `capy` is then "command not found", ~/.local/bin isn't on PATH — add it:
+#   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && exec $SHELL
+
+capy init                                                    # or export CAPY_API_KEY=capy_…
+capy projects list                                           # find a project id → --project / CAPY_PROJECT_ID
 
 # optional — install the Claude Code skills:
 ln -s "$PWD/skills/capy"          ~/.claude/skills/capy
 ln -s "$PWD/skills/capy-fleet-hq" ~/.claude/skills/capy-fleet-hq
 ```
 
+> The model picker in `capy init` is a convenience **snapshot** of a few ids — it can lag the platform.
+> Any model the API accepts works via `--model` (aliases `opus` / `sonnet` / `haiku`, or a full id); the
+> full alias map comes from `/v1/models` in a later milestone, so a stale picker never blocks you.
+
 ## Status
 
-M0–M1 are shipped: the transport, the core ops, the six-command CLI, and the `capy` + `capy-fleet-hq` skills. Next up — the MCP server, more thread/task ops, `projects` / `usage`, and environment management. See **[PLAN.md](./PLAN.md)**.
+M0–M1 plus several M3 ops pulled forward are shipped: the transport, the core ops (`delegate`, `threads` list / get / message / messages, `wait`, `status`, `projects` list / get), the CLI, and the `capy` + `capy-fleet-hq` skills. Next up — the MCP server, `tasks` / `diff`, `usage`, and environment management. See **[PLAN.md](./PLAN.md)**.
 
 ## Design & internals
 
