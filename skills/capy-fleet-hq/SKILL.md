@@ -49,6 +49,10 @@ capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior 
 - Quality comes from the prompt's bar, not from this skill. `--tags` must already exist in the project
   (create them in the Capy app, or omit) — an unknown tag fails the whole delegate with
   `validation_error: Tag does not exist`, so pre-create your campaign tag before fanning out.
+- **Say the output shape — it's the third lever beside *what* and *the bar*.** Capy won't guess how you
+  want the work packaged, and a fan-out left unspecified comes back as a sprawl of loosely-related PRs
+  you then restack by hand. Spell it out in the prompt: *"one PR"*, *"a Graphite stack of N PRs (PR1 =
+  …, PR2 stacked on PR1)"*, or *"work these as SEPARATE, sequenced PRs — not one big PR."*
 - Add `--wait --timeoutSec 1200` to block on one; otherwise dispatch several and watch them below.
 
 **Orient vs ship — say which you want (the two-step gate).** An open-ended *"orient to this project,
