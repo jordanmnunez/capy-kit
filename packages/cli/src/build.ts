@@ -4,6 +4,8 @@ import {
   pollUntilTerminal,
   render,
   resolveContext,
+  WAIT_BLOCKED_EXIT_CODE,
+  WAIT_TIMEOUT_EXIT_CODE,
   type CapyContext,
   type Op,
   type OutputFormat,
@@ -120,8 +122,20 @@ export function fail(e: unknown, fmt: OutputFormat): void {
 }
 
 /**
+ * Exit code for a finished poll (the poll itself succeeded — genuine API errors go through
+ * `fail`). 0 = done; WAIT_BLOCKED_EXIT_CODE (123) = blocked, needs you; WAIT_TIMEOUT_EXIT_CODE
+ * (124) = poll budget ran out. Lets scripts branch on needs-you vs ran-out vs done.
+ */
+export function waitExitCode(result: WaitResult): number {
+  if (result.terminal) return 0;
+  if (result.timedOut) return WAIT_TIMEOUT_EXIT_CODE;
+  return WAIT_BLOCKED_EXIT_CODE; // settled but not done -> blocked on a human/integration gate
+}
+
+/**
  * Drive a thread to settle, streaming progress to stderr (human) and returning the final
- * WaitResult. Shared by `capy wait` and `capy delegate --wait`. Sets exit 1 if not terminal.
+ * WaitResult. Shared by `capy wait` and `capy delegate --wait`. Exit code via waitExitCode:
+ * 0 done / 123 blocked-needs-you / 124 timed out.
  */
 export async function driveWait(
   ctx: CapyContext,
@@ -148,7 +162,8 @@ export async function driveWait(
   }
   const result = next.value;
   if (emitFinal) emit("wait", result, fmt);
-  if (!result.terminal) process.exitCode = 1;
+  const code = waitExitCode(result);
+  if (code !== 0) process.exitCode = code;
   return result;
 }
 

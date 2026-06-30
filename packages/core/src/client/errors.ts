@@ -109,3 +109,14 @@ export function exitCodeFor(code: CapyErrorCode): number {
       return 1;
   }
 }
+
+/**
+ * `wait`/`delegate --wait` exit codes for a NON-error stop (the poll itself succeeded):
+ *   0   — terminal (genuinely done)
+ *   123 — settled but BLOCKED: needs you (a human/integration gate; see blockedOn)
+ *   124 — timed out: the poll budget ran out while still progressing
+ * 123 pairs with the 124 timeout code so a script can branch on needs-you vs ran-out vs done.
+ * (Genuine API errors still exit via exitCodeFor: unauthorized 77, not_found 69, etc.)
+ */
+export const WAIT_BLOCKED_EXIT_CODE = 123;
+export const WAIT_TIMEOUT_EXIT_CODE = 124;

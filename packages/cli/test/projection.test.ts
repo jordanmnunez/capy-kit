@@ -1,8 +1,26 @@
-import { OPS, type Op } from "@capy-kit/core";
+import { OPS, type Op, type WaitResult } from "@capy-kit/core";
 import type { ArgDef } from "citty";
 import { describe, expect, it } from "vitest";
 
-import { argsForOp, globalArgs, numOpt } from "../src/build.js";
+import { argsForOp, globalArgs, numOpt, waitExitCode } from "../src/build.js";
+
+function waitResult(over: Partial<WaitResult>): WaitResult {
+  return {
+    id: "jam_x",
+    status: "idle",
+    runState: "ready",
+    waitingOn: [],
+    blockedOn: [],
+    terminal: true,
+    settled: true,
+    timedOut: false,
+    lastStatus: "idle",
+    lastRunState: "ready",
+    elapsedMs: 1000,
+    attempts: 1,
+    ...over,
+  };
+}
 
 function types(args: Record<string, ArgDef>): Record<string, string> {
   return Object.fromEntries(Object.entries(args).map(([k, v]) => [k, String(v.type)]));
@@ -90,5 +108,13 @@ describe("CLI projection from OPS", () => {
     expect(numOpt("abc")).toBeUndefined();
     expect(numOpt("")).toBeUndefined();
     expect(numOpt(undefined)).toBeUndefined();
+  });
+
+  it("waitExitCode: 0 done / 123 blocked-needs-you / 124 timed out", () => {
+    expect(waitExitCode(waitResult({ terminal: true }))).toBe(0);
+    expect(
+      waitExitCode(waitResult({ terminal: false, settled: true, runState: "blocked", blockedOn: ["auth"] })),
+    ).toBe(123);
+    expect(waitExitCode(waitResult({ terminal: false, settled: false, timedOut: true }))).toBe(124);
   });
 });

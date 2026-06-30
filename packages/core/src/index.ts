@@ -17,6 +17,8 @@ export {
   isPermanent,
   statusToCode,
   exitCodeFor,
+  WAIT_BLOCKED_EXIT_CODE,
+  WAIT_TIMEOUT_EXIT_CODE,
 } from "./client/errors.js";
 
 export { request, backoffMs, type RequestOptions, type HttpMethod } from "./client/transport.js";

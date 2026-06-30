@@ -56,7 +56,9 @@ Read the real `runState` and decide yourself — there are no recommendations:
 - `ready` (status `idle`) — **done** with the current ask. `blocked` (+`blockedOn`: auth/permission) — needs you.
 - Task status is `…|needs_review|completed|error|archived` (it's `error`, not "failed").
 
-`wait` exits non-zero if it stops un-done (blocked or timed out); `terminal:true` means genuinely finished.
+`wait` / `delegate --wait` exit codes let you branch without parsing: **0** genuinely done (`terminal:true`),
+**123** stopped **blocked — needs you** (see `blockedOn`), **124** **timed out** (poll budget ran out, still
+progressing). So `capy wait <id>; case $? in 0) merge;; 123) go-unblock-it;; 124) check-back-later;; esac`.
 
 ## How to use it here
 1. Confirm `CAPY_API_KEY` (and a project) are set.
@@ -67,4 +69,5 @@ Read the real `runState` and decide yourself — there are no recommendations:
 
 ## Errors & exit codes
 JSON errors print `{ "error": { code, message, requestId? } }`; human errors go to stderr as `capy: …`.
-Exit codes: unauthorized→77, not_found→69, rate_limited→75, timeout→124, else 1.
+Error exit codes: unauthorized→77, not_found→69, rate_limited→75, timeout→124, else 1.
+`wait`/`delegate --wait` non-error stops: 0 done, **123 blocked (needs you)**, 124 timed out (see above).
