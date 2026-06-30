@@ -65,6 +65,10 @@ Read the real `runState` and decide yourself — there are no recommendations:
 **123** stopped **blocked — needs you** (see `blockedOn`), **124** **timed out** (poll budget ran out, still
 progressing). So `capy wait <id>; case $? in 0) merge;; 123) go-unblock-it;; 124) check-back-later;; esac`.
 
+**See the wire calls — don't grep the source.** Add `--debug` to any command to log the exact (redacted,
+no token) HTTP request/response to stderr. Use that to learn what a command actually does against the live
+API instead of reading capy-kit's internals.
+
 ## How to use it here
 1. Confirm `CAPY_API_KEY` (and a project) are set.
 2. Run the relevant `capy … --json` command via Bash and read the JSON — don't reimplement API logic.

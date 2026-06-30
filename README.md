@@ -30,6 +30,8 @@ capy status --json                      # what's running (real status / runState
 capy wait <threadId> --timeoutSec 1200  # block until it settles
 ```
 
+Every command also takes `--debug`, which logs the exact (redacted — never the token) HTTP request/response to stderr — use it to inspect live API behavior instead of reading the source.
+
 ## `capy-mcp` — the MCP server
 
 The same ops registry exposed as MCP tools (stdio + streamable-HTTP), so your own agents and harnesses can drive Capy directly instead of shelling out. *Scaffolded — next on the roadmap.*
