@@ -11,7 +11,7 @@ import {
 } from "@capy-kit/core";
 import { defineCommand, runMain } from "citty";
 
-import { argsForOp, buildCtx, driveWait, emit, fail, formatOf, globalArgs, numOpt, opCommand } from "../build.js";
+import { argsForOp, buildCtx, driveWait, emit, fail, formatOf, globalArgs, numOpt, opCommand, withTagsHint } from "../build.js";
 import { initCommand } from "../commands/init.js";
 
 // delegate is custom: it adds the cross-op `--wait` convenience (delegate then wait).
@@ -47,7 +47,7 @@ const delegateCommand = defineCommand({
         await driveWait(ctx, waitOpts, fmt);
       }
     } catch (e) {
-      fail(e, fmt);
+      fail(withTagsHint(e, Boolean(args.tags)), fmt);
     }
   },
 });

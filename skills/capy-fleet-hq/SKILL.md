@@ -43,11 +43,12 @@ groupable:
 ```bash
 capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior identical; \
   don't return until tests pass and CI is green" \
-  --repos your-org/your-repo@main --model opus --tags my-campaign --json
+  --repos your-org/your-repo@main --model opus --tags my-campaign --json   # ← tag must ALREADY exist
 # → { threadId, url, status, runState, model }   — surface the url
 ```
 - Quality comes from the prompt's bar, not from this skill. `--tags` must already exist in the project
-  (create them in the Capy app, or omit).
+  (create them in the Capy app, or omit) — an unknown tag fails the whole delegate with
+  `validation_error: Tag does not exist`, so pre-create your campaign tag before fanning out.
 - Add `--wait --timeoutSec 1200` to block on one; otherwise dispatch several and watch them below.
 
 ## 4. Overview — the fleet dashboard

@@ -30,7 +30,8 @@ capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior 
 # → { threadId, url, status, runState, model }   (the thread is created AND started)
 ```
 - `--repos owner/name@branch` (repeatable / comma-separated), `--model opus|sonnet|haiku|<id>`,
-  `--tags t`, `--attachmentUrls <url>`.
+  `--tags t` (**each tag must already exist in the Capy project** — create it in the app, or omit;
+  passing an unknown tag fails with `validation_error: Tag does not exist`), `--attachmentUrls <url>`.
 - `--wait` blocks until the thread settles, streaming progress to stderr:
   `capy delegate "…" --repos … --wait --timeoutSec 1200`. In `--json`, `--wait` emits one
   document `{ delegate, wait }`.

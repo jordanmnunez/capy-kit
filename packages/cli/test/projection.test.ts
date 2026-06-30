@@ -1,8 +1,8 @@
-import { OPS, type Op, type WaitResult } from "@capy-kit/core";
+import { CapyError, OPS, type Op, type WaitResult } from "@capy-kit/core";
 import type { ArgDef } from "citty";
 import { describe, expect, it } from "vitest";
 
-import { argsForOp, globalArgs, numOpt, waitExitCode } from "../src/build.js";
+import { argsForOp, globalArgs, numOpt, waitExitCode, withTagsHint } from "../src/build.js";
 
 function waitResult(over: Partial<WaitResult>): WaitResult {
   return {
@@ -108,6 +108,20 @@ describe("CLI projection from OPS", () => {
     expect(numOpt("abc")).toBeUndefined();
     expect(numOpt("")).toBeUndefined();
     expect(numOpt(undefined)).toBeUndefined();
+  });
+
+  it("delegate.tags carries the pre-exist constraint as help text", () => {
+    const tags = argsForOp(byName("delegate")).tags as ArgDef & { description?: string };
+    expect(tags.description ?? "").toMatch(/already exist/i);
+  });
+
+  it("withTagsHint augments a tag validation_error only when --tags was passed", () => {
+    const tagErr = new CapyError({ code: "validation_error", message: "Tag does not exist or is invalid" });
+    expect((withTagsHint(tagErr, true) as CapyError).message).toMatch(/must already exist/i);
+    // untouched when no --tags, or when the error is unrelated
+    expect(withTagsHint(tagErr, false)).toBe(tagErr);
+    const other = new CapyError({ code: "validation_error", message: "prompt required" });
+    expect(withTagsHint(other, true)).toBe(other);
   });
 
   it("waitExitCode: 0 done / 123 blocked-needs-you / 124 timed out", () => {

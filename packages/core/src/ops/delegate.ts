@@ -12,7 +12,9 @@ const DelegateInput = z.object({
   // "owner/name@branch" specs; branch falls back to --branch when omitted.
   repos: csvArray(z.string()).optional(),
   branch: z.string().optional(),
-  tags: csvArray(z.string()).optional(),
+  tags: csvArray(z.string())
+    .describe("Tag(s) to attach; each must ALREADY exist in the Capy project (create them in the app, or omit).")
+    .optional(),
   attachmentUrls: csvArray(z.string()).optional(),
   projectId: z.string().optional(),
 });

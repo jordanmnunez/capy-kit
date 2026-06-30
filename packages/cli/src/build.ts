@@ -18,6 +18,7 @@ import type { ArgDef, ArgsDef, CommandDef } from "citty";
 // `.unwrap()`, and `.shape` are all present.
 interface SchemaNode {
   def?: { type?: string };
+  description?: string;
   unwrap?: () => SchemaNode;
   shape?: Record<string, SchemaNode>;
 }
@@ -59,6 +60,11 @@ function isBoolean(schema: SchemaNode): boolean {
   return unwrapToBase(schema).def?.type === "boolean";
 }
 
+/** A zod `.describe(...)` on the field (or its unwrapped base) -> citty help text. */
+function descriptionOf(schema: SchemaNode): string | undefined {
+  return schema.description ?? unwrapToBase(schema).description;
+}
+
 /** Project an op's zod input into citty args: booleans -> flags, positionals via map, rest -> string (zod coerces). */
 export function argsForOp(op: Op): ArgsDef {
   const shape = (op.input as unknown as SchemaNode).shape ?? {};
@@ -66,12 +72,14 @@ export function argsForOp(op: Op): ArgsDef {
   const args: Record<string, ArgDef> = {};
   for (const [key, field] of Object.entries(shape)) {
     if (SKIP_FLAGS.has(key)) continue;
+    const desc = descriptionOf(field);
+    const description = desc ? { description: desc } : {};
     if (positionals.includes(key)) {
-      args[key] = { type: "positional", required: !isOptional(field) };
+      args[key] = { type: "positional", required: !isOptional(field), ...description };
     } else if (isBoolean(field)) {
-      args[key] = { type: "boolean" };
+      args[key] = { type: "boolean", ...description };
     } else {
-      args[key] = { type: "string" };
+      args[key] = { type: "string", ...description };
     }
   }
   return args;
@@ -105,6 +113,23 @@ export function buildCtx(args: Record<string, unknown>): CapyContext {
 
 export function emit(opName: string, result: unknown, fmt: OutputFormat): void {
   process.stdout.write(render(opName, result, fmt) + "\n");
+}
+
+/**
+ * If a delegate/message call failed because a --tags value doesn't exist yet, append the
+ * fix. Tags must pre-exist in the Capy project; capy-kit never auto-creates them (that
+ * convenience, if ever wanted, is fleet-hq's, not core's).
+ */
+export function withTagsHint(e: unknown, hadTags: boolean): unknown {
+  if (hadTags && e instanceof CapyError && e.code === "validation_error" && /tag/i.test(e.message)) {
+    return new CapyError({
+      code: e.code,
+      message: `${e.message} — tags must already exist in the Capy project (create them in the Capy app, or omit --tags).`,
+      requestId: e.requestId,
+      details: e.details,
+    });
+  }
+  return e;
 }
 
 /** Print an error in the chosen mode and set a code-mapped exit code. Never rethrows. */
