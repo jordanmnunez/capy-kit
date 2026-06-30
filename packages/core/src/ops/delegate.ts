@@ -10,8 +10,13 @@ const DelegateInput = z.object({
   // alias (opus/sonnet/haiku) or a full model id; resolved against MODEL_ALIASES.
   model: z.string().optional(),
   // "owner/name@branch" specs; branch falls back to --branch when omitted.
-  repos: csvArray(z.string()).optional(),
-  branch: z.string().optional(),
+  repos: csvArray(z.string())
+    .describe("Repos as owner/name@branch (repeatable / comma-separated). Multi-repo fan-out: give EACH its own @branch.")
+    .optional(),
+  branch: z
+    .string()
+    .describe("Fallback branch for --repos entries without @branch — applied to ALL of them; set per-repo @branch when bases differ.")
+    .optional(),
   tags: csvArray(z.string())
     .describe("Tag(s) to attach; each must ALREADY exist in the Capy project (create them in the app, or omit).")
     .optional(),

@@ -32,6 +32,9 @@ capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior 
 - `--repos owner/name@branch` (repeatable / comma-separated), `--model opus|sonnet|haiku|<id>`,
   `--tags t` (**each tag must already exist in the Capy project** — create it in the app, or omit;
   passing an unknown tag fails with `validation_error: Tag does not exist`), `--attachmentUrls <url>`.
+- `--branch` is a **shared fallback** applied to *every* `--repos` entry that omits `@branch`. For a
+  multi-repo fan-out where bases differ, give each repo its own `@branch` (e.g.
+  `--repos org/a@main --repos org/b@develop`) rather than relying on one `--branch`.
 - `--wait` blocks until the thread settles, streaming progress to stderr:
   `capy delegate "…" --repos … --wait --timeoutSec 1200`. In `--json` the delegate fields are always
   at the root (`{ threadId, url, status, … }`); `--wait` just **adds** a `wait` field with the final
