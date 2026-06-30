@@ -50,6 +50,10 @@ capy threads messages <threadId> --json    # the conversation log, oldest→newe
 capy wait <threadId> --timeoutSec 900      # poll until it settles (done / blocked / timeout)
 ```
 
+> URLs: capy-kit emits `…/project/<projectId>/captain/<threadId>`, while the web app's share/copy URL
+> reads `…/project/<projectId>/thread/<threadId>`. They point at the **same** thread — `/captain/` and
+> `/thread/` are interchangeable. Either way, the `<threadId>` is what you pass to `capy threads get`.
+
 **Steer a live thread** — send a message to the *existing* thread (keeps Captain's context); only
 re-delegate when you genuinely want a fresh thread:
 ```bash
