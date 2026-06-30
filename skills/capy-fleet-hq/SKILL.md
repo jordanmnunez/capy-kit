@@ -51,6 +51,16 @@ capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior 
   `validation_error: Tag does not exist`, so pre-create your campaign tag before fanning out.
 - Add `--wait --timeoutSec 1200` to block on one; otherwise dispatch several and watch them below.
 
+**Orient vs ship — say which you want (the two-step gate).** An open-ended *"orient to this project,
+don't fan out any work yet"* prompt is **research-only by design** — Capy returns a plan, not PRs. That
+is the deliberate first step of the proven Mail-Triage shape, but it only ships after a **second,
+explicit authorize** turn (e.g. *"looks good — kick everything off and manage all the builders"*). So:
+- **Want a plan / safe survey, or the work is irreversible** (deletes, config, deploys)? Open with
+  orient + a hard recommend-only gate: *"DO NOT take any action — reply with a recommendation only,"* or
+  *"before deleting anything, grep for live references; if you find one, stop and report."*
+- **Want shipped code now?** Skip "orient" as the opener — name the file/edit and the bar in one
+  `delegate`. A bare *"orient to X"* will stall in research; it won't ship without the authorize turn.
+
 ## 4. Overview — the fleet dashboard
 
 `capy status` is a flat list with **no buckets** by design. Here you add the buckets. Pull the real
