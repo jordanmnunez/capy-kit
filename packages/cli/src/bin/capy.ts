@@ -39,9 +39,11 @@ const delegateCommand = defineCommand({
         intervalSec: numOpt(args.intervalSec),
       };
       if (fmt === "json") {
-        // Single JSON document for the combined op (don't print two top-level objects).
+        // Stable --json contract: the delegate fields are ALWAYS at the root; --wait merely
+        // ADDS a `wait` field. (Previously --wait re-rooted everything under {delegate,wait},
+        // so one flag moved every field — a footgun for parsers / the ingestion connector.)
         const final = await driveWait(ctx, waitOpts, fmt, { emitFinal: false });
-        process.stdout.write(JSON.stringify({ delegate: result, wait: final }, null, 2) + "\n");
+        process.stdout.write(JSON.stringify({ ...result, wait: final }, null, 2) + "\n");
       } else {
         emit("delegate", result, fmt);
         await driveWait(ctx, waitOpts, fmt);

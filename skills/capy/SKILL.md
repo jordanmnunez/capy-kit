@@ -33,8 +33,9 @@ capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior 
   `--tags t` (**each tag must already exist in the Capy project** — create it in the app, or omit;
   passing an unknown tag fails with `validation_error: Tag does not exist`), `--attachmentUrls <url>`.
 - `--wait` blocks until the thread settles, streaming progress to stderr:
-  `capy delegate "…" --repos … --wait --timeoutSec 1200`. In `--json`, `--wait` emits one
-  document `{ delegate, wait }`.
+  `capy delegate "…" --repos … --wait --timeoutSec 1200`. In `--json` the delegate fields are always
+  at the root (`{ threadId, url, status, … }`); `--wait` just **adds** a `wait` field with the final
+  poll result — so a parser reads `.threadId` the same way with or without `--wait`.
 
 ## Observe & steer (faithfully)
 ```bash
