@@ -47,6 +47,12 @@ export const initCommand: CommandDef = {
     const orgId = await p.text({ message: "Org id for usage (optional)", placeholder: "org_…" });
     if (p.isCancel(orgId)) return p.cancel("Cancelled.");
 
+    const authorEmail = await p.text({
+      message: "Your email — defaults `capy status` to your own threads on shared projects (optional)",
+      placeholder: "you@company.com",
+    });
+    if (p.isCancel(authorEmail)) return p.cancel("Cancelled.");
+
     const defaultModel = await p.select({
       message: "Default model",
       options: MODEL_CHOICES,
@@ -66,6 +72,7 @@ export const initCommand: CommandDef = {
     else delete cfg.apiKey;
     if (typeof projectId === "string" && projectId.trim()) cfg.projectId = projectId.trim();
     if (typeof orgId === "string" && orgId.trim()) cfg.orgId = orgId.trim();
+    if (typeof authorEmail === "string" && authorEmail.trim()) cfg.authorEmail = authorEmail.trim();
 
     writeFileSync(cfgPath, JSON.stringify(cfg, null, 2) + "\n", { mode: 0o600 });
     chmodSync(cfgPath, 0o600);

@@ -58,10 +58,14 @@ state, then group it:
 
 ```bash
 capy status --json                                   # active threads for the current project
+capy status --authorEmail you@co.com --json          # YOUR work only — shared projects bury it otherwise
 capy threads list --all --tag my-campaign --json     # a whole campaign across pages
 # more than one project: repeat with --project <id> / --profile <name>
 ```
-Read each thread's real `runState` / `waitingOn` / `blockedOn` / PR and sort into three buckets:
+On a **team-shared** project your threads are a few among everyone's — scope the dashboard to your own
+work with `--authorEmail` (or set `CAPY_AUTHOR_EMAIL` once to make it the default), and/or `--origin` to
+a single source. Then read each thread's real `runState` / `waitingOn` / `blockedOn` / PR and sort into
+three buckets:
 
 - **Needs you** — `runState: blocked` (+ `blockedOn`: auth/permission). Unblock it or re-delegate.
 - **Ready to land** — status `idle` / `runState: ready`, has a PR. Review + merge.

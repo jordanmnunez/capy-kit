@@ -32,4 +32,22 @@ describe("status", () => {
     expect(out.count).toBe(0);
     expect(out.threads).toEqual([]);
   });
+
+  it("passes the --origin filter through", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: makePage() }));
+    await status.run({ origin: "api" }, testContext({ fetch }));
+    expect(calls[0]!.query.get("origin")).toBe("api");
+  });
+
+  it("defaults authorEmail to ctx.authorEmail (your own threads on shared projects)", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: makePage() }));
+    await status.run({}, testContext({ fetch, authorEmail: "me@co.com" }));
+    expect(calls[0]!.query.get("authorEmail")).toBe("me@co.com");
+  });
+
+  it("an explicit --authorEmail overrides the ctx default", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: makePage() }));
+    await status.run({ authorEmail: "other@co.com" }, testContext({ fetch, authorEmail: "me@co.com" }));
+    expect(calls[0]!.query.get("authorEmail")).toBe("other@co.com");
+  });
 });

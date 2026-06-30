@@ -13,6 +13,9 @@ export interface CapyContext {
   webBaseUrl: string;
   projectId?: string;
   orgId?: string;
+  // Your own email. Opt-in (CAPY_AUTHOR_EMAIL / config), used to default `status` to YOUR
+  // threads on team-shared projects (where your work is otherwise buried among everyone's).
+  authorEmail?: string;
   fetch: typeof fetch;
   validate: boolean;
   timeoutMs: number;
@@ -28,6 +31,7 @@ export interface CapyContextInput {
   webBaseUrl?: string;
   projectId?: string;
   orgId?: string;
+  authorEmail?: string;
   fetch?: typeof fetch;
   validate?: boolean;
   timeoutMs?: number;
@@ -54,6 +58,7 @@ interface FileLayer {
   webBaseUrl?: string;
   projectId?: string;
   orgId?: string;
+  authorEmail?: string;
   defaultModel?: string;
 }
 
@@ -129,6 +134,7 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
     webBaseUrl: input.webBaseUrl ?? pick("CAPY_WEB_URL", file.webBaseUrl) ?? DEFAULTS.webBaseUrl,
     projectId: input.projectId ?? pick("CAPY_PROJECT_ID", file.projectId),
     orgId: input.orgId ?? pick("CAPY_ORG_ID", file.orgId),
+    authorEmail: input.authorEmail ?? pick("CAPY_AUTHOR_EMAIL", file.authorEmail),
     fetch: input.fetch ?? globalThis.fetch,
     validate: input.validate ?? toBool(env.CAPY_VALIDATE ?? dot.CAPY_VALIDATE) ?? DEFAULTS.validate,
     timeoutMs: input.timeoutMs ?? toInt(env.CAPY_TIMEOUT_MS ?? dot.CAPY_TIMEOUT_MS) ?? DEFAULTS.timeoutMs,

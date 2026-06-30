@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { resources, type ListThreadsQuery, type ThreadListItem } from "../client/resources.js";
-import { THREAD_RUN_STATES, THREAD_STATUSES, threadUrl } from "../model.js";
+import { ORIGINS, THREAD_RUN_STATES, THREAD_STATUSES, threadUrl } from "../model.js";
 import type { CapyContext } from "../client/context.js";
 import { defineOp } from "./define.js";
 import { requireProject } from "./shared.js";
@@ -50,22 +50,28 @@ export const status = defineOp({
   summary: "Plain dashboard of your threads with real status/runState (no buckets, no recs).",
   description:
     "Faithful list of in-flight work: each thread's real status, runState, waitingOn, blockedOn, " +
-    "tasks, and PR. Defaults to active threads. No triage buckets or recommendations — you (or Capy) decide.",
+    "tasks, and PR. Defaults to active threads. On a team-shared project, filter to your own work with " +
+    "--authorEmail (or set CAPY_AUTHOR_EMAIL to default it) and/or --origin. No triage buckets or " +
+    "recommendations — you (or Capy) decide.",
   effect: "read",
   input: z.object({
     projectId: z.string().optional(),
     status: z.enum(THREAD_STATUSES).optional(),
     authorEmail: z.string().optional(),
+    origin: z.enum(ORIGINS).optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
     all: z.boolean().optional(),
   }),
   output: StatusOutput,
   async run(args, ctx) {
     const projectId = requireProject(args.projectId, ctx);
+    // Default to YOUR threads when CAPY_AUTHOR_EMAIL is configured (shared projects bury your work).
+    const authorEmail = args.authorEmail ?? ctx.authorEmail;
     const filters: ListThreadsQuery = {
       projectId,
       status: args.status ?? "active",
-      ...(args.authorEmail !== undefined ? { authorEmail: args.authorEmail } : {}),
+      ...(authorEmail !== undefined ? { authorEmail } : {}),
+      ...(args.origin !== undefined ? { origin: args.origin } : {}),
     };
     let items: ThreadListItem[];
     if (args.all) {
