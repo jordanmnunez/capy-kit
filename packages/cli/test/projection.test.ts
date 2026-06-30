@@ -9,8 +9,16 @@ function types(args: Record<string, ArgDef>): Record<string, string> {
 }
 
 describe("CLI projection from OPS", () => {
-  it("exposes exactly the M1 op set, in order", () => {
-    expect(OPS.map((op) => op.name)).toEqual(["delegate", "threads.list", "threads.get", "wait", "status"]);
+  it("exposes exactly the op set, in order", () => {
+    expect(OPS.map((op) => op.name)).toEqual([
+      "delegate",
+      "threads.list",
+      "threads.get",
+      "wait",
+      "status",
+      "projects.list",
+      "projects.get",
+    ]);
   });
 
   it("delegate: positional prompt, string sugar flags, no redundant --projectId", () => {
@@ -43,6 +51,15 @@ describe("CLI projection from OPS", () => {
     const waitArgs = argsForOp(OPS[3]!);
     expect(waitArgs.id).toMatchObject({ type: "positional", required: true });
     expect(types(waitArgs).timeoutSec).toBe("string");
+  });
+
+  it("projects.list: list flags, no positional; projects.get: required positional id", () => {
+    const list = types(argsForOp(OPS[5]!));
+    expect(list.all).toBe("boolean");
+    expect(list.limit).toBe("string");
+    expect(Object.values(list)).not.toContain("positional");
+    const get = argsForOp(OPS[6]!);
+    expect(get.id).toMatchObject({ type: "positional", required: true });
   });
 
   it("globals are the documented set", () => {

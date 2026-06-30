@@ -16,7 +16,8 @@ surfaces faithful state and faithful controls. Quality comes from the delegation
 
 ## Setup (once)
 - Auth: `CAPY_API_KEY` (a `capy_…` token) — set it in the env or `~/.capy/.env` (0600), or run `capy init`.
-- Project: `CAPY_PROJECT_ID` (a UUID), or pass `--project <uuid>` per call. Find ids in the Capy web app.
+- Project: `CAPY_PROJECT_ID` (a UUID), or pass `--project <uuid>` per call. Run `capy projects list`
+  (needs only the API key) to discover ids — `capy projects list --json` for the raw `{id,name,taskCode}`.
 
 ## Delegate — hand work to Capy
 Tell Capy **what** to do and **the bar to hit** (e.g. "don't return until tests pass and CI is green"),
@@ -36,6 +37,7 @@ capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior 
 
 ## Observe & steer (faithfully)
 ```bash
+capy projects list --json                  # discover project ids ({id,name,taskCode}); needs only the API key
 capy status --json                         # active threads: real status/runState/waitingOn/blockedOn/PR (no buckets)
 capy threads list --json                   # full filters: --status --branch --pr --pr-state --authorEmail --tag -q --limit --all
 capy threads get <threadId> --json         # one thread: status, runState, tasks, PRs, tags

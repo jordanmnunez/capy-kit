@@ -7,7 +7,9 @@ export function requireProject(argProjectId: string | undefined, ctx: CapyContex
   if (!projectId) {
     throw new CapyError({
       code: "no_project",
-      message: "No projectId. Pass --project, set CAPY_PROJECT_ID, or run `capy init`.",
+      message:
+        "No project selected. Run `capy projects list` to see ids, then pass --project <id>, " +
+        "set CAPY_PROJECT_ID, or run `capy init`.",
     });
   }
   return projectId;

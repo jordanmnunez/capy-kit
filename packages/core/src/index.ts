@@ -29,6 +29,10 @@ export {
   type ThreadListItem,
   type ListThreadsResponse,
   type ListThreadsQuery,
+  type Project,
+  type ListProjectsResponse,
+  type ProjectListItem,
+  type ListProjectsQuery,
 } from "./client/resources.js";
 
 export * from "./model.js";
@@ -42,6 +46,8 @@ export {
   threadsGet,
   wait,
   status,
+  projectsList,
+  projectsGet,
   listAllThreads,
   pollUntilTerminal,
   waitForThread,
@@ -58,4 +64,6 @@ export {
   ThreadListItemSchema,
   ListThreadsResponseSchema,
   CreateThreadResponseSchema,
+  ProjectSchema,
+  ListProjectsResponseSchema,
 } from "./client/schemas.js";

@@ -130,6 +130,32 @@ function renderStatus(s: StatusResult): string {
   return table(rows) + `\n${s.count} thread(s)`;
 }
 
+interface ProjectShape {
+  id: string;
+  name: string;
+  taskCode: string;
+  repos?: Array<{ repoFullName: string; branch: string }>;
+}
+
+function renderProjectsList(page: { items: ProjectShape[]; hasMore: boolean }): string {
+  if (page.items.length === 0) return "No projects.";
+  const rows: string[][] = [["ID", "TASKCODE", "NAME"]];
+  for (const p of page.items) {
+    rows.push([p.id, p.taskCode, truncate(p.name, 56)]);
+  }
+  const footer = `\n${page.items.length} project(s)${page.hasMore ? " (more available — use --all or --cursor)" : ""}`;
+  return table(rows) + footer;
+}
+
+function renderProject(p: ProjectShape): string {
+  const lines = [`${p.id}  ${p.name}`, `taskCode: ${p.taskCode}`];
+  if (p.repos && p.repos.length > 0) {
+    lines.push("repos:");
+    for (const r of p.repos) lines.push(`  ${r.repoFullName}@${r.branch}`);
+  }
+  return lines.join("\n");
+}
+
 function renderWait(w: WaitResultShape): string {
   const verdict = w.terminal
     ? "done"
@@ -151,6 +177,10 @@ export function render(opName: string, data: unknown, format: OutputFormat): str
       return renderThread(data as ThreadItem);
     case "status":
       return renderStatus(data as StatusResult);
+    case "projects.list":
+      return renderProjectsList(data as { items: ProjectShape[]; hasMore: boolean });
+    case "projects.get":
+      return renderProject(data as ProjectShape);
     case "wait":
       return renderWait(data as WaitResultShape);
     default:
