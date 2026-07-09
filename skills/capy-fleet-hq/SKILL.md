@@ -43,9 +43,16 @@ groupable:
 ```bash
 capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior identical; \
   don't return until tests pass and CI is green" \
-  --repos your-org/your-repo@main --model opus --tags my-campaign --json   # ← tag must ALREADY exist
-# → { threadId, url, status, runState, model }   — surface the url
+  --repos your-org/your-repo@main --tags my-campaign --json   # ← tag must ALREADY exist
+# → { threadId, url, status, runState, model, reasoning }   — surface the url
 ```
+- **Default the fleet to `gpt-5.6-sol` at `--reasoning xhigh`** — Jordan's standing preference
+  (2026-07-09; supersedes the Fable default). Both are baked into `~/.capy/config.json`
+  (`defaultModel`/`defaultReasoning`), so a bare `capy delegate` already applies them — pass the flags
+  only to deviate. Full ids required: `sol`/`fable` shorthands fail validation; `opus|sonnet|haiku`
+  aliases are for cheap mechanical runs; `claude-fable-5` remains the Claude-side pick. Already-running
+  threads can be moved mid-flight:
+  `capy threads message <id> "continue on this model" --model gpt-5.6-sol --reasoning xhigh` (keeps context).
 - Quality comes from the prompt's bar, not from this skill. `--tags` must already exist in the project
   (create them in the Capy app, or omit) — an unknown tag fails the whole delegate with
   `validation_error: Tag does not exist`, so pre-create your campaign tag before fanning out.
