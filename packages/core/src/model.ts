@@ -100,6 +100,22 @@ export function resolveModelAlias(model: string | undefined): string | undefined
   return MODEL_ALIASES[model] ?? model;
 }
 
+// Reasoning effort for `reasoning.mode` on create-thread / send-message (the spec's enum,
+// shared by CreateThreadBody and SendThreadMessageBody). Which modes a given model accepts
+// is model-dependent — pass through faithfully; the API validates.
+export const REASONING_MODES = [
+  "off",
+  "on",
+  "none",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
+export type ReasoningMode = (typeof REASONING_MODES)[number];
+
 // NOTE: confirmed against the live API — thread ids AND task ids are opaque UUIDs
 // (the spec's `jam_123` example is stale), so no prefix heuristic can tell them apart.
 // `wait`/`pollUntilTerminal` therefore take an explicit `kind` (default "thread") rather

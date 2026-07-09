@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { resources, type CreateThreadBody } from "../client/resources.js";
-import { THREAD_RUN_STATES, THREAD_STATUSES, resolveModelAlias, threadUrl } from "../model.js";
+import { REASONING_MODES, THREAD_RUN_STATES, THREAD_STATUSES, resolveModelAlias, threadUrl } from "../model.js";
 import { csvArray, defineOp } from "./define.js";
 import { parseRepo, requireProject } from "./shared.js";
 
@@ -9,6 +9,13 @@ const DelegateInput = z.object({
   prompt: z.string().min(1),
   // alias (opus/sonnet/haiku) or a full model id; resolved against MODEL_ALIASES.
   model: z.string().optional(),
+  // sent as `reasoning.mode`; per-model support is validated by the API.
+  reasoning: z
+    .enum(REASONING_MODES)
+    .describe(
+      "Reasoning effort for the thread (off|on|none|minimal|low|medium|high|xhigh|max); falls back to defaultReasoning from config/CAPY_DEFAULT_REASONING, else omitted.",
+    )
+    .optional(),
   // "owner/name@branch" specs; branch falls back to --branch when omitted.
   repos: csvArray(z.string())
     .describe("Repos as owner/name@branch (repeatable / comma-separated). Multi-repo fan-out: give EACH its own @branch.")
@@ -32,6 +39,7 @@ const DelegateResult = z.object({
   waitingOn: z.array(z.string()),
   blockedOn: z.array(z.string()),
   model: z.string(),
+  reasoning: z.string().nullable(),
   title: z.string().nullable(),
   url: z.string(),
   createdAt: z.string(),
@@ -50,9 +58,11 @@ export const delegate = defineOp({
   async run(args, ctx) {
     const projectId = requireProject(args.projectId, ctx);
     const model = resolveModelAlias(args.model) ?? ctx.defaultModel;
+    const reasoning = args.reasoning ?? ctx.defaultReasoning;
 
     const body: CreateThreadBody = { projectId, prompt: args.prompt };
     if (model) body.model = model as CreateThreadBody["model"];
+    if (reasoning) body.reasoning = { mode: reasoning as NonNullable<CreateThreadBody["reasoning"]>["mode"] };
     if (args.repos && args.repos.length > 0) {
       body.repos = args.repos.map((spec) => parseRepo(spec, args.branch));
     }
@@ -68,6 +78,7 @@ export const delegate = defineOp({
       waitingOn: res.waitingOn,
       blockedOn: res.blockedOn,
       model,
+      reasoning: reasoning ?? null,
       title: res.title,
       url: threadUrl(ctx.webBaseUrl, res.projectId, res.id),
       createdAt: res.createdAt,

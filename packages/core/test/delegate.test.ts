@@ -35,6 +35,24 @@ describe("delegate", () => {
     expect((calls[0]!.body as { model: string }).model).toBe("claude-sonnet-4-6");
   });
 
+  it("sends reasoning.mode from --reasoning and echoes it in the result", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: makeCreateResponse() }));
+    const out = await delegate.run({ prompt: "x", reasoning: "xhigh" }, testContext({ fetch }));
+    expect((calls[0]!.body as { reasoning: unknown }).reasoning).toEqual({ mode: "xhigh" });
+    expect(out.reasoning).toBe("xhigh");
+  });
+
+  it("falls back to ctx.defaultReasoning, and omits reasoning when neither is set", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: makeCreateResponse() }));
+    await delegate.run({ prompt: "x" }, testContext({ fetch, defaultReasoning: "max" }));
+    expect((calls[0]!.body as { reasoning: unknown }).reasoning).toEqual({ mode: "max" });
+
+    const bare = makeMockFetch(() => ({ json: makeCreateResponse() }));
+    const out = await delegate.run({ prompt: "x" }, testContext({ fetch: bare.fetch }));
+    expect((bare.calls[0]!.body as Record<string, unknown>).reasoning).toBeUndefined();
+    expect(out.reasoning).toBeNull();
+  });
+
   it("falls back to --branch when a repo omits @branch", async () => {
     const { fetch, calls } = makeMockFetch(() => ({ json: makeCreateResponse() }));
     await delegate.run({ prompt: "x", repos: ["owner/repo"], branch: "dev" }, testContext({ fetch }));

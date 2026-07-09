@@ -8,6 +8,8 @@ import type { CommandDef } from "citty";
 // /v1/models (later milestone); any id the API accepts still works via `capy delegate --model`.
 const MODEL_CHOICES = [
   { value: "claude-opus-4-8", label: "claude-opus-4-8 (default)" },
+  { value: "gpt-5.6-sol", label: "gpt-5.6-sol" },
+  { value: "claude-fable-5", label: "claude-fable-5" },
   { value: "claude-sonnet-4-6", label: "claude-sonnet-4-6" },
   { value: "claude-haiku-4-5", label: "claude-haiku-4-5" },
 ];

@@ -15,7 +15,7 @@ import {
   SendMessageResponseSchema,
   ThreadListItemSchema,
 } from "../client/schemas.js";
-import { ORIGINS, PR_STATES, THREAD_STATUSES, resolveModelAlias } from "../model.js";
+import { ORIGINS, PR_STATES, REASONING_MODES, THREAD_STATUSES, resolveModelAlias } from "../model.js";
 import { csvArray, defineOp } from "./define.js";
 import { requireProject } from "./shared.js";
 
@@ -106,6 +106,12 @@ export const threadsMessage = defineOp({
     id: z.string().min(1),
     message: z.string().min(1),
     model: z.string().optional(),
+    // Explicit-only, deliberately NOT defaulted from config defaultReasoning: that default
+    // applies when STARTING a thread; a mid-thread effort change should be a conscious steer.
+    reasoning: z
+      .enum(REASONING_MODES)
+      .describe("Reasoning effort for this turn (off|on|none|minimal|low|medium|high|xhigh|max); omit to keep the thread's current setting.")
+      .optional(),
     attachmentUrls: csvArray(z.string()).optional(),
     impersonateUserEmail: z.string().optional(),
   }),
@@ -114,6 +120,7 @@ export const threadsMessage = defineOp({
     const body: SendThreadMessageBody = { message: args.message };
     const model = resolveModelAlias(args.model);
     if (model) body.model = model as SendThreadMessageBody["model"];
+    if (args.reasoning) body.reasoning = { mode: args.reasoning };
     if (args.attachmentUrls && args.attachmentUrls.length > 0) body.attachmentUrls = args.attachmentUrls;
     if (args.impersonateUserEmail) body.impersonateUserEmail = args.impersonateUserEmail;
     return resources(ctx).threads.message(args.id, body);

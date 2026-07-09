@@ -21,6 +21,10 @@ export interface CapyContext {
   timeoutMs: number;
   maxRetries: number;
   defaultModel: string;
+  // Reasoning effort applied when STARTING a thread (delegate) unless overridden per-call.
+  // Unset = omit `reasoning` from the request entirely (API/model default). Steer messages
+  // never inherit this — a mid-thread effort change must be explicit.
+  defaultReasoning?: string;
   onRequest?: (req: Request) => void;
   onResponse?: (res: Response) => void;
 }
@@ -37,6 +41,7 @@ export interface CapyContextInput {
   timeoutMs?: number;
   maxRetries?: number;
   defaultModel?: string;
+  defaultReasoning?: string;
   onRequest?: (req: Request) => void;
   onResponse?: (res: Response) => void;
 }
@@ -60,6 +65,7 @@ interface FileLayer {
   orgId?: string;
   authorEmail?: string;
   defaultModel?: string;
+  defaultReasoning?: string;
 }
 
 function firstString(...vals: Array<unknown>): string | undefined {
@@ -140,6 +146,7 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
     timeoutMs: input.timeoutMs ?? toInt(env.CAPY_TIMEOUT_MS ?? dot.CAPY_TIMEOUT_MS) ?? DEFAULTS.timeoutMs,
     maxRetries: input.maxRetries ?? toInt(env.CAPY_MAX_RETRIES ?? dot.CAPY_MAX_RETRIES) ?? DEFAULTS.maxRetries,
     defaultModel: input.defaultModel ?? pick("CAPY_DEFAULT_MODEL", file.defaultModel) ?? DEFAULTS.defaultModel,
+    defaultReasoning: input.defaultReasoning ?? pick("CAPY_DEFAULT_REASONING", file.defaultReasoning),
     onRequest: input.onRequest,
     onResponse: input.onResponse,
   };

@@ -56,6 +56,20 @@ describe("resolveContext precedence", () => {
     expect(ctx.projectId).toBe("prj_explicit");
   });
 
+  it("resolves defaultReasoning (unset by default; config.json < env < explicit input)", () => {
+    expect(resolveContext().defaultReasoning).toBeUndefined();
+
+    const dir = join(process.env.HOME as string, ".capy");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, "config.json"), JSON.stringify({ defaultReasoning: "xhigh" }));
+    expect(resolveContext().defaultReasoning).toBe("xhigh");
+
+    process.env.CAPY_DEFAULT_REASONING = "max";
+    expect(resolveContext().defaultReasoning).toBe("max");
+
+    expect(resolveContext({ defaultReasoning: "high" }).defaultReasoning).toBe("high");
+  });
+
   it("reads ~/.capy/.env including the tuning vars, with process.env winning", () => {
     const dir = join(process.env.HOME as string, ".capy");
     mkdirSync(dir, { recursive: true });

@@ -79,6 +79,21 @@ describe("threads.message", () => {
     expect(out).toEqual({ id: "msg_1", status: "sent" });
   });
 
+  it("passes reasoning for the turn as reasoning.mode (explicit only — no config fallback)", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: { id: "msg_3", status: "sent" } }));
+    await threadsMessage.run(
+      { id: "jam_x", message: "go deeper on the race condition", reasoning: "xhigh" },
+      testContext({ fetch, defaultReasoning: "max" }),
+    );
+    expect((calls[0]!.body as { reasoning: unknown }).reasoning).toEqual({ mode: "xhigh" });
+  });
+
+  it("omits reasoning when not passed, even if ctx.defaultReasoning is set", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: { id: "msg_4", status: "sent" } }));
+    await threadsMessage.run({ id: "jam_x", message: "ping" }, testContext({ fetch, defaultReasoning: "max" }));
+    expect((calls[0]!.body as Record<string, unknown>).reasoning).toBeUndefined();
+  });
+
   it("omits model when none is passed (continues with the thread's current model)", async () => {
     const { fetch, calls } = makeMockFetch(() => ({ json: { id: "msg_2", status: "sent" } }));
     await threadsMessage.run({ id: "jam_x", message: "ping" }, testContext({ fetch }));
