@@ -3,16 +3,16 @@ import { z, ZodError } from "zod";
 import { CapyError } from "../client/errors.js";
 import type { CapyContext } from "../client/context.js";
 
-// effect drives MCP annotations + transport idempotency intent:
-//   read -> readOnly+idempotent, create -> openWorld, mutate -> idempotent, destroy -> destructive
+// effect records operation semantics for shell adapters and future MCP annotations.
+// Transport retry safety is declared independently on each HTTP request.
 export type Effect = "read" | "create" | "mutate" | "destroy";
 
 export interface OpSpec<I extends z.ZodTypeAny, O extends z.ZodTypeAny> {
   name: string; // canonical resource.verb — "threads.list", "delegate", "wait"
   summary: string; // one-line: CLI help / MCP description / skill table row
   description?: string;
-  input: I; // zod — single source of CLI flags, MCP inputSchema, validation
-  output: O; // zod — typed result + MCP outputSchema + boundary validation
+  input: I; // zod — single source of CLI flags, validation, and future MCP inputSchema
+  output: O; // zod — typed result, boundary validation, and future MCP outputSchema
   effect: Effect;
   run(args: z.infer<I>, ctx: CapyContext): Promise<z.infer<O>>;
 }
@@ -28,7 +28,7 @@ export interface TypedOp<I extends z.ZodTypeAny, O extends z.ZodTypeAny> {
   run(args: z.infer<I>, ctx: CapyContext): Promise<z.infer<O>>;
 }
 
-/** Type-erased op for the registry that all four surfaces project from. */
+/** Type-erased op for the registry and its current/future adapters. */
 export type Op = TypedOp<z.ZodTypeAny, z.ZodTypeAny>;
 
 function zodToCapyError(e: ZodError, kind: "input" | "output"): CapyError {
@@ -40,6 +40,16 @@ function zodToCapyError(e: ZodError, kind: "input" | "output"): CapyError {
     message: kind === "input" ? `Invalid arguments: ${detail}` : `Unexpected response shape: ${detail}`,
     details: e.issues,
   });
+}
+
+/** Parse a shell/SDK value through an Op input schema with the standard Capy error envelope. */
+export function parseInput<I extends z.ZodTypeAny>(schema: I, value: unknown): z.infer<I> {
+  try {
+    return schema.parse(value) as z.infer<I>;
+  } catch (e) {
+    if (e instanceof ZodError) throw zodToCapyError(e, "input");
+    throw e;
+  }
 }
 
 /**
@@ -56,13 +66,7 @@ export function defineOp<I extends z.ZodTypeAny, O extends z.ZodTypeAny>(spec: O
     output: spec.output,
     effect: spec.effect,
     async run(args: z.infer<I>, ctx: CapyContext): Promise<z.infer<O>> {
-      let parsed: z.infer<I>;
-      try {
-        parsed = spec.input.parse(args) as z.infer<I>;
-      } catch (e) {
-        if (e instanceof ZodError) throw zodToCapyError(e, "input");
-        throw e;
-      }
+      const parsed = parseInput(spec.input, args);
       const result = await spec.run(parsed, ctx);
       if (!ctx.validate) return result;
       try {

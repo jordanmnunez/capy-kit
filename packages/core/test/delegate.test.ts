@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { delegate } from "../src/index.js";
+import { delegate, threadUrl } from "../src/index.js";
 import { makeCreateResponse } from "./fixtures.js";
 import { makeMockFetch, testContext } from "./helpers/mock.js";
 
 describe("delegate", () => {
+  it("encodes opaque project and thread ids in human-facing URLs", () => {
+    expect(threadUrl("https://capy.ai/", "project/id", "thread?id")).toBe(
+      "https://capy.ai/project/project%2Fid/captain/thread%3Fid",
+    );
+  });
+
   it("creates + starts a thread, parses repos, resolves the default model, returns a url", async () => {
     const { fetch, calls } = makeMockFetch(() => ({ json: makeCreateResponse() }));
     const ctx = testContext({ fetch });
@@ -72,5 +78,15 @@ describe("delegate", () => {
     const ctx = testContext({ fetch, projectId: undefined });
     await expect(delegate.run({ prompt: "x" }, ctx)).rejects.toMatchObject({ code: "no_project" });
     expect(calls).toHaveLength(0);
+  });
+
+  it("fails closed if Capy reports creating the thread in a different project", async () => {
+    const { fetch } = makeMockFetch(() => ({
+      json: makeCreateResponse({ projectId: "proj_other" }),
+    }));
+    await expect(delegate.run({ prompt: "x" }, testContext({ fetch }))).rejects.toMatchObject({
+      code: "bad_response",
+      message: expect.stringMatching(/proj_other.*proj_test/),
+    });
   });
 });

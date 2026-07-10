@@ -1,109 +1,139 @@
 # capy-kit
 
-A TypeScript toolkit for the [Capy](https://capy.ai) API. One shared **operations core** — every capability declared once as an `Op` in `packages/core/src/ops/` — projected into mechanically-thin surfaces that can't drift from it.
+A TypeScript toolkit for the [Capy](https://capy.ai) API. The shared core owns each implemented
+capability as one typed `Op`; the CLI is a thin shell over those Ops.
 
-**The principle:** *capy-kit manages Capy; Capy manages the work.* The core and its faithful surfaces are a thin interface to the API — no fleet loops, no triage, no quality gates. You hand Capy a goal and the bar to hit; its Captain plans / runs / tests / reviews. Opinion lives in exactly one place: the optional `capy-fleet-hq` skill.
+**capy-kit manages Capy; Capy manages the work.** The faithful core/CLI do not add fleet loops,
+triage, or quality gates. Give Captain the goal and quality bar, then observe or steer the real
+thread. The optional `capy-fleet-hq` skill is where higher-level fleet opinion lives.
 
-The pieces:
+## What works today
 
-- **`@capy-kit/core`** — the SDK / ops core
-- **`capy`** — the CLI
-- **`capy-mcp`** — the MCP server *(scaffolded)*
-- **`capy` skill** — faithful Claude Code skill
-- **`capy-fleet-hq` skill** — the opinionated fleet layer
+- **`@capy-kit/core`** — typed transport, generated wire types, resources, rendering, and 11 Ops.
+- **`capy`** — built CLI: `init`, `delegate`, `wait`, `threads list|get|stop|message|messages`, `status`,
+  `projects list|get`, and `models list`.
+- **`capy` skill** — faithful delegation/observation/steering manual.
+- **`capy-fleet-hq` skill** — opinionated routing, sizing, dispatch, and fleet overview above the CLI.
 
----
+The MCP package is only a scaffold. Automatic MCP registration and generated skill tables are
+target architecture, not current functionality, and MCP has not been selected as the next priority.
 
-## `@capy-kit/core` — the SDK
-
-The single source of truth: a typed transport + resource client over the Capy API, plus a few composite ops (`delegate`, `wait`, …). Every capability is an `Op` declared once here; the CLI, the MCP tools, and the skills are all projections of that one registry — add an op and it shows up everywhere at once. Faithful by design: it maps the API, nothing more.
-
-## `capy` — the CLI
-
-A thin shell over the ops core — `init`, `delegate`, `wait`, `threads` (list / get / message / messages), `status`, `projects` (list / get) — and every one takes `--json` (and `--debug`).
+## Use it
 
 ```bash
-capy delegate "Implement ENG-123 backfill; keep behavior identical; \
-  don't return until tests pass and CI is green" \
-  --repos your-org/your-repo@main --model opus --json
-capy status --json                      # what's running (real status / runState / PRs)
-capy wait <threadId> --timeoutSec 1200  # block until it settles
+capy projects list --json
+capy models list --json
+
+capy delegate 'Implement ENG-123; preserve behavior; return with tests and CI green' \
+  --repos your-org/your-repo@main --wait --timeoutSec 1200 --json
+
+capy status --json
+capy threads messages <threadId> --all --json
+capy threads message <threadId> 'also cover rollback behavior' \
+  --mode queue --messageId eng-123-rollback --json
+capy wait <threadId> --timeoutSec 900 --json
 ```
 
-Every command also takes `--debug`, which logs the exact (redacted — never the token) HTTP request/response to stderr — use it to inspect live API behavior instead of reading the source.
+Every Op command supports `--json` and redacted `--debug` request/response metadata logging. Human
+delegation output echoes the selected project id, and a mismatched create response fails instead of
+appearing to dispatch safely.
 
-## `capy-mcp` — the MCP server
+Project selection fails closed:
 
-The same ops registry exposed as MCP tools (stdio + streamable-HTTP), so your own agents and harnesses can drive Capy directly instead of shelling out. *Scaffolded — next on the roadmap.*
+- `capy init` discovers all visible projects, displays recognizable names with task code/repos/id,
+  and stores the selected canonical id. It never guesses the first or an ambiguous name. If
+  discovery is unavailable, it visibly falls back to a caller-asserted canonical-id prompt; offline
+  ids cannot be verified by capy-kit. Discovery with the newly entered key always targets the
+  canonical `https://capy.ai/api`, ignoring ambient/configured `CAPY_BASE_URL` overrides.
+- Explicit `--project <id>` has highest precedence.
+- Explicit `--profile <name>` must exist. Without `--project`, its effective file-configured project
+  (profile over top-level) is authoritative and ambient `CAPY_PROJECT_ID` values are ignored.
+- Without a profile, project precedence remains process environment, `~/.capy/.env`, then top-level
+  config. Malformed/unreadable configuration is an error; only a missing file is treated as absent.
+- When a project is selected, `threads message` and `threads stop` preflight the thread and refuse a
+  cross-project mutation. SDK callers with no project context may still use a globally unique id.
 
-## skills — the `capy` skill (faithful)
+`status` defaults to **active** threads. When `CAPY_AUTHOR_EMAIL` is configured it defaults to that
+author on shared projects, and it returns **every PR** in `pullRequests` (`pr` remains a first-PR
+convenience). Do not infer completion from `status=idle`: a thread can be idle while
+`runState=waiting` on review. `wait` treats only non-archived `ready` as proven done; `blocked` and
+archived status/runState settle without proving success, while `running|stopping|queued|waiting` are
+still progressing unless the coarse status has already become archived.
 
-A Claude Code skill for delegating to Capy and observing/steering it from your harness: hand off work, read real `status` / `runState` / `waitingOn` / PRs, follow with `wait`. It surfaces faithful state and faithful controls — no buckets, no recommendations. (Symlink `skills/capy` into `~/.claude/skills/`.)
+Wait exit codes are 0 for done, 123 for blocked, 124 for timeout, and 125 for archived/stopped with
+outcome unknown. Under `delegate --wait --json`, delegate fields stay at the root and the final poll
+result is added as `wait`.
 
-## `capy-fleet-hq` — manage Capy as a fleet
-
-This is the **opinionated** layer — the one place capy-kit takes a stance. It's a Claude Code skill that sits *on top of* the `capy` CLI: the core stays faithful, the opinion lives here. (Symlink `skills/capy-fleet-hq` into `~/.claude/skills/`.)
-
-**The model:** *local harness for the thinking, Capy for the fan-out.* You do the research, planning, and hard single-threaded work in your local harness (Claude Code, Codex, your editor) — your machine is the HQ. When the work is parallel and well-specified, you fan it out to a fleet of Capy threads and run that fleet from here. How that plays out:
-
-**1. Route — Capy, or stay local?**
-Hand it to Capy when the work is **independent, parallel, well-specified, and you can walk away**. Stay local for deep context engineering, tight per-turn control, brownfield single-hard-problems, or dependency-linked sequences. *Litmus: independent + parallel + specified → Capy; dependency-linked or needs-your-hand → local.*
-
-**2. Size — one task, a series, or a fan-out?**
-
-| Size | Looks like | Dispatch as |
-|---|---|---|
-| **one big task** | one self-contained change, one repo | a single `capy delegate` |
-| **a series** | dependency-linked steps | the first independent piece — keep the ordering yours |
-| **a fan-out** | many independent, well-specified tickets | one Capy session per project, **tagged**; let Captain decompose |
-
-**3. Dispatch.** Tell Capy *what* and the *bar to hit*, not how; tag the campaign so the fleet is groupable:
-`capy delegate "<goal + bar>" --repos … --tags <campaign> --json`.
-
-**4. Oversee — the fleet dashboard.** `capy status` is a flat list with no buckets *by design*; the HQ adds them. Pull the real state (`capy status --json`, `capy threads list --all --tag <campaign> --json`) and group it:
-
-- **Needs you** — `runState: blocked` → unblock or re-delegate
-- **Ready to land** — `idle` / `ready` with a PR → review + merge
-- **In flight** — `running` / `queued` / `waiting` → leave it; check back
-
-Surface only *Needs-you* and *Ready-to-land*; in-flight work is Captain's job.
-
-**Where it's headed.** The natural extension is the full loop: research and plan locally → distill into Linear tickets → **size → route → dispatch → oversee → land** across a multi-project fleet. The shipped skill is the first cut of that; because the core underneath stays thin, this opinion can keep evolving without ever touching the faithful surfaces.
-
----
-
-## Install (from source)
+## Install from source
 
 ```bash
-git clone https://github.com/jordanmnunez/capy-kit && cd capy-kit
-bun install && npm run build                                 # npm also works
+git clone https://github.com/jordanmnunez/capy-kit
+cd capy-kit
+bun install
+npm run build
 
-# put `capy` on your PATH — create ~/.local/bin and symlink the built bin into it:
-mkdir -p ~/.local/bin && ln -s "$PWD/packages/cli/dist/capy.js" ~/.local/bin/capy
-# if `capy` is then "command not found", ~/.local/bin isn't on PATH — add it:
-#   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && exec $SHELL
+mkdir -p ~/.local/bin
+ln -s "$PWD/packages/cli/dist/capy.js" ~/.local/bin/capy
 
-capy init                                                    # or export CAPY_API_KEY=capy_…
-capy projects list                                           # find a project id → --project / CAPY_PROJECT_ID
+capy init                    # or export CAPY_API_KEY=capy_…
+capy projects list
 
-# optional — install the Claude Code skills:
-ln -s "$PWD/skills/capy"          ~/.claude/skills/capy
+# optional Claude Code skills
+ln -s "$PWD/skills/capy" ~/.claude/skills/capy
 ln -s "$PWD/skills/capy-fleet-hq" ~/.claude/skills/capy-fleet-hq
 ```
 
-> The model picker in `capy init` is a convenience **snapshot** of a few ids — it can lag the platform.
-> Any model the API accepts works via `--model` (aliases `opus` / `sonnet` / `haiku`, or a full id); the
-> full alias map comes from `/v1/models` in a later milestone, so a stale picker never blocks you.
+If `capy` is not found, add `~/.local/bin` to `PATH`.
+Both `~/.capy/config.json` and `~/.capy/.env` must be mode 0600; capy refuses to read either file
+when it is accessible by group or other users.
+Human terminal output strips API-controlled escape/control sequences; JSON output remains exact and
+escaped for machine consumers.
 
-## Status
+Models accept a full API id plus the static convenience aliases `opus`, `sonnet`, and `haiku`.
+`GET /v1/models` reports availability and `captainEligible`; it does **not** provide those aliases or
+a default. `capy models list` exposes that live data, and `capy init` uses live model and project
+pickers with explicit offline fallbacks. Configure `defaultModel` or pass `--model` to choose local
+policy.
 
-M0–M1 plus several M3 ops pulled forward are shipped: the transport, the core ops (`delegate`, `threads` list / get / message / messages, `wait`, `status`, `projects` list / get), the CLI, and the `capy` + `capy-fleet-hq` skills. Next up — the MCP server, `tasks` / `diff`, `usage`, and environment management. See **[PLAN.md](./PLAN.md)**.
+## OpenAPI status
 
-## Design & internals
+The vendored official spec was refreshed on **2026-07-10** and contains **26 paths / 37
+operations**. It adds `runState: stopping`, `origin: github`, queued/deduplicable message fields,
+`external_xai` usage routing, current model ids, and versioned multi-trigger automations.
 
-- **[PLAN.md](./PLAN.md)** — milestones, resolved API facts, decisions.
-- **[AGENTS.md](./AGENTS.md)** — conventions (the one rule, codegen, build/test).
-- **[SPEC.md](./SPEC.md)** — the full design and worked examples.
+Six warm-pool operations from the older document are absent from the current public spec. capy-kit
+therefore treats warm-pool as de-publicized and unsupported; this does not prove the server routes
+were deleted.
+
+The current registry has 11 Ops, so important official functionality remains to be implemented:
+
+- thread archive/unarchive/tags/session-token;
+- task get/diff and project tag management;
+- usage;
+- setup, snapshots, browser snapshots, personal environment variables, automations, and session
+  verification;
+- selected new create/message fields such as speed/build settings and browser snapshot ids.
+
+Local usage points to completing the work/observe controls first. Environment parity, automatic
+projections, MCP, and publishing follow explicit prioritization rather than a stale milestone order.
+
+## Development
+
+```bash
+npm run gen          # regenerate packages/core/src/client/schema.d.ts
+npm run gen:check    # regenerate and check for a diff
+npm run typecheck
+npm test
+npm run build
+```
+
+There is currently no `gen:skills` script or checked-in hosted CI workflow.
+
+## Design documents
+
+- [PLAN.md](./PLAN.md) — current status, usage lessons, and prioritized roadmap.
+- [AGENTS.md](./AGENTS.md) — repository conventions and API facts.
+- [SPEC.md](./SPEC.md) — target architecture, clearly separated from as-built truth.
 
 ## License
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { threadsGet, threadsList, threadsMessage, threadsMessages } from "../src/index.js";
+import { threadsGet, threadsList, threadsMessage, threadsMessages, threadsStop } from "../src/index.js";
 import { makePage, makeThread } from "./fixtures.js";
 import { makeMockFetch, testContext } from "./helpers/mock.js";
 
@@ -66,38 +66,114 @@ describe("threads.get", () => {
   });
 });
 
+describe("threads.stop", () => {
+  it("preflights the selected project, then POSTs stop without inventing a request body", async () => {
+    const { fetch, calls } = makeMockFetch((call) =>
+      call.attempt === 1
+        ? { json: makeThread({ id: "jam_x", projectId: "proj_test" }) }
+        : { json: { id: "jam_x", status: "idle" } },
+    );
+    const out = await threadsStop.run({ id: "jam_x" }, testContext({ fetch }));
+    expect(calls[0]!.method).toBe("GET");
+    expect(calls[1]!.method).toBe("POST");
+    expect(calls[1]!.path).toBe("/api/v1/threads/jam_x/stop");
+    expect(calls[1]!.body).toBeUndefined();
+    expect(out).toEqual({ id: "jam_x", status: "idle" });
+  });
+
+  it("refuses to stop a thread outside the selected project", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({
+      json: makeThread({ id: "jam_x", projectId: "proj_other" }),
+    }));
+    await expect(threadsStop.run({ id: "jam_x" }, testContext({ fetch }))).rejects.toMatchObject({
+      code: "validation_error",
+      message: expect.stringMatching(/proj_other.*proj_test/),
+    });
+    expect(calls).toHaveLength(1);
+  });
+});
+
 describe("threads.message", () => {
-  it("POSTs the message to /v1/threads/{id}/message and resolves the model alias", async () => {
-    const { fetch, calls } = makeMockFetch(() => ({ json: { id: "msg_1", status: "sent" } }));
+  it("preflights the selected project, then POSTs the message and resolves the model alias", async () => {
+    const { fetch, calls } = makeMockFetch((call) =>
+      call.attempt === 1
+        ? { json: makeThread({ id: "jam_x", projectId: "proj_test" }) }
+        : { json: { id: "msg_1", status: "sent" } },
+    );
     const out = await threadsMessage.run(
       { id: "jam_x", message: "fix the rest of the stack", model: "opus" },
       testContext({ fetch }),
     );
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.path).toBe("/api/v1/threads/jam_x/message");
-    expect(calls[0]!.body).toMatchObject({ message: "fix the rest of the stack", model: "claude-opus-4-8" });
+    expect(calls[0]!.method).toBe("GET");
+    expect(calls[1]!.method).toBe("POST");
+    expect(calls[1]!.path).toBe("/api/v1/threads/jam_x/message");
+    expect(calls[1]!.body).toMatchObject({ message: "fix the rest of the stack", model: "claude-opus-4-8" });
     expect(out).toEqual({ id: "msg_1", status: "sent" });
+  });
+
+  it("refuses to steer a thread outside the selected project", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({
+      json: makeThread({ id: "jam_x", projectId: "proj_other" }),
+    }));
+    await expect(
+      threadsMessage.run({ id: "jam_x", message: "do not cross the boundary" }, testContext({ fetch })),
+    ).rejects.toMatchObject({
+      code: "validation_error",
+      message: expect.stringMatching(/proj_other.*proj_test/),
+    });
+    expect(calls).toHaveLength(1);
   });
 
   it("passes reasoning for the turn as reasoning.mode (explicit only — no config fallback)", async () => {
     const { fetch, calls } = makeMockFetch(() => ({ json: { id: "msg_3", status: "sent" } }));
     await threadsMessage.run(
       { id: "jam_x", message: "go deeper on the race condition", reasoning: "xhigh" },
-      testContext({ fetch, defaultReasoning: "max" }),
+      testContext({ fetch, defaultReasoning: "max", projectId: undefined }),
     );
     expect((calls[0]!.body as { reasoning: unknown }).reasoning).toEqual({ mode: "xhigh" });
   });
 
+  it("passes queue/interrupt delivery mode and a caller message id through faithfully", async () => {
+    const response = {
+      id: "msg_5",
+      status: "queued" as const,
+      inputEventId: "evt_5",
+      timelineSequence: "42",
+      appendState: "inserted" as const,
+    };
+    const { fetch, calls } = makeMockFetch(() => ({ json: response }));
+    const out = await threadsMessage.run(
+      { id: "jam_x", message: "do this next", mode: "queue", messageId: "steer-42" },
+      testContext({ fetch, projectId: undefined }),
+    );
+    expect(calls[0]!.body).toMatchObject({ message: "do this next", mode: "queue", messageId: "steer-42" });
+    expect(out).toEqual(response);
+  });
+
   it("omits reasoning when not passed, even if ctx.defaultReasoning is set", async () => {
     const { fetch, calls } = makeMockFetch(() => ({ json: { id: "msg_4", status: "sent" } }));
-    await threadsMessage.run({ id: "jam_x", message: "ping" }, testContext({ fetch, defaultReasoning: "max" }));
+    await threadsMessage.run(
+      { id: "jam_x", message: "ping" },
+      testContext({ fetch, defaultReasoning: "max", projectId: undefined }),
+    );
     expect((calls[0]!.body as Record<string, unknown>).reasoning).toBeUndefined();
   });
 
   it("omits model when none is passed (continues with the thread's current model)", async () => {
     const { fetch, calls } = makeMockFetch(() => ({ json: { id: "msg_2", status: "sent" } }));
-    await threadsMessage.run({ id: "jam_x", message: "ping" }, testContext({ fetch }));
+    await threadsMessage.run({ id: "jam_x", message: "ping" }, testContext({ fetch, projectId: undefined }));
     expect((calls[0]!.body as Record<string, unknown>).model).toBeUndefined();
+  });
+
+  it("rejects more than ten attachment URLs before making a request", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: { id: "msg_6", status: "sent" } }));
+    await expect(
+      threadsMessage.run(
+        { id: "jam_x", message: "too many", attachmentUrls: Array.from({ length: 11 }, (_, i) => `https://x.test/${i}`) },
+        testContext({ fetch, projectId: undefined }),
+      ),
+    ).rejects.toMatchObject({ code: "validation_error" });
+    expect(calls).toHaveLength(0);
   });
 });
 

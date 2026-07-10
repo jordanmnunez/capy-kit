@@ -13,6 +13,9 @@ describe("status", () => {
     const row = out.threads[0]!;
     expect(row.runState).toBe("running");
     expect(row.pr).toEqual({ number: 42, state: "open", url: "https://github.com/owner/repo/pull/42" });
+    expect(row.pullRequests).toEqual([
+      { number: 42, state: "open", url: "https://github.com/owner/repo/pull/42" },
+    ]);
     expect(row.url).toBe("https://capy.ai/project/proj_test/captain/jam_abc123");
     expect(row.tasks).toEqual([{ identifier: "CAP-12", status: "in_progress" }]);
   });
@@ -24,6 +27,26 @@ describe("status", () => {
     const out = await status.run({ status: "idle" }, testContext({ fetch }));
     expect(calls[0]!.query.get("status")).toBe("idle");
     expect(out.threads[0]!.pr).toBeNull();
+    expect(out.threads[0]!.pullRequests).toEqual([]);
+  });
+
+  it("keeps every PR while retaining the first-PR compatibility field", async () => {
+    const second = {
+      number: 43,
+      url: "https://github.com/owner/repo/pull/43",
+      repoFullName: "owner/repo",
+      state: "open",
+      headRef: "capy/fix-more",
+      baseRef: "main",
+      draft: false,
+    };
+    const base = makeThread();
+    const { fetch } = makeMockFetch(() => ({
+      json: makePage({ items: [makeThread({ pullRequests: [...base.pullRequests, second] })] }),
+    }));
+    const out = await status.run({}, testContext({ fetch }));
+    expect(out.threads[0]!.pr?.number).toBe(42);
+    expect(out.threads[0]!.pullRequests.map((pr) => pr.number)).toEqual([42, 43]);
   });
 
   it("returns an empty dashboard cleanly", async () => {

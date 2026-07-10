@@ -6,10 +6,10 @@ import { makeMockFetch, testContext } from "./helpers/mock.js";
 function makeProject(over: Partial<Project> = {}): Project {
   return {
     id: "proj_abc",
-    name: "centralapp",
+    name: "sample-app",
     description: null,
     taskCode: "CEN",
-    repos: [{ repoFullName: "owner/centralapp", branch: "main" }],
+    repos: [{ repoFullName: "owner/sample-app", branch: "main" }],
     createdAt: "2026-06-26T10:00:00.000Z",
     updatedAt: "2026-06-26T10:05:00.000Z",
     ...over,

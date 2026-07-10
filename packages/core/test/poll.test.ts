@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { pollUntilTerminal, wait, waitForThread } from "../src/index.js";
+import { TERMINAL_THREAD_STATUS, pollUntilTerminal, wait, waitForThread } from "../src/index.js";
 import { makeThread } from "./fixtures.js";
 import { makeMockFetch, testContext } from "./helpers/mock.js";
 
 describe("pollUntilTerminal / wait", () => {
-  it("settles when the thread reaches idle (terminal=true)", async () => {
+  it("does not export idle as a terminal coarse status", () => {
+    expect(TERMINAL_THREAD_STATUS.has("idle")).toBe(false);
+    expect(TERMINAL_THREAD_STATUS.has("archived")).toBe(true);
+  });
+
+  it("settles when runState reaches ready (terminal=true)", async () => {
     const { fetch, calls } = makeMockFetch((call) =>
       call.attempt < 2
         ? { json: makeThread({ status: "active", runState: "running" }) }
@@ -29,12 +34,57 @@ describe("pollUntilTerminal / wait", () => {
     expect(result.blockedOn).toEqual(["auth"]);
   });
 
+  it("settles an archived thread without claiming it completed successfully", async () => {
+    const { fetch } = makeMockFetch(() => ({
+      json: makeThread({ status: "archived", runState: "archived" }),
+    }));
+    const result = await waitForThread(testContext({ fetch }), { id: "jam_x", intervalMs: 5 });
+    expect(result.settled).toBe(true);
+    expect(result.terminal).toBe(false);
+    expect(result.runState).toBe("archived");
+  });
+
+  it("settles archived status even when runState is stale and still says running", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({
+      json: makeThread({ status: "archived", runState: "running" }),
+    }));
+    const result = await waitForThread(testContext({ fetch }), { id: "jam_x", intervalMs: 5 });
+    expect(result.settled).toBe(true);
+    expect(result.terminal).toBe(false);
+    expect(result.status).toBe("archived");
+    expect(result.runState).toBe("running");
+    expect(calls).toHaveLength(1);
+  });
+
   it("times out when the thread never settles (terminal=false, timedOut=true)", async () => {
     const { fetch } = makeMockFetch(() => ({ json: makeThread({ status: "active", runState: "running" }) }));
     const result = await waitForThread(testContext({ fetch }), { id: "jam_x", intervalMs: 5, timeoutMs: 30 });
     expect(result.timedOut).toBe(true);
     expect(result.terminal).toBe(false);
     expect(result.settled).toBe(false);
+  });
+
+  it("treats the spec's stopping runState as in progress until the thread becomes ready", async () => {
+    const { fetch, calls } = makeMockFetch((call) =>
+      call.attempt < 2
+        ? { json: makeThread({ status: "active", runState: "stopping" }) }
+        : { json: makeThread({ status: "idle", runState: "ready" }) },
+    );
+    const result = await waitForThread(testContext({ fetch }), { id: "jam_x", intervalMs: 5 });
+    expect(result.terminal).toBe(true);
+    expect(calls).toHaveLength(2);
+  });
+
+  it("keeps polling status=idle while runState=waiting on asynchronous review", async () => {
+    const { fetch, calls } = makeMockFetch((call) =>
+      call.attempt < 2
+        ? { json: makeThread({ status: "idle", runState: "waiting", waitingOn: ["review"] }) }
+        : { json: makeThread({ status: "idle", runState: "ready", waitingOn: [] }) },
+    );
+    const result = await waitForThread(testContext({ fetch }), { id: "jam_x", intervalMs: 5 });
+    expect(result.terminal).toBe(true);
+    expect(result.runState).toBe("ready");
+    expect(calls).toHaveLength(2);
   });
 
   it("rides out a transient error and keeps polling until the thread settles", async () => {
@@ -71,6 +121,16 @@ describe("pollUntilTerminal / wait", () => {
     const { fetch } = makeMockFetch(() => ({ json: makeThread() }));
     const gen = pollUntilTerminal(testContext({ fetch }), { id: "tsk_1", kind: "task" as "thread", intervalMs: 5 });
     await expect(gen.next()).rejects.toMatchObject({ code: "validation_error" });
+  });
+
+  it("rejects non-positive direct poll budgets instead of tight-looping", async () => {
+    const { fetch } = makeMockFetch(() => ({ json: makeThread() }));
+    await expect(waitForThread(testContext({ fetch }), { id: "jam_x", intervalMs: -1 })).rejects.toMatchObject({
+      code: "validation_error",
+    });
+    await expect(waitForThread(testContext({ fetch }), { id: "jam_x", timeoutMs: 0 })).rejects.toMatchObject({
+      code: "validation_error",
+    });
   });
 
   it("wait op converts seconds and settles immediately", async () => {

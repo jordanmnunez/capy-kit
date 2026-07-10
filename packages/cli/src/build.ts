@@ -1,11 +1,15 @@
 import {
   CapyError,
   exitCodeFor,
+  parseInput,
   pollUntilTerminal,
   render,
   resolveContext,
+  sanitizeTerminalText,
   WAIT_BLOCKED_EXIT_CODE,
+  WAIT_ARCHIVED_EXIT_CODE,
   WAIT_TIMEOUT_EXIT_CODE,
+  wait,
   type CapyContext,
   type Op,
   type OutputFormat,
@@ -26,9 +30,15 @@ interface SchemaNode {
 // Globals available on every leaf command (citty doesn't inherit args, so we merge these in).
 export const globalArgs = {
   json: { type: "boolean", description: "Output JSON instead of human-readable text." },
-  project: { type: "string", description: "Project id (defaults to CAPY_PROJECT_ID / config)." },
+  project: {
+    type: "string",
+    description: "Canonical project id; explicitly overrides profile, environment, and config defaults.",
+  },
   org: { type: "string", description: "Org id (defaults to CAPY_ORG_ID / config)." },
-  profile: { type: "string", description: "Named config profile to use." },
+  profile: {
+    type: "string",
+    description: "Named config profile; its configured project ignores ambient CAPY_PROJECT_ID unless --project is passed.",
+  },
   debug: { type: "boolean", description: "Log redacted requests/responses to stderr." },
 } satisfies ArgsDef;
 
@@ -37,6 +47,7 @@ export const globalArgs = {
 const POSITIONALS: Readonly<Record<string, string[]>> = {
   delegate: ["prompt"],
   "threads.get": ["id"],
+  "threads.stop": ["id"],
   "threads.message": ["id", "message"],
   "threads.messages": ["id"],
   "projects.get": ["id"],
@@ -89,11 +100,13 @@ export function formatOf(args: Record<string, unknown>): OutputFormat {
   return args.json ? "json" : "human";
 }
 
-/** Parse an optional numeric CLI flag. Rejects non-finite (e.g. "abc" -> NaN) -> undefined. */
-export function numOpt(v: unknown): number | undefined {
-  if (typeof v !== "string" || v.trim() === "") return undefined;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : undefined;
+/** Validate/coerce the shell's wait flags through the wait Op's SSOT input schema. */
+export function waitOptions(args: Record<string, unknown>, id: string) {
+  return parseInput(wait.input, {
+    id,
+    timeoutSec: args.timeoutSec,
+    intervalSec: args.intervalSec,
+  });
 }
 
 export function buildCtx(args: Record<string, unknown>): CapyContext {
@@ -103,9 +116,11 @@ export function buildCtx(args: Record<string, unknown>): CapyContext {
       projectId: typeof args.project === "string" ? args.project : undefined,
       orgId: typeof args.org === "string" ? args.org : undefined,
       onRequest: debug
-        ? (req) => process.stderr.write(`→ ${req.method} ${req.url}\n`)
+        ? (req) => process.stderr.write(`${sanitizeTerminalText(`→ ${req.method} ${req.url}`)}\n`)
         : undefined,
-      onResponse: debug ? (res) => process.stderr.write(`← ${res.status} ${res.url}\n`) : undefined,
+      onResponse: debug
+        ? (res) => process.stderr.write(`${sanitizeTerminalText(`← ${res.status} ${res.url}`)}\n`)
+        : undefined,
     },
     { profile: typeof args.profile === "string" ? args.profile : undefined },
   );
@@ -141,7 +156,9 @@ export function fail(e: unknown, fmt: OutputFormat): void {
   if (fmt === "json") {
     process.stdout.write(JSON.stringify(err.toEnvelope(), null, 2) + "\n");
   } else {
-    process.stderr.write(`capy: ${err.message}${err.requestId ? ` (request ${err.requestId})` : ""}\n`);
+    const message = sanitizeTerminalText(err.message);
+    const request = err.requestId ? ` (request ${sanitizeTerminalText(err.requestId)})` : "";
+    process.stderr.write(`capy: ${message}${request}\n`);
   }
   process.exitCode = exitCodeFor(err.code);
 }
@@ -149,9 +166,10 @@ export function fail(e: unknown, fmt: OutputFormat): void {
 /**
  * Exit code for a finished poll (the poll itself succeeded — genuine API errors go through
  * `fail`). 0 = done; WAIT_BLOCKED_EXIT_CODE (123) = blocked, needs you; WAIT_TIMEOUT_EXIT_CODE
- * (124) = poll budget ran out. Lets scripts branch on needs-you vs ran-out vs done.
+ * (124) = poll budget ran out; WAIT_ARCHIVED_EXIT_CODE (125) = archived without proof of success.
  */
 export function waitExitCode(result: WaitResult): number {
+  if (result.status === "archived" || result.runState === "archived") return WAIT_ARCHIVED_EXIT_CODE;
   if (result.terminal) return 0;
   if (result.timedOut) return WAIT_TIMEOUT_EXIT_CODE;
   return WAIT_BLOCKED_EXIT_CODE; // settled but not done -> blocked on a human/integration gate
@@ -160,7 +178,7 @@ export function waitExitCode(result: WaitResult): number {
 /**
  * Drive a thread to settle, streaming progress to stderr (human) and returning the final
  * WaitResult. Shared by `capy wait` and `capy delegate --wait`. Exit code via waitExitCode:
- * 0 done / 123 blocked-needs-you / 124 timed out.
+ * 0 done / 123 blocked-needs-you / 124 timed out / 125 archived-outcome-unknown.
  */
 export async function driveWait(
   ctx: CapyContext,
@@ -180,7 +198,9 @@ export async function driveWait(
     if (fmt === "human") {
       const waiting = tick.waitingOn.length ? ` waitingOn=${tick.waitingOn.join(",")}` : "";
       process.stderr.write(
-        `waiting… runState=${tick.runState} status=${tick.status}${waiting} (${Math.round(tick.elapsedMs / 1000)}s)\n`,
+        `${sanitizeTerminalText(
+          `waiting… runState=${tick.runState} status=${tick.status}${waiting} (${Math.round(tick.elapsedMs / 1000)}s)`,
+        )}\n`,
       );
     }
     next = await gen.next();

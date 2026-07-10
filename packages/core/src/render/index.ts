@@ -2,7 +2,23 @@
 // JSON is the universal fallback; per-op human views are keyed by op name so the CLI
 // stays a thin `write(render(op.name, result, fmt))`.
 
+import { stripVTControlCharacters } from "node:util";
+
 export type OutputFormat = "human" | "json";
+
+/** Strip terminal control sequences from untrusted API/config text before human display. */
+export function sanitizeTerminalText(value: string): string {
+  return stripVTControlCharacters(value)
+    .replace(/[\u0000-\u001f\u007f-\u009f]/g, "")
+    .replace(/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "");
+}
+
+/** Preserve only renderer-owned line breaks after every untrusted field has been sanitized. */
+function sanitizeTerminalOutput(value: string): string {
+  return stripVTControlCharacters(value)
+    .replace(/[\u0000-\u0009\u000b-\u001f\u007f-\u009f]/g, "")
+    .replace(/[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "");
+}
 
 interface ThreadItem {
   id: string;
@@ -19,6 +35,7 @@ interface ThreadItem {
 
 interface DelegateResult {
   threadId: string;
+  projectId: string;
   status: string;
   runState: string;
   model: string;
@@ -47,11 +64,12 @@ interface StatusResult {
 }
 
 function dash(arr: string[] | undefined): string {
-  return arr && arr.length > 0 ? arr.join(", ") : "—";
+  return arr && arr.length > 0 ? arr.map(sanitizeTerminalText).join(", ") : "—";
 }
 
 function truncate(s: string, n: number): string {
-  return s.length > n ? `${s.slice(0, n - 1)}…` : s;
+  const clean = sanitizeTerminalText(s);
+  return clean.length > n ? `${clean.slice(0, n - 1)}…` : clean;
 }
 
 function fmtDuration(ms: number): string {
@@ -63,21 +81,22 @@ function fmtDuration(ms: number): string {
 
 function table(rows: string[][]): string {
   if (rows.length === 0) return "";
+  const cleanRows = rows.map((row) => row.map(sanitizeTerminalText));
   const widths: number[] = [];
-  for (const row of rows) {
+  for (const row of cleanRows) {
     row.forEach((cell, i) => {
       widths[i] = Math.max(widths[i] ?? 0, cell.length);
     });
   }
-  return rows
+  return cleanRows
     .map((row) => row.map((cell, i) => cell.padEnd(i === row.length - 1 ? 0 : (widths[i] ?? 0))).join("  ").trimEnd())
     .join("\n");
 }
 
 function renderDelegate(d: DelegateResult): string {
   return [
-    `delegated → ${d.threadId} (${d.model})  status=${d.status} runState=${d.runState}`,
-    d.url,
+    `delegated → ${sanitizeTerminalText(d.threadId)}  project=${sanitizeTerminalText(d.projectId)}  model=${sanitizeTerminalText(d.model)}  status=${sanitizeTerminalText(d.status)} runState=${sanitizeTerminalText(d.runState)}`,
+    sanitizeTerminalText(d.url),
   ].join("\n");
 }
 
@@ -93,21 +112,25 @@ function renderThreadsList(page: { items: ThreadItem[]; hasMore: boolean }): str
 
 function renderThread(t: ThreadItem): string {
   const lines: string[] = [];
-  lines.push(`${t.id}  ${truncate(t.title ?? "(untitled)", 64)}`);
+  lines.push(`${sanitizeTerminalText(t.id)}  ${truncate(t.title ?? "(untitled)", 64)}`);
   lines.push(
-    `status: ${t.status}   runState: ${t.runState}   pendingWakeups: ${t.pendingWakeups ?? 0}`,
+    `status: ${sanitizeTerminalText(t.status)}   runState: ${sanitizeTerminalText(t.runState)}   pendingWakeups: ${sanitizeTerminalText(String(t.pendingWakeups ?? 0))}`,
   );
   lines.push(`waitingOn: ${dash(t.waitingOn)}   blockedOn: ${dash(t.blockedOn)}`);
   if (t.tasks && t.tasks.length > 0) {
     lines.push("tasks:");
     for (const task of t.tasks) {
-      lines.push(`  ${task.identifier}  ${task.status}${task.title ? `  ${truncate(task.title, 56)}` : ""}`);
+      lines.push(
+        `  ${sanitizeTerminalText(task.identifier)}  ${sanitizeTerminalText(task.status)}${task.title ? `  ${truncate(task.title, 56)}` : ""}`,
+      );
     }
   }
   if (t.pullRequests && t.pullRequests.length > 0) {
     lines.push("PRs:");
     for (const pr of t.pullRequests) {
-      lines.push(`  #${pr.number}  ${pr.state}  ${pr.repoFullName ?? ""}  ${pr.url}`.replace(/\s+/g, " "));
+      lines.push(
+        `  #${pr.number}  ${sanitizeTerminalText(pr.state)}  ${sanitizeTerminalText(pr.repoFullName ?? "")}  ${sanitizeTerminalText(pr.url)}`.replace(/\s+/g, " "),
+      );
     }
   }
   return lines.join("\n");
@@ -123,7 +146,11 @@ function renderStatus(s: StatusResult): string {
       t.runState,
       dash(t.waitingOn),
       dash(t.blockedOn),
-      t.pr ? `#${t.pr.number} ${t.pr.state}` : "—",
+      t.pullRequests && t.pullRequests.length > 0
+        ? t.pullRequests.map((pr) => `#${pr.number} ${pr.state}`).join(", ")
+        : t.pr
+          ? `#${t.pr.number} ${t.pr.state}`
+          : "—",
       truncate(t.title ?? "(untitled)", 40),
     ]);
   }
@@ -148,12 +175,28 @@ function renderProjectsList(page: { items: ProjectShape[]; hasMore: boolean }): 
 }
 
 function renderProject(p: ProjectShape): string {
-  const lines = [`${p.id}  ${p.name}`, `taskCode: ${p.taskCode}`];
+  const lines = [
+    `${sanitizeTerminalText(p.id)}  ${sanitizeTerminalText(p.name)}`,
+    `taskCode: ${sanitizeTerminalText(p.taskCode)}`,
+  ];
   if (p.repos && p.repos.length > 0) {
     lines.push("repos:");
-    for (const r of p.repos) lines.push(`  ${r.repoFullName}@${r.branch}`);
+    for (const r of p.repos) {
+      lines.push(`  ${sanitizeTerminalText(r.repoFullName)}@${sanitizeTerminalText(r.branch)}`);
+    }
   }
   return lines.join("\n");
+}
+
+function renderModels(result: {
+  models: Array<{ id: string; name: string; provider: string; captainEligible: boolean }>;
+}): string {
+  if (result.models.length === 0) return "No models.";
+  const rows: string[][] = [["ID", "PROVIDER", "CAPTAIN", "NAME"]];
+  for (const model of result.models) {
+    rows.push([model.id, model.provider, model.captainEligible ? "yes" : "no", model.name]);
+  }
+  return table(rows) + `\n${result.models.length} model(s)`;
 }
 
 interface MessageShape {
@@ -164,49 +207,76 @@ interface MessageShape {
 }
 
 function renderSendMessage(m: { id: string; status: string }): string {
-  return `message ${m.status} → ${m.id}`;
+  return `message ${sanitizeTerminalText(m.status)} → ${sanitizeTerminalText(m.id)}`;
+}
+
+function renderStopThread(result: { id: string; status: string }): string {
+  return `stop requested → ${sanitizeTerminalText(result.id)} status=${sanitizeTerminalText(result.status)}`;
 }
 
 function renderMessages(page: { items: MessageShape[]; hasMore: boolean }): string {
   if (page.items.length === 0) return "No messages.";
   // items arrive oldest→newest; print as a top-to-bottom log.
-  const lines = page.items.map((m) => `[${m.source}] ${truncate(m.content.replace(/\s+/g, " "), 200)}`);
+  const lines = page.items.map(
+    (m) => `[${sanitizeTerminalText(m.source)}] ${truncate(m.content.replace(/\s+/g, " "), 200)}`,
+  );
   const footer = `\n${page.items.length} message(s)${page.hasMore ? " (older available — use --all or --cursor)" : ""}`;
   return lines.join("\n") + footer;
 }
 
 function renderWait(w: WaitResultShape): string {
-  const verdict = w.terminal
-    ? "done"
+  const verdict = w.status === "archived" || w.runState === "archived"
+    ? "ARCHIVED (success not established)"
+    : w.terminal
+      ? "done"
     : w.timedOut
       ? "TIMED OUT"
       : `blocked (${dash(w.blockedOn)})`;
-  return `runState=${w.runState} status=${w.status} terminal=${w.terminal} — ${verdict} (${fmtDuration(w.elapsedMs)}, ${w.attempts} poll${w.attempts === 1 ? "" : "s"})`;
+  return `runState=${sanitizeTerminalText(w.runState)} status=${sanitizeTerminalText(w.status)} terminal=${w.terminal} — ${verdict} (${fmtDuration(w.elapsedMs)}, ${w.attempts} poll${w.attempts === 1 ? "" : "s"})`;
 }
 
 /** Format an op result for the chosen output mode. */
 export function render(opName: string, data: unknown, format: OutputFormat): string {
   if (format === "json") return JSON.stringify(data, null, 2);
+  let output: string;
   switch (opName) {
     case "delegate":
-      return renderDelegate(data as DelegateResult);
+      output = renderDelegate(data as DelegateResult);
+      break;
     case "threads.list":
-      return renderThreadsList(data as { items: ThreadItem[]; hasMore: boolean });
+      output = renderThreadsList(data as { items: ThreadItem[]; hasMore: boolean });
+      break;
     case "threads.get":
-      return renderThread(data as ThreadItem);
+      output = renderThread(data as ThreadItem);
+      break;
+    case "threads.stop":
+      output = renderStopThread(data as { id: string; status: string });
+      break;
     case "threads.message":
-      return renderSendMessage(data as { id: string; status: string });
+      output = renderSendMessage(data as { id: string; status: string });
+      break;
     case "threads.messages":
-      return renderMessages(data as { items: MessageShape[]; hasMore: boolean });
+      output = renderMessages(data as { items: MessageShape[]; hasMore: boolean });
+      break;
     case "status":
-      return renderStatus(data as StatusResult);
+      output = renderStatus(data as StatusResult);
+      break;
     case "projects.list":
-      return renderProjectsList(data as { items: ProjectShape[]; hasMore: boolean });
+      output = renderProjectsList(data as { items: ProjectShape[]; hasMore: boolean });
+      break;
     case "projects.get":
-      return renderProject(data as ProjectShape);
+      output = renderProject(data as ProjectShape);
+      break;
+    case "models.list":
+      output = renderModels(
+        data as { models: Array<{ id: string; name: string; provider: string; captainEligible: boolean }> },
+      );
+      break;
     case "wait":
-      return renderWait(data as WaitResultShape);
+      output = renderWait(data as WaitResultShape);
+      break;
     default:
-      return JSON.stringify(data, null, 2);
+      output = JSON.stringify(data, null, 2);
   }
+  return sanitizeTerminalOutput(output);
 }

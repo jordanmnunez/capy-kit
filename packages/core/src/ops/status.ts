@@ -6,6 +6,12 @@ import type { CapyContext } from "../client/context.js";
 import { defineOp } from "./define.js";
 import { requireProject } from "./shared.js";
 
+const StatusPullRequest = z.object({
+  number: z.number().int(),
+  state: z.string(),
+  url: z.string(),
+});
+
 const StatusRow = z.object({
   id: z.string(),
   title: z.string().nullable(),
@@ -15,9 +21,9 @@ const StatusRow = z.object({
   blockedOn: z.array(z.string()),
   pendingWakeups: z.number().int(),
   tasks: z.array(z.object({ identifier: z.string(), status: z.string() })),
-  pr: z
-    .object({ number: z.number().int(), state: z.string(), url: z.string() })
-    .nullable(),
+  // `pr` is retained as a stable first-PR convenience; `pullRequests` is the faithful set.
+  pr: StatusPullRequest.nullable(),
+  pullRequests: z.array(StatusPullRequest),
   url: z.string(),
   updatedAt: z.string(),
 });
@@ -29,7 +35,8 @@ const StatusOutput = z.object({
 });
 
 function toRow(ctx: CapyContext, t: ThreadListItem): z.infer<typeof StatusRow> {
-  const pr = t.pullRequests[0];
+  const pullRequests = t.pullRequests.map((pr) => ({ number: pr.number, state: pr.state, url: pr.url }));
+  const pr = pullRequests[0];
   return {
     id: t.id,
     title: t.title,
@@ -39,7 +46,8 @@ function toRow(ctx: CapyContext, t: ThreadListItem): z.infer<typeof StatusRow> {
     blockedOn: t.blockedOn,
     pendingWakeups: t.pendingWakeups,
     tasks: t.tasks.map((task) => ({ identifier: task.identifier, status: task.status })),
-    pr: pr ? { number: pr.number, state: pr.state, url: pr.url } : null,
+    pr: pr ?? null,
+    pullRequests,
     url: threadUrl(ctx.webBaseUrl, t.projectId, t.id),
     updatedAt: t.updatedAt,
   };
@@ -50,7 +58,7 @@ export const status = defineOp({
   summary: "Plain dashboard of your threads with real status/runState (no buckets, no recs).",
   description:
     "Faithful list of in-flight work: each thread's real status, runState, waitingOn, blockedOn, " +
-    "tasks, and PR. Defaults to active threads. On a team-shared project, filter to your own work with " +
+    "tasks, and every PR. Defaults to active threads. On a team-shared project, filter to your own work with " +
     "--authorEmail (or set CAPY_AUTHOR_EMAIL to default it) and/or --origin. No triage buckets or " +
     "recommendations — you (or Capy) decide.",
   effect: "read",

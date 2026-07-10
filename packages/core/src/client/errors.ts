@@ -1,5 +1,5 @@
-// Single typed error envelope for every surface. Ops/transport throw CapyError;
-// the CLI maps `code` -> exit code, the MCP server maps it -> {error:{code,message,requestId}}.
+// Single typed error envelope for shell adapters. Ops/transport throw CapyError;
+// the CLI maps `code` -> exit code, and a future MCP adapter can use the same wire shape.
 
 export type CapyErrorCode =
   | "no_api_key"
@@ -7,6 +7,7 @@ export type CapyErrorCode =
   | "bad_response"
   | "timeout"
   | "not_found"
+  | "conflict"
   | "unauthorized"
   | "forbidden"
   | "rate_limited"
@@ -41,7 +42,7 @@ export class CapyError extends Error {
     this.details = init.details;
   }
 
-  /** Stable, secret-free wire shape used by the MCP server and `--json` error output. */
+  /** Stable, secret-free wire shape used by `--json` errors and available to future adapters. */
   toEnvelope(): { error: { code: CapyErrorCode; message: string; requestId?: string; details?: unknown } } {
     return {
       error: {
@@ -63,6 +64,7 @@ export const PERMANENT_CODES: ReadonlySet<CapyErrorCode> = new Set<CapyErrorCode
   "unauthorized",
   "forbidden",
   "not_found",
+  "conflict",
   "validation_error",
   "no_project",
 ]);
@@ -85,6 +87,8 @@ export function statusToCode(status: number): CapyErrorCode {
     case 404:
     case 410:
       return "not_found";
+    case 409:
+      return "conflict";
     case 422:
       return "validation_error";
     case 429:
@@ -115,8 +119,9 @@ export function exitCodeFor(code: CapyErrorCode): number {
  *   0   — terminal (genuinely done)
  *   123 — settled but BLOCKED: needs you (a human/integration gate; see blockedOn)
  *   124 — timed out: the poll budget ran out while still progressing
- * 123 pairs with the 124 timeout code so a script can branch on needs-you vs ran-out vs done.
+ *   125 — archived/stopped: settled, but archive state alone does not prove successful work
  * (Genuine API errors still exit via exitCodeFor: unauthorized 77, not_found 69, etc.)
  */
 export const WAIT_BLOCKED_EXIT_CODE = 123;
 export const WAIT_TIMEOUT_EXIT_CODE = 124;
+export const WAIT_ARCHIVED_EXIT_CODE = 125;

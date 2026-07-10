@@ -30,8 +30,8 @@ export interface WaitResult {
   runState: ThreadRunState;
   waitingOn: string[];
   blockedOn: string[];
-  terminal: boolean; // genuinely done (idle/archived or runState ready/archived)
-  settled: boolean; // stopped on a settle condition (done OR blocked) vs timed out
+  terminal: boolean; // genuinely done (runState ready and status not archived)
+  settled: boolean; // stopped on a settle condition (done, blocked, or archived) vs timed out
   timedOut: boolean; // poll budget exhausted
   lastStatus: ThreadStatus;
   lastRunState: ThreadRunState;
@@ -66,7 +66,7 @@ const DEFAULT_INTERVAL_MS = 4_000;
 const DEFAULT_TIMEOUT_MS = 900_000;
 
 /**
- * Poll a thread until it settles (done/blocked), the timeout budget is exhausted, or a
+ * Poll a thread until it settles (ready/blocked/archived status or runState), the timeout budget is exhausted, or a
  * PERMANENT CapyError aborts it fast. Yields a PollTick per poll; the AsyncGenerator's
  * return value is the final WaitResult. No retry/iterate/quality policy — pure observation.
  */
@@ -77,9 +77,14 @@ export async function* pollUntilTerminal(
   if (opts.kind && opts.kind !== "thread") {
     throw new CapyError({ code: "validation_error", message: "wait currently supports thread ids only." });
   }
-  // Defensive finite guards so a NaN (e.g. a malformed CLI flag) can't disable the budget.
-  const intervalMs = Number.isFinite(opts.intervalMs) ? (opts.intervalMs as number) : DEFAULT_INTERVAL_MS;
-  const timeoutMs = Number.isFinite(opts.timeoutMs) ? (opts.timeoutMs as number) : DEFAULT_TIMEOUT_MS;
+  if (opts.intervalMs !== undefined && (!Number.isFinite(opts.intervalMs) || opts.intervalMs <= 0)) {
+    throw new CapyError({ code: "validation_error", message: "wait intervalMs must be a positive number." });
+  }
+  if (opts.timeoutMs !== undefined && (!Number.isFinite(opts.timeoutMs) || opts.timeoutMs <= 0)) {
+    throw new CapyError({ code: "validation_error", message: "wait timeoutMs must be a positive number." });
+  }
+  const intervalMs = opts.intervalMs ?? DEFAULT_INTERVAL_MS;
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const start = Date.now();
   let attempt = 0;
   let lastThread: ThreadListItem | undefined;
@@ -158,11 +163,11 @@ export async function waitForThread(ctx: CapyContext, opts: PollOptions): Promis
 
 export const wait = defineOp({
   name: "wait",
-  summary: "Poll a thread until it settles (done, blocked, or timeout).",
+  summary: "Poll a thread until it settles (done, blocked, archived, or timeout).",
   description:
-    "Pure poll until the thread reaches a terminal state (idle/archived or runState ready/archived), " +
+    "Pure poll until runState reaches ready/blocked/archived or status reaches archived, " +
     "a blocked state, or the timeout budget. Aborts fast on permanent errors. terminal=false means " +
-    "it stopped blocked or timed out — no retry/iterate policy.",
+    "it stopped blocked, archived, or timed out — no retry/iterate policy.",
   effect: "read",
   input: z.object({
     id: z.string().min(1),

@@ -35,6 +35,7 @@ describe("transport", () => {
       [401, "unauthorized"],
       [403, "forbidden"],
       [404, "not_found"],
+      [409, "conflict"],
       [422, "validation_error"],
       [500, "api_error"],
     ];

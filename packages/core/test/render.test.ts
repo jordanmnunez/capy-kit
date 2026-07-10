@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { render } from "../src/index.js";
+import { render, sanitizeTerminalText } from "../src/index.js";
 import { makePage, makeThread } from "./fixtures.js";
 
 describe("render", () => {
@@ -9,14 +9,24 @@ describe("render", () => {
     expect(render("anything", data, "json")).toBe(JSON.stringify(data, null, 2));
   });
 
-  it("delegate human output shows the id, model, and url", () => {
+  it("delegate human output shows the thread, project, model, state, and url", () => {
     const out = render(
       "delegate",
-      { threadId: "thr_1", status: "active", runState: "running", model: "claude-opus-4-8", url: "https://capy.ai/x" },
+      {
+        threadId: "thr_1",
+        projectId: "proj_selected",
+        status: "active",
+        runState: "running",
+        model: "claude-opus-4-8",
+        url: "https://capy.ai/x",
+      },
       "human",
     );
     expect(out).toContain("thr_1");
+    expect(out).toContain("project=proj_selected");
     expect(out).toContain("claude-opus-4-8");
+    expect(out).toContain("status=active");
+    expect(out).toContain("runState=running");
     expect(out).toContain("https://capy.ai/x");
   });
 
@@ -55,8 +65,67 @@ describe("render", () => {
     expect(out).toContain("4m12s");
   });
 
+  it("wait human output treats archived status as unknown even with a stale runState", () => {
+    const out = render(
+      "wait",
+      {
+        status: "archived",
+        runState: "running",
+        terminal: false,
+        timedOut: false,
+        blockedOn: [],
+        elapsedMs: 0,
+        attempts: 1,
+      },
+      "human",
+    );
+    expect(out).toContain("ARCHIVED");
+    expect(out).not.toContain("TIMED OUT");
+  });
+
+  it("status human output preserves every PR number", () => {
+    const out = render(
+      "status",
+      {
+        projectId: "proj_1",
+        count: 1,
+        threads: [
+          {
+            id: "jam_many",
+            title: "campaign",
+            status: "idle",
+            runState: "ready",
+            waitingOn: [],
+            blockedOn: [],
+            pullRequests: Array.from({ length: 8 }, (_, i) => ({
+              number: 101 + i,
+              state: "open",
+              url: `https://example.test/${101 + i}`,
+            })),
+          },
+        ],
+      },
+      "human",
+    );
+    expect(out).toContain("#101 open");
+    expect(out).toContain("#108 open");
+  });
+
   it("unknown op falls back to JSON", () => {
     const data = { x: 1 };
     expect(render("mystery.op", data, "human")).toBe(JSON.stringify(data, null, 2));
+  });
+
+  it("strips terminal escape and control sequences from human output only", () => {
+    const title = "safe\u001b]8;;https://evil.test\u0007linked\u001b]8;;\u0007\u001b[31mred\u001b[0m\r\ntext";
+    const data = { ...makePage(), items: [{ ...makePage().items[0]!, title }] };
+    const human = render("threads.list", data, "human");
+
+    expect(human).toContain("safelinkedredtext");
+    expect(human).not.toMatch(/[\u001b\u0007\r]/);
+    expect(human).not.toContain("red\ntext");
+    expect(render("threads.list", data, "json")).toBe(JSON.stringify(data, null, 2));
+    expect(sanitizeTerminalText("ok\u0000\u001b[2Jstill ok")).toBe("okstill ok");
+    expect(sanitizeTerminalText("one\ntwo\tthree\u202eevil")).toBe("onetwothreeevil");
   });
 });

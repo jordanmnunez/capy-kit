@@ -380,110 +380,6 @@ export interface paths {
         patch: operations["updateSnapshots"];
         trace?: never;
     };
-    "/v1/projects/{projectId}/warm-pool": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get warm pool config
-         * @description Get warm pool configuration, pool status counts, and whether warm pool is enabled for the project's organization.
-         */
-        get: operations["getWarmPool"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Update warm pool config
-         * @description Update warm pool configuration. Supports partial updates — only include fields to change.
-         */
-        patch: operations["updateWarmPool"];
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/warm-pool/test": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Test warm pool boot
-         * @description Trigger a test boot to verify setup commands work. Optionally pass setupCommands to save them before booting. Returns an instance ID to poll for results. Test VMs are auto-deleted after 15 minutes.
-         */
-        post: operations["testWarmPoolBoot"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/warm-pool/instances/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get warm pool instance
-         * @description Get status and provisioning logs for a warm pool instance. Use this to poll test boot results. The response includes a summary with the failed step and error message.
-         */
-        get: operations["getWarmPoolInstance"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/warm-pool/instances": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List warm pool instances
-         * @description List recent warm pool instances with their status. Useful for monitoring pool health.
-         */
-        get: operations["listWarmPoolInstances"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/warm-pool/clear": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Clear warm pool
-         * @description Delete all active warm pool instances (VMs and DB records). Optionally trigger replenishment to refill the pool with fresh instances.
-         */
-        post: operations["clearWarmPool"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/projects/{projectId}/browser-snapshots": {
         parameters: {
             query?: never;
@@ -821,7 +717,7 @@ export interface components {
              * @description Filter by thread origin source.
              * @enum {string}
              */
-            origin?: "web" | "slack" | "api" | "linear" | "automation";
+            origin?: "web" | "slack" | "api" | "linear" | "automation" | "github";
             /**
              * @description Filter by the thread's rolled-up pull request state. Combines with prNumber and branch.
              * @enum {string}
@@ -847,7 +743,7 @@ export interface components {
              * @description Full computed execution state for the agent thread.
              * @enum {string}
              */
-            runState: "running" | "queued" | "waiting" | "blocked" | "ready" | "archived";
+            runState: "running" | "stopping" | "queued" | "waiting" | "blocked" | "ready" | "archived";
             /** @description Async system dependencies expected to continue without user action. */
             waitingOn: ("task" | "review" | "ci" | "timer" | "worker")[];
             /** @description User/integration gates required before progress can continue. */
@@ -903,7 +799,7 @@ export interface components {
             impersonateUserEmail?: string;
             prompt: string;
             /** @enum {string} */
-            model?: "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "glm-5" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder" | "claude-fable-5";
+            model?: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
             /** @enum {string} */
             speed?: "fast" | "standard";
             reasoning?: {
@@ -911,7 +807,7 @@ export interface components {
                 mode: "off" | "on" | "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
             };
             /** @enum {string} */
-            buildModel?: "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "glm-5" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder" | "claude-fable-5";
+            buildModel?: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
             /** @enum {string} */
             buildSpeed?: "fast" | "standard";
             buildReasoning?: {
@@ -943,7 +839,7 @@ export interface components {
              * @description Full computed execution state for the agent thread.
              * @enum {string}
              */
-            runState: "running" | "queued" | "waiting" | "blocked" | "ready" | "archived";
+            runState: "running" | "stopping" | "queued" | "waiting" | "blocked" | "ready" | "archived";
             /** @description Async system dependencies expected to continue without user action. */
             waitingOn: ("task" | "review" | "ci" | "timer" | "worker")[];
             /** @description User/integration gates required before progress can continue. */
@@ -973,9 +869,12 @@ export interface components {
         SendThreadMessageBody: {
             /** Format: email */
             impersonateUserEmail?: string;
+            messageId?: string;
             message: string;
             /** @enum {string} */
-            model?: "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "glm-5" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder" | "claude-fable-5";
+            mode?: "interrupt" | "queue";
+            /** @enum {string} */
+            model?: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
             /** @enum {string} */
             speed?: "fast" | "standard";
             reasoning?: {
@@ -983,7 +882,7 @@ export interface components {
                 mode: "off" | "on" | "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
             };
             /** @enum {string} */
-            buildModel?: "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "glm-5" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder" | "claude-fable-5";
+            buildModel?: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
             /** @enum {string} */
             buildSpeed?: "fast" | "standard";
             buildReasoning?: {
@@ -995,8 +894,12 @@ export interface components {
         };
         SendMessageResponse: {
             id: string;
-            /** @constant */
-            status: "sent";
+            /** @enum {string} */
+            status: "sent" | "queued" | "pending";
+            inputEventId?: string;
+            timelineSequence?: string;
+            /** @enum {string} */
+            appendState?: "inserted" | "already_present";
         };
         ListMessagesQuery: {
             /** @default 50 */
@@ -1143,7 +1046,7 @@ export interface components {
         ListModelsResponse: {
             models: {
                 /** @enum {string} */
-                id: "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "glm-5" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
+                id: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
                 name: string;
                 provider: string;
                 captainEligible: boolean;
@@ -1159,7 +1062,7 @@ export interface components {
              * @default paid
              * @enum {string}
              */
-            routed: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "all";
+            routed: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "external_xai" | "all";
             userId?: string;
             /** @description Comma-separated project IDs to include. */
             projectIds?: string;
@@ -1184,7 +1087,7 @@ export interface components {
             /** @constant */
             currency: "USD";
             /** @enum {string} */
-            routed: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "all";
+            routed: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "external_xai" | "all";
             totals: {
                 llmDollars: number;
                 vmDollars: number;
@@ -1256,7 +1159,7 @@ export interface components {
                     };
                 } | null;
                 /** @enum {string} */
-                routedSource: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown";
+                routedSource: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "external_xai";
                 routedSpendDollars: {
                     [key: string]: number;
                 } | null;
@@ -1265,38 +1168,6 @@ export interface components {
             page: number;
             pageSize: number;
             totalPages: number;
-        };
-        WarmPoolSetupCommand: {
-            name: string;
-            command: string;
-            background?: boolean;
-        };
-        UpdateWarmPoolConfigBody: {
-            enabled?: boolean;
-            targetSize?: number;
-            maxAgeMinutes?: number;
-            branch?: string | null;
-            setupCommands?: {
-                name: string;
-                command: string;
-                background?: boolean;
-            }[] | null;
-        };
-        TestWarmPoolBootBody: {
-            setupCommands?: {
-                name: string;
-                command: string;
-                background?: boolean;
-            }[] | null;
-        };
-        ClearWarmPoolBody: {
-            replenish?: boolean;
-        };
-        ListWarmPoolInstancesQuery: {
-            /** @default 20 */
-            limit: number;
-            /** @enum {string} */
-            status?: "ready" | "provisioning" | "failed" | "claimed";
         };
         ListBrowserSnapshotsResponse: {
             items: {
@@ -1324,11 +1195,6 @@ export interface components {
                 repositories: string[];
                 checkComplete: boolean;
             };
-            legacyWarmPool: {
-                /** @constant */
-                enabled: true;
-                hasSetupCommands: boolean;
-            } | null;
             setup: {
                 /** @enum {string} */
                 vmSize?: "small" | "medium" | "large" | "ultra" | "hyper";
@@ -1456,11 +1322,6 @@ export interface components {
                 repositories: string[];
                 checkComplete: boolean;
             };
-            legacyWarmPool: {
-                /** @constant */
-                enabled: true;
-                hasSetupCommands: boolean;
-            } | null;
             setup: {
                 /** @enum {string} */
                 vmSize?: "small" | "medium" | "large" | "ultra" | "hyper";
@@ -1544,110 +1405,6 @@ export interface components {
                 color: "default" | "primary" | "success" | "warning" | "destructive" | "blue" | "purple" | "pink" | "orange" | "lime";
             }[];
         };
-        GetWarmPoolResponse: {
-            allowed: boolean;
-            config: {
-                enabled: boolean;
-                targetSize: number;
-                maxAgeMinutes: number;
-                branch: string | null;
-                setupCommands: {
-                    name: string;
-                    command: string;
-                    background?: boolean;
-                }[] | null;
-                createdAt: string;
-                updatedAt: string;
-            } | null;
-            status: {
-                /** @default 0 */
-                ready: number;
-                /** @default 0 */
-                provisioning: number;
-                /** @default 0 */
-                failed: number;
-            };
-            metadata: {
-                lastProvisionedAt: string | null;
-                lastClaimedAt: string | null;
-            } | null;
-        };
-        UpdateWarmPoolResponse: {
-            config: {
-                enabled: boolean;
-                targetSize: number;
-                maxAgeMinutes: number;
-                branch: string | null;
-                setupCommands: {
-                    name: string;
-                    command: string;
-                    background?: boolean;
-                }[] | null;
-                createdAt: string;
-                updatedAt: string;
-            } | null;
-            status: {
-                /** @default 0 */
-                ready: number;
-                /** @default 0 */
-                provisioning: number;
-                /** @default 0 */
-                failed: number;
-            };
-        };
-        TestWarmPoolBootResponse: {
-            id: string;
-        };
-        WarmPoolInstanceDetail: {
-            id: string;
-            instanceId: string;
-            status: string;
-            isTest: boolean;
-            summary: {
-                success: boolean;
-                totalDurationMs: number;
-                failedStep: string | null;
-                error: string | null;
-                completedSteps: number;
-                totalSteps: number;
-            };
-            failureReason: string | null;
-            steps: {
-                name: string;
-                /** @enum {string} */
-                status: "success" | "error";
-                error?: string;
-                output?: string;
-                durationMs?: number;
-                timestamp: string;
-                metadata?: {
-                    [key: string]: unknown;
-                };
-            }[];
-            createdAt: string;
-        };
-        ListWarmPoolInstancesResponse: {
-            items: {
-                id: string;
-                instanceId: string;
-                status: string;
-                isTest: boolean;
-                failureReason: string | null;
-                provisionedAt: string | null;
-                createdAt: string;
-            }[];
-        };
-        ClearWarmPoolResponse: {
-            cleared: number;
-            status: {
-                /** @default 0 */
-                ready: number;
-                /** @default 0 */
-                provisioning: number;
-                /** @default 0 */
-                failed: number;
-            };
-        };
         PersonalEnvironmentVariable: {
             name: string;
             /** @constant */
@@ -1723,6 +1480,183 @@ export interface components {
             lastTriggeredAt: string | null;
             createdAt: string;
             updatedAt: string;
+            configRevision: number;
+            mcpOverrides: {
+                enabledServerKeys?: string[];
+                disabledServerKeys?: string[];
+            } | null;
+            triggers: ({
+                id?: string;
+                /** @constant */
+                type: "schedule";
+                config: {
+                    /** @constant */
+                    version?: 2;
+                    cron: string;
+                    timezone: string;
+                };
+                scheduleId?: string | null;
+            } | {
+                id?: string;
+                /** @constant */
+                type: "github";
+                config: {
+                    /** @constant */
+                    source: "github";
+                    events: {
+                        event: string;
+                        actions?: string[];
+                    }[];
+                    filters?: {
+                        branches?: string[];
+                        headBranches?: string[];
+                        authors?: string[];
+                        labels?: string[];
+                        states?: ("open" | "draft" | "closed" | "merged")[];
+                    };
+                } | {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "github";
+                    /** @enum {string} */
+                    event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
+                    conditions?: {
+                        repositories?: string[];
+                        branches?: string[];
+                        headBranches?: string[];
+                        authors?: string[];
+                        labels?: string[];
+                        states?: ("open" | "draft" | "closed" | "merged")[];
+                        actions?: string[];
+                        conclusions?: string[];
+                        workflows?: string[];
+                        checkNames?: string[];
+                        reviewStates?: string[];
+                        actors?: string[];
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "slack";
+                config: {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "slack";
+                    /** @enum {string} */
+                    event: "message" | "reaction" | "channel_created";
+                    conditions?: {
+                        /** @description Slack team IDs (e.g. T0123456789) */
+                        workspaces?: string[];
+                        /** @description Slack channel IDs (e.g. C0123456789), not #channel-names */
+                        channels?: string[];
+                        /** @description Slack user IDs (e.g. U0123456789) of message authors */
+                        users?: string[];
+                        /** @description Slack user IDs (e.g. U0123456789) */
+                        actors?: string[];
+                        /** @description Emoji names without colons */
+                        reactions?: string[];
+                        messagePlacements?: ("top_level" | "reply")[];
+                        messageTypes?: ("human" | "bot")[];
+                        includeBots?: boolean;
+                        /** @default 10 */
+                        groupingWindowSeconds: number;
+                        contains?: string[];
+                        excludes?: string[];
+                        regex?: string;
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "sentry";
+                config: {
+                    /** @constant */
+                    provider: "sentry";
+                    events: ({
+                        /** @constant */
+                        resource: "issue";
+                        actions?: ("created" | "resolved" | "assigned" | "archived" | "unresolved")[];
+                    } | {
+                        /** @constant */
+                        resource: "event_alert";
+                        actions?: "triggered"[];
+                    })[];
+                    filters?: {
+                        sentryProjectIds?: string[];
+                        sentryProjectSlugs?: string[];
+                        levels?: string[];
+                    };
+                } | {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "sentry";
+                    /** @enum {string} */
+                    event: "issue_lifecycle" | "any_issue" | "event_alert";
+                    conditions?: {
+                        projects?: string[];
+                        levels?: string[];
+                        actions?: string[];
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "linear";
+                config: {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "linear";
+                    /** @enum {string} */
+                    event: "issue_created" | "status_changed" | "end_cycle";
+                    conditions?: {
+                        workspaces?: string[];
+                        teams?: string[];
+                        projects?: string[];
+                        statuses?: string[];
+                        fromStatuses?: string[];
+                        statusTransitions?: string[];
+                        priorities?: string[];
+                        actors?: string[];
+                        labels?: string[];
+                        assignees?: string[];
+                        cycles?: string[];
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "incoming_webhook";
+                config?: Record<string, never> | {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "incoming_webhook";
+                    /** @constant */
+                    event: "request";
+                    conditions?: {
+                        contains?: string[];
+                        excludes?: string[];
+                        regex?: string;
+                    };
+                    runWhen?: string;
+                };
+                webhookToken?: string | null;
+                webhookSecret?: string | null;
+            } | {
+                id?: string;
+                /** @constant */
+                type: "on_demand";
+                config?: Record<string, never>;
+            })[];
         };
         ListAutomationsQuery: {
             /**
@@ -1783,6 +1717,183 @@ export interface components {
                 lastTriggeredAt: string | null;
                 createdAt: string;
                 updatedAt: string;
+                configRevision: number;
+                mcpOverrides: {
+                    enabledServerKeys?: string[];
+                    disabledServerKeys?: string[];
+                } | null;
+                triggers: ({
+                    id?: string;
+                    /** @constant */
+                    type: "schedule";
+                    config: {
+                        /** @constant */
+                        version?: 2;
+                        cron: string;
+                        timezone: string;
+                    };
+                    scheduleId?: string | null;
+                } | {
+                    id?: string;
+                    /** @constant */
+                    type: "github";
+                    config: {
+                        /** @constant */
+                        source: "github";
+                        events: {
+                            event: string;
+                            actions?: string[];
+                        }[];
+                        filters?: {
+                            branches?: string[];
+                            headBranches?: string[];
+                            authors?: string[];
+                            labels?: string[];
+                            states?: ("open" | "draft" | "closed" | "merged")[];
+                        };
+                    } | {
+                        /** @constant */
+                        version: 2;
+                        /** @constant */
+                        provider: "github";
+                        /** @enum {string} */
+                        event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
+                        conditions?: {
+                            repositories?: string[];
+                            branches?: string[];
+                            headBranches?: string[];
+                            authors?: string[];
+                            labels?: string[];
+                            states?: ("open" | "draft" | "closed" | "merged")[];
+                            actions?: string[];
+                            conclusions?: string[];
+                            workflows?: string[];
+                            checkNames?: string[];
+                            reviewStates?: string[];
+                            actors?: string[];
+                        };
+                        runWhen?: string;
+                    };
+                } | {
+                    id?: string;
+                    /** @constant */
+                    type: "slack";
+                    config: {
+                        /** @constant */
+                        version: 2;
+                        /** @constant */
+                        provider: "slack";
+                        /** @enum {string} */
+                        event: "message" | "reaction" | "channel_created";
+                        conditions?: {
+                            /** @description Slack team IDs (e.g. T0123456789) */
+                            workspaces?: string[];
+                            /** @description Slack channel IDs (e.g. C0123456789), not #channel-names */
+                            channels?: string[];
+                            /** @description Slack user IDs (e.g. U0123456789) of message authors */
+                            users?: string[];
+                            /** @description Slack user IDs (e.g. U0123456789) */
+                            actors?: string[];
+                            /** @description Emoji names without colons */
+                            reactions?: string[];
+                            messagePlacements?: ("top_level" | "reply")[];
+                            messageTypes?: ("human" | "bot")[];
+                            includeBots?: boolean;
+                            /** @default 10 */
+                            groupingWindowSeconds: number;
+                            contains?: string[];
+                            excludes?: string[];
+                            regex?: string;
+                        };
+                        runWhen?: string;
+                    };
+                } | {
+                    id?: string;
+                    /** @constant */
+                    type: "sentry";
+                    config: {
+                        /** @constant */
+                        provider: "sentry";
+                        events: ({
+                            /** @constant */
+                            resource: "issue";
+                            actions?: ("created" | "resolved" | "assigned" | "archived" | "unresolved")[];
+                        } | {
+                            /** @constant */
+                            resource: "event_alert";
+                            actions?: "triggered"[];
+                        })[];
+                        filters?: {
+                            sentryProjectIds?: string[];
+                            sentryProjectSlugs?: string[];
+                            levels?: string[];
+                        };
+                    } | {
+                        /** @constant */
+                        version: 2;
+                        /** @constant */
+                        provider: "sentry";
+                        /** @enum {string} */
+                        event: "issue_lifecycle" | "any_issue" | "event_alert";
+                        conditions?: {
+                            projects?: string[];
+                            levels?: string[];
+                            actions?: string[];
+                        };
+                        runWhen?: string;
+                    };
+                } | {
+                    id?: string;
+                    /** @constant */
+                    type: "linear";
+                    config: {
+                        /** @constant */
+                        version: 2;
+                        /** @constant */
+                        provider: "linear";
+                        /** @enum {string} */
+                        event: "issue_created" | "status_changed" | "end_cycle";
+                        conditions?: {
+                            workspaces?: string[];
+                            teams?: string[];
+                            projects?: string[];
+                            statuses?: string[];
+                            fromStatuses?: string[];
+                            statusTransitions?: string[];
+                            priorities?: string[];
+                            actors?: string[];
+                            labels?: string[];
+                            assignees?: string[];
+                            cycles?: string[];
+                        };
+                        runWhen?: string;
+                    };
+                } | {
+                    id?: string;
+                    /** @constant */
+                    type: "incoming_webhook";
+                    config?: Record<string, never> | {
+                        /** @constant */
+                        version: 2;
+                        /** @constant */
+                        provider: "incoming_webhook";
+                        /** @constant */
+                        event: "request";
+                        conditions?: {
+                            contains?: string[];
+                            excludes?: string[];
+                            regex?: string;
+                        };
+                        runWhen?: string;
+                    };
+                    webhookToken?: string | null;
+                    webhookSecret?: string | null;
+                } | {
+                    id?: string;
+                    /** @constant */
+                    type: "on_demand";
+                    config?: Record<string, never>;
+                })[];
             }[];
             nextCursor: string | null;
             hasMore: boolean;
@@ -1818,6 +1929,182 @@ export interface components {
             /** @enum {string} */
             visibilityScope?: "project" | "creator";
             webhookSecret?: string | null;
+            triggers?: ({
+                id?: string;
+                /** @constant */
+                type: "schedule";
+                config: {
+                    /** @constant */
+                    version?: 2;
+                    cron: string;
+                    timezone: string;
+                };
+                scheduleId?: string | null;
+            } | {
+                id?: string;
+                /** @constant */
+                type: "github";
+                config: {
+                    /** @constant */
+                    source: "github";
+                    events: {
+                        event: string;
+                        actions?: string[];
+                    }[];
+                    filters?: {
+                        branches?: string[];
+                        headBranches?: string[];
+                        authors?: string[];
+                        labels?: string[];
+                        states?: ("open" | "draft" | "closed" | "merged")[];
+                    };
+                } | {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "github";
+                    /** @enum {string} */
+                    event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
+                    conditions?: {
+                        repositories?: string[];
+                        branches?: string[];
+                        headBranches?: string[];
+                        authors?: string[];
+                        labels?: string[];
+                        states?: ("open" | "draft" | "closed" | "merged")[];
+                        actions?: string[];
+                        conclusions?: string[];
+                        workflows?: string[];
+                        checkNames?: string[];
+                        reviewStates?: string[];
+                        actors?: string[];
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "slack";
+                config: {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "slack";
+                    /** @enum {string} */
+                    event: "message" | "reaction" | "channel_created";
+                    conditions?: {
+                        /** @description Slack team IDs (e.g. T0123456789) */
+                        workspaces?: string[];
+                        /** @description Slack channel IDs (e.g. C0123456789), not #channel-names */
+                        channels?: string[];
+                        /** @description Slack user IDs (e.g. U0123456789) of message authors */
+                        users?: string[];
+                        /** @description Slack user IDs (e.g. U0123456789) */
+                        actors?: string[];
+                        /** @description Emoji names without colons */
+                        reactions?: string[];
+                        messagePlacements?: ("top_level" | "reply")[];
+                        messageTypes?: ("human" | "bot")[];
+                        includeBots?: boolean;
+                        /** @default 10 */
+                        groupingWindowSeconds: number;
+                        contains?: string[];
+                        excludes?: string[];
+                        regex?: string;
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "sentry";
+                config: {
+                    /** @constant */
+                    provider: "sentry";
+                    events: ({
+                        /** @constant */
+                        resource: "issue";
+                        actions?: ("created" | "resolved" | "assigned" | "archived" | "unresolved")[];
+                    } | {
+                        /** @constant */
+                        resource: "event_alert";
+                        actions?: "triggered"[];
+                    })[];
+                    filters?: {
+                        sentryProjectIds?: string[];
+                        sentryProjectSlugs?: string[];
+                        levels?: string[];
+                    };
+                } | {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "sentry";
+                    /** @enum {string} */
+                    event: "issue_lifecycle" | "any_issue" | "event_alert";
+                    conditions?: {
+                        projects?: string[];
+                        levels?: string[];
+                        actions?: string[];
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "linear";
+                config: {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "linear";
+                    /** @enum {string} */
+                    event: "issue_created" | "status_changed" | "end_cycle";
+                    conditions?: {
+                        workspaces?: string[];
+                        teams?: string[];
+                        projects?: string[];
+                        statuses?: string[];
+                        fromStatuses?: string[];
+                        statusTransitions?: string[];
+                        priorities?: string[];
+                        actors?: string[];
+                        labels?: string[];
+                        assignees?: string[];
+                        cycles?: string[];
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "incoming_webhook";
+                config?: Record<string, never> | {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "incoming_webhook";
+                    /** @constant */
+                    event: "request";
+                    conditions?: {
+                        contains?: string[];
+                        excludes?: string[];
+                        regex?: string;
+                    };
+                    runWhen?: string;
+                };
+                webhookToken?: string | null;
+                webhookSecret?: string | null;
+            } | {
+                id?: string;
+                /** @constant */
+                type: "on_demand";
+                config?: Record<string, never>;
+            })[];
+            mcpOverrides?: {
+                enabledServerKeys?: string[];
+                disabledServerKeys?: string[];
+            } | null;
         };
         UpdateAutomationBody: {
             name?: string;
@@ -1850,6 +2137,183 @@ export interface components {
             /** @enum {string} */
             visibilityScope?: "project" | "creator";
             webhookSecret?: string | null;
+            triggers?: ({
+                id?: string;
+                /** @constant */
+                type: "schedule";
+                config: {
+                    /** @constant */
+                    version?: 2;
+                    cron: string;
+                    timezone: string;
+                };
+                scheduleId?: string | null;
+            } | {
+                id?: string;
+                /** @constant */
+                type: "github";
+                config: {
+                    /** @constant */
+                    source: "github";
+                    events: {
+                        event: string;
+                        actions?: string[];
+                    }[];
+                    filters?: {
+                        branches?: string[];
+                        headBranches?: string[];
+                        authors?: string[];
+                        labels?: string[];
+                        states?: ("open" | "draft" | "closed" | "merged")[];
+                    };
+                } | {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "github";
+                    /** @enum {string} */
+                    event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
+                    conditions?: {
+                        repositories?: string[];
+                        branches?: string[];
+                        headBranches?: string[];
+                        authors?: string[];
+                        labels?: string[];
+                        states?: ("open" | "draft" | "closed" | "merged")[];
+                        actions?: string[];
+                        conclusions?: string[];
+                        workflows?: string[];
+                        checkNames?: string[];
+                        reviewStates?: string[];
+                        actors?: string[];
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "slack";
+                config: {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "slack";
+                    /** @enum {string} */
+                    event: "message" | "reaction" | "channel_created";
+                    conditions?: {
+                        /** @description Slack team IDs (e.g. T0123456789) */
+                        workspaces?: string[];
+                        /** @description Slack channel IDs (e.g. C0123456789), not #channel-names */
+                        channels?: string[];
+                        /** @description Slack user IDs (e.g. U0123456789) of message authors */
+                        users?: string[];
+                        /** @description Slack user IDs (e.g. U0123456789) */
+                        actors?: string[];
+                        /** @description Emoji names without colons */
+                        reactions?: string[];
+                        messagePlacements?: ("top_level" | "reply")[];
+                        messageTypes?: ("human" | "bot")[];
+                        includeBots?: boolean;
+                        /** @default 10 */
+                        groupingWindowSeconds: number;
+                        contains?: string[];
+                        excludes?: string[];
+                        regex?: string;
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "sentry";
+                config: {
+                    /** @constant */
+                    provider: "sentry";
+                    events: ({
+                        /** @constant */
+                        resource: "issue";
+                        actions?: ("created" | "resolved" | "assigned" | "archived" | "unresolved")[];
+                    } | {
+                        /** @constant */
+                        resource: "event_alert";
+                        actions?: "triggered"[];
+                    })[];
+                    filters?: {
+                        sentryProjectIds?: string[];
+                        sentryProjectSlugs?: string[];
+                        levels?: string[];
+                    };
+                } | {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "sentry";
+                    /** @enum {string} */
+                    event: "issue_lifecycle" | "any_issue" | "event_alert";
+                    conditions?: {
+                        projects?: string[];
+                        levels?: string[];
+                        actions?: string[];
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "linear";
+                config: {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "linear";
+                    /** @enum {string} */
+                    event: "issue_created" | "status_changed" | "end_cycle";
+                    conditions?: {
+                        workspaces?: string[];
+                        teams?: string[];
+                        projects?: string[];
+                        statuses?: string[];
+                        fromStatuses?: string[];
+                        statusTransitions?: string[];
+                        priorities?: string[];
+                        actors?: string[];
+                        labels?: string[];
+                        assignees?: string[];
+                        cycles?: string[];
+                    };
+                    runWhen?: string;
+                };
+            } | {
+                id?: string;
+                /** @constant */
+                type: "incoming_webhook";
+                config?: Record<string, never> | {
+                    /** @constant */
+                    version: 2;
+                    /** @constant */
+                    provider: "incoming_webhook";
+                    /** @constant */
+                    event: "request";
+                    conditions?: {
+                        contains?: string[];
+                        excludes?: string[];
+                        regex?: string;
+                    };
+                    runWhen?: string;
+                };
+                webhookToken?: string | null;
+                webhookSecret?: string | null;
+            } | {
+                id?: string;
+                /** @constant */
+                type: "on_demand";
+                config?: Record<string, never>;
+            })[];
+            mcpOverrides?: {
+                enabledServerKeys?: string[];
+                disabledServerKeys?: string[];
+            } | null;
+            expectedConfigRevision?: number;
         };
         DeleteAutomationResponse: {
             deleted: boolean;
@@ -1883,6 +2347,24 @@ export interface components {
         };
         /** @description Not found */
         NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Conflict */
+        Conflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Too many requests */
+        TooManyRequests: {
             headers: {
                 [name: string]: unknown;
             };
@@ -1947,7 +2429,7 @@ export interface operations {
                 authorEmail?: string;
                 participantId?: string;
                 participantEmail?: string;
-                origin?: "web" | "slack" | "api" | "linear" | "automation";
+                origin?: "web" | "slack" | "api" | "linear" | "automation" | "github";
                 prState?: "open" | "merged" | "closed" | "none";
                 tag?: string;
                 slackChannelId?: string;
@@ -2062,7 +2544,9 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -2199,7 +2683,9 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -2492,7 +2978,7 @@ export interface operations {
                 orgId: string;
                 from: string;
                 to: string;
-                routed?: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "all";
+                routed?: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "external_xai" | "all";
                 userId?: string;
                 projectIds?: string;
                 agentType?: "build" | "captain" | "review";
@@ -2648,209 +3134,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UpdateSnapshotsResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    getWarmPool: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetWarmPoolResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    updateWarmPool: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateWarmPoolConfigBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UpdateWarmPoolResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    testWarmPoolBoot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TestWarmPoolBootBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TestWarmPoolBootResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    getWarmPoolInstance: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-                /** @description Warm pool instance ID (returned by test boot). */
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["WarmPoolInstanceDetail"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    listWarmPoolInstances: {
-        parameters: {
-            query?: {
-                limit?: number;
-                status?: "ready" | "provisioning" | "failed" | "claimed";
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListWarmPoolInstancesResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    clearWarmPool: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ClearWarmPoolBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ClearWarmPoolResponse"];
                 };
             };
             401: components["responses"]["Unauthorized"];

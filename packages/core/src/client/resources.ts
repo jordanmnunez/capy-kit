@@ -20,6 +20,10 @@ export type SendMessageResponse = Schemas["SendMessageResponse"];
 export type ListMessagesResponse = Schemas["ListMessagesResponse"];
 export type ThreadMessage = ListMessagesResponse["items"][number];
 export type ListMessagesQuery = NonNullable<operations["listThreadMessages"]["parameters"]["query"]>;
+export type StopThreadResponse = Schemas["StopThreadResponse"];
+
+export type ListModelsResponse = Schemas["ListModelsResponse"];
+export type Model = ListModelsResponse["models"][number];
 
 function encodeId(id: string): string {
   return encodeURIComponent(id);
@@ -40,6 +44,14 @@ export function resources(ctx: CapyContext) {
         request<ThreadListItem>(ctx, {
           method: "GET",
           path: `/v1/threads/${encodeId(threadId)}`,
+          signal,
+        }),
+
+      /** Request that an active Captain thread stop. */
+      stop: (threadId: string, signal?: AbortSignal): Promise<StopThreadResponse> =>
+        request<StopThreadResponse>(ctx, {
+          method: "POST",
+          path: `/v1/threads/${encodeId(threadId)}/stop`,
           signal,
         }),
 
@@ -148,6 +160,12 @@ export function resources(ctx: CapyContext) {
           path: `/v1/projects/${encodeId(projectId)}`,
           signal,
         }),
+    },
+
+    models: {
+      /** Current API model availability and Captain eligibility (aliases remain local conveniences). */
+      list: (signal?: AbortSignal): Promise<ListModelsResponse> =>
+        request<ListModelsResponse>(ctx, { method: "GET", path: "/v1/models", signal }),
     },
   };
 }

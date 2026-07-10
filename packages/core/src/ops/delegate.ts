@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { CapyError } from "../client/errors.js";
 import { resources, type CreateThreadBody } from "../client/resources.js";
 import { REASONING_MODES, THREAD_RUN_STATES, THREAD_STATUSES, resolveModelAlias, threadUrl } from "../model.js";
 import { csvArray, defineOp } from "./define.js";
@@ -27,7 +28,9 @@ const DelegateInput = z.object({
   tags: csvArray(z.string())
     .describe("Tag(s) to attach; each must ALREADY exist in the Capy project (create them in the app, or omit).")
     .optional(),
-  attachmentUrls: csvArray(z.string()).optional(),
+  attachmentUrls: csvArray(z.string())
+    .refine((urls) => urls.length <= 10, { message: "At most 10 attachment URLs are allowed." })
+    .optional(),
   projectId: z.string().optional(),
 });
 
@@ -70,6 +73,12 @@ export const delegate = defineOp({
     if (args.attachmentUrls && args.attachmentUrls.length > 0) body.attachmentUrls = args.attachmentUrls;
 
     const res = await resources(ctx).threads.create(body);
+    if (res.projectId !== projectId) {
+      throw new CapyError({
+        code: "bad_response",
+        message: `Capy created thread ${res.id} in project ${res.projectId}, but project ${projectId} was requested.`,
+      });
+    }
     return {
       threadId: res.id,
       projectId: res.projectId,

@@ -159,12 +159,33 @@ export const ListMessagesResponseSchema = z
   })
   .strict();
 
+export const StopThreadResponseSchema = z
+  .object({
+    id: z.string(),
+    status: ThreadStatusSchema,
+  })
+  .strict();
+
 export const SendMessageResponseSchema = z
   .object({
     id: z.string(),
-    status: z.literal("sent"),
+    status: z.enum(["sent", "queued", "pending"]),
+    inputEventId: z.string().optional(),
+    timelineSequence: z.string().regex(/^(0|[1-9]\d*)$/).optional(),
+    appendState: z.enum(["inserted", "already_present"]).optional(),
   })
   .strict();
+
+export const ModelSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    provider: z.string(),
+    captainEligible: z.boolean(),
+  })
+  .strict();
+
+export const ListModelsResponseSchema = z.object({ models: z.array(ModelSchema) }).strict();
 
 export type ThreadListItem = z.infer<typeof ThreadListItemSchema>;
 export type ListThreadsResponse = z.infer<typeof ListThreadsResponseSchema>;
@@ -173,6 +194,8 @@ export type Project = z.infer<typeof ProjectSchema>;
 export type ListProjectsResponse = z.infer<typeof ListProjectsResponseSchema>;
 export type ListMessagesResponse = z.infer<typeof ListMessagesResponseSchema>;
 export type SendMessageResponse = z.infer<typeof SendMessageResponseSchema>;
+export type ListModelsResponse = z.infer<typeof ListModelsResponseSchema>;
+export type StopThreadResponse = z.infer<typeof StopThreadResponseSchema>;
 
 // --- drift guards: zod mirror must equal the generated wire type, both directions ---
 type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : never) : never;
@@ -191,3 +214,10 @@ const _checkListProjects: Exact<ListProjectsResponse, Wire["ListProjectsResponse
 const _checkListMessages: Exact<ListMessagesResponse, Wire["ListMessagesResponse"]> = true;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _checkSendMessage: Exact<SendMessageResponse, Wire["SendMessageResponse"]> = true;
+// Models are intentionally forward-compatible at runtime: the live endpoint is the source
+// of availability, so the zod boundary accepts a future string id without waiting for codegen.
+// The generated wire type must still be accepted by this structural schema.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _checkListModels: [Wire["ListModelsResponse"]] extends [ListModelsResponse] ? true : never = true;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _checkStopThread: Exact<StopThreadResponse, Wire["StopThreadResponse"]> = true;

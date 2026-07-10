@@ -1,8 +1,13 @@
 import { CapyError, OPS, type Op, type WaitResult } from "@capy-kit/core";
 import type { ArgDef } from "citty";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { argsForOp, globalArgs, numOpt, waitExitCode, withTagsHint } from "../src/build.js";
+import { argsForOp, fail, globalArgs, waitExitCode, waitOptions, withTagsHint } from "../src/build.js";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  process.exitCode = undefined;
+});
 
 function waitResult(over: Partial<WaitResult>): WaitResult {
   return {
@@ -38,12 +43,14 @@ describe("CLI projection from OPS", () => {
       "delegate",
       "threads.list",
       "threads.get",
+      "threads.stop",
       "threads.message",
       "threads.messages",
       "wait",
       "status",
       "projects.list",
       "projects.get",
+      "models.list",
     ]);
   });
 
@@ -71,19 +78,23 @@ describe("CLI projection from OPS", () => {
     expect(args).not.toHaveProperty("projectId");
   });
 
-  it("threads.get + wait: a required positional id", () => {
+  it("threads.get + threads.stop + wait: a required positional id", () => {
     const get = argsForOp(byName("threads.get"));
     expect(get.id).toMatchObject({ type: "positional", required: true });
+    const stop = argsForOp(byName("threads.stop"));
+    expect(stop.id).toMatchObject({ type: "positional", required: true });
     const waitArgs = argsForOp(byName("wait"));
     expect(waitArgs.id).toMatchObject({ type: "positional", required: true });
     expect(types(waitArgs).timeoutSec).toBe("string");
   });
 
-  it("threads.message: two required positionals (id, message) + string model flag", () => {
+  it("threads.message: two required positionals + faithful steer control flags", () => {
     const args = argsForOp(byName("threads.message"));
     expect(args.id).toMatchObject({ type: "positional", required: true });
     expect(args.message).toMatchObject({ type: "positional", required: true });
     expect(types(args).model).toBe("string");
+    expect(types(args).mode).toBe("string");
+    expect(types(args).messageId).toBe("string");
   });
 
   it("threads.messages + projects.list: list flags, no positional; projects.get: required positional id", () => {
@@ -97,17 +108,26 @@ describe("CLI projection from OPS", () => {
     expect(get.id).toMatchObject({ type: "positional", required: true });
   });
 
+  it("models.list has no operation-specific flags", () => {
+    expect(argsForOp(byName("models.list"))).toEqual({});
+  });
+
   it("globals are the documented set", () => {
     expect(Object.keys(globalArgs).sort()).toEqual(["debug", "json", "org", "profile", "project"]);
     expect(globalArgs.json.type).toBe("boolean");
+    expect(globalArgs.project.description).toMatch(/overrides profile/i);
+    expect(globalArgs.profile.description).toMatch(/ignores ambient CAPY_PROJECT_ID/i);
   });
 
-  it("numOpt parses numbers and rejects non-finite/empty flags", () => {
-    expect(numOpt("5")).toBe(5);
-    expect(numOpt("90")).toBe(90);
-    expect(numOpt("abc")).toBeUndefined();
-    expect(numOpt("")).toBeUndefined();
-    expect(numOpt(undefined)).toBeUndefined();
+  it("waitOptions uses the wait Op schema for coercion and rejects invalid budgets", () => {
+    expect(waitOptions({ timeoutSec: "5", intervalSec: "2" }, "jam_x")).toEqual({
+      id: "jam_x",
+      timeoutSec: 5,
+      intervalSec: 2,
+    });
+    expect(() => waitOptions({ timeoutSec: "abc" }, "jam_x")).toThrow(/Invalid arguments/);
+    expect(() => waitOptions({ intervalSec: "-1" }, "jam_x")).toThrow(/Invalid arguments/);
+    expect(() => waitOptions({ timeoutSec: "0" }, "jam_x")).toThrow(/Invalid arguments/);
   });
 
   it("delegate.tags carries the pre-exist constraint as help text", () => {
@@ -124,11 +144,35 @@ describe("CLI projection from OPS", () => {
     expect(withTagsHint(other, true)).toBe(other);
   });
 
-  it("waitExitCode: 0 done / 123 blocked-needs-you / 124 timed out", () => {
+  it("sanitizes upstream terminal controls in human errors", () => {
+    const write = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    fail(
+      new CapyError({
+        code: "api_error",
+        message: "safe\u001b]8;;https://evil.test\u0007link\u001b]8;;\u0007\nnext",
+        requestId: "req\u001b[31m_1",
+      }),
+      "human",
+    );
+
+    expect(write).toHaveBeenCalledWith("capy: safelinknext (request req_1)\n");
+  });
+
+  it("waitExitCode: 0 done / 123 blocked / 124 timed out / 125 archived", () => {
     expect(waitExitCode(waitResult({ terminal: true }))).toBe(0);
     expect(
       waitExitCode(waitResult({ terminal: false, settled: true, runState: "blocked", blockedOn: ["auth"] })),
     ).toBe(123);
     expect(waitExitCode(waitResult({ terminal: false, settled: false, timedOut: true }))).toBe(124);
+    expect(
+      waitExitCode(
+        waitResult({ terminal: false, settled: true, status: "archived", runState: "archived" }),
+      ),
+    ).toBe(125);
+    expect(
+      waitExitCode(
+        waitResult({ terminal: false, settled: true, status: "archived", runState: "running" }),
+      ),
+    ).toBe(125);
   });
 });

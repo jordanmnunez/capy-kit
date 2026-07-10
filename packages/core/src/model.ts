@@ -5,7 +5,15 @@
 export const THREAD_STATUSES = ["active", "idle", "archived"] as const;
 export type ThreadStatus = (typeof THREAD_STATUSES)[number];
 
-export const THREAD_RUN_STATES = ["running", "queued", "waiting", "blocked", "ready", "archived"] as const;
+export const THREAD_RUN_STATES = [
+  "running",
+  "stopping",
+  "queued",
+  "waiting",
+  "blocked",
+  "ready",
+  "archived",
+] as const;
 export type ThreadRunState = (typeof THREAD_RUN_STATES)[number];
 
 export const WAITING_ON = ["task", "review", "ci", "timer", "worker"] as const;
@@ -25,8 +33,11 @@ export const TASK_STATUSES = [
 ] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
-export const ORIGINS = ["web", "slack", "api", "linear", "automation"] as const;
+export const ORIGINS = ["web", "slack", "api", "linear", "automation", "github"] as const;
 export type Origin = (typeof ORIGINS)[number];
+
+export const MESSAGE_MODES = ["interrupt", "queue"] as const;
+export type MessageMode = (typeof MESSAGE_MODES)[number];
 
 export const PR_STATES = ["open", "merged", "closed", "none"] as const;
 export type PrState = (typeof PR_STATES)[number];
@@ -45,8 +56,12 @@ export const TAG_COLORS = [
 ] as const;
 export type TagColor = (typeof TAG_COLORS)[number];
 
-// Terminal status sets (coarse signal). It is `error`, not `failed`.
-export const TERMINAL_THREAD_STATUS: ReadonlySet<ThreadStatus> = new Set<ThreadStatus>(["idle", "archived"]);
+// Coarse status vocabulary. Do NOT use `idle` alone to stop a poll: the live API can
+// report status=idle while runState=waiting on review/CI. An archived status is the
+// exception: live responses can retain a stale non-archived runState after archival.
+export const SETTLED_THREAD_STATUS: ReadonlySet<ThreadStatus> = new Set<ThreadStatus>(["archived"]);
+/** @deprecated A coarse status cannot prove successful completion. Use isThreadDone/isThreadSettled. */
+export const TERMINAL_THREAD_STATUS: ReadonlySet<ThreadStatus> = SETTLED_THREAD_STATUS;
 export const TERMINAL_TASK_STATUS: ReadonlySet<TaskStatus> = new Set<TaskStatus>([
   "completed",
   "error",
@@ -54,12 +69,12 @@ export const TERMINAL_TASK_STATUS: ReadonlySet<TaskStatus> = new Set<TaskStatus>
 ]);
 
 // runState is the finer "will this move on its own?" signal used by `wait`:
-//   running/queued/waiting -> still progressing (waitingOn = async deps that continue)
-//   ready/archived         -> genuinely done
+//   running/stopping/queued/waiting -> still progressing (waitingOn = async deps that continue)
+//   ready                  -> genuinely done
+//   archived               -> stopped/closed; success is not established by this state alone
 //   blocked                -> needs a human/integration gate (blockedOn); won't self-progress
 export const DONE_THREAD_RUN_STATE: ReadonlySet<ThreadRunState> = new Set<ThreadRunState>([
   "ready",
-  "archived",
 ]);
 export const STOP_THREAD_RUN_STATE: ReadonlySet<ThreadRunState> = new Set<ThreadRunState>([
   "ready",
@@ -72,22 +87,22 @@ export interface ThreadStateLike {
   runState: ThreadRunState;
 }
 
-/** Stop polling: the thread reached a state it won't leave without external action. */
+/** Stop polling: runState settled, or the coarse status proves the thread was archived. */
 export function isThreadSettled(t: ThreadStateLike): boolean {
-  return TERMINAL_THREAD_STATUS.has(t.status) || STOP_THREAD_RUN_STATE.has(t.runState);
+  return SETTLED_THREAD_STATUS.has(t.status) || STOP_THREAD_RUN_STATE.has(t.runState);
 }
 
 /** Genuinely finished (not merely blocked/timed-out). Drives `wait`'s `terminal` flag. */
 export function isThreadDone(t: ThreadStateLike): boolean {
-  return TERMINAL_THREAD_STATUS.has(t.status) || DONE_THREAD_RUN_STATE.has(t.runState);
+  return t.status !== "archived" && DONE_THREAD_RUN_STATE.has(t.runState);
 }
 
 export function isTaskTerminal(status: TaskStatus): boolean {
   return TERMINAL_TASK_STATUS.has(status);
 }
 
-// Friendly CLI aliases. The default model + full alias map come from /v1/models at
-// runtime (M3); these three are stable conveniences and the default is configurable.
+// Friendly local CLI aliases. /v1/models supplies availability and Captain eligibility,
+// not aliases or a default; these conveniences and the configurable fallback are ours.
 export const DEFAULT_MODEL = "claude-opus-4-8";
 export const MODEL_ALIASES: Readonly<Record<string, string>> = {
   opus: "claude-opus-4-8",
@@ -128,5 +143,5 @@ export type ReasoningMode = (typeof REASONING_MODES)[number];
  */
 export function threadUrl(webBaseUrl: string, projectId: string, threadId: string): string {
   const base = webBaseUrl.replace(/\/+$/, "");
-  return `${base}/project/${projectId}/captain/${threadId}`;
+  return `${base}/project/${encodeURIComponent(projectId)}/captain/${encodeURIComponent(threadId)}`;
 }

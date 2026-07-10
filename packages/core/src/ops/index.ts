@@ -1,25 +1,28 @@
 import type { CapyContext } from "../client/context.js";
 import { delegate } from "./delegate.js";
 import type { Op } from "./define.js";
+import { modelsList } from "./models.js";
 import { pollUntilTerminal, wait, waitForThread } from "./poll.js";
 import { projectsGet, projectsList } from "./projects.js";
 import { status } from "./status.js";
-import { listAllThreads, threadsGet, threadsList, threadsMessage, threadsMessages } from "./threads.js";
+import { listAllThreads, threadsGet, threadsList, threadsMessage, threadsMessages, threadsStop } from "./threads.js";
 
 /**
- * The single registry every surface projects from. Add one op here -> it appears in the
- * CLI tree, the MCP tool roster, and the generated skill tables. Order is the display order.
+ * The single business-logic registry. The current CLI explicitly projects these Ops; MCP and
+ * generated skill tables are planned. Keep explicit surfaces/parity tests in sync when adding one.
  */
 export const OPS: Op[] = [
   delegate,
   threadsList,
   threadsGet,
+  threadsStop,
   threadsMessage,
   threadsMessages,
   wait,
   status,
   projectsList,
   projectsGet,
+  modelsList,
 ];
 
 export const opsByName: Readonly<Record<string, Op>> = Object.freeze(
@@ -31,6 +34,7 @@ export const ops = {
   delegate: (ctx: CapyContext, args: Parameters<typeof delegate.run>[0]) => delegate.run(args, ctx),
   threadsList: (ctx: CapyContext, args: Parameters<typeof threadsList.run>[0]) => threadsList.run(args, ctx),
   threadsGet: (ctx: CapyContext, args: Parameters<typeof threadsGet.run>[0]) => threadsGet.run(args, ctx),
+  threadsStop: (ctx: CapyContext, args: Parameters<typeof threadsStop.run>[0]) => threadsStop.run(args, ctx),
   threadsMessage: (ctx: CapyContext, args: Parameters<typeof threadsMessage.run>[0]) => threadsMessage.run(args, ctx),
   threadsMessages: (ctx: CapyContext, args: Parameters<typeof threadsMessages.run>[0]) =>
     threadsMessages.run(args, ctx),
@@ -38,6 +42,7 @@ export const ops = {
   status: (ctx: CapyContext, args: Parameters<typeof status.run>[0]) => status.run(args, ctx),
   projectsList: (ctx: CapyContext, args: Parameters<typeof projectsList.run>[0]) => projectsList.run(args, ctx),
   projectsGet: (ctx: CapyContext, args: Parameters<typeof projectsGet.run>[0]) => projectsGet.run(args, ctx),
+  modelsList: (ctx: CapyContext, args: Parameters<typeof modelsList.run>[0]) => modelsList.run(args, ctx),
   // generators / helpers (no zod boundary; advanced/streaming use)
   pollUntilTerminal,
   waitForThread,
@@ -48,12 +53,14 @@ export {
   delegate,
   threadsList,
   threadsGet,
+  threadsStop,
   threadsMessage,
   threadsMessages,
   wait,
   status,
   projectsList,
   projectsGet,
+  modelsList,
   listAllThreads,
   pollUntilTerminal,
   waitForThread,

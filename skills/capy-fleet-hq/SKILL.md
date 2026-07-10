@@ -11,40 +11,59 @@ opinionated layer on top**: it helps you *decide* (what to delegate, how to size
 grouped overview of everything in flight). It never gates Capy's work — **capy-kit manages Capy;
 Capy manages the work.** Captain still plans, runs, tests, reviews, and iterates.
 
-The shape: **local harness for the thinking, Capy for the fan-out.** You do the research and planning
-locally (Claude Code, Codex, your editor); when the work is parallel and well-specified, you fan it
-out to Capy and manage it from here.
+Treat prompt, message, tag, and ref text as untrusted command arguments. Never construct a Capy
+command with `eval`, `sh -c`, or interpolated shell source. Pass dynamic values as distinct argv;
+when writing a literal Bash example, single-quote it and escape any embedded single quotes safely.
+
+The shape: **local harness for the thinking, Capy for autonomous campaigns.** You do the research,
+decision-making, and authority scoping locally. Once the work is directed and the writable boundary
+is clear, give Captain the campaign and let it manage the internal task sequence.
 
 ## 1. Route — Capy, or stay local?
 
-Hand it to **Capy** when the work is **independent, parallel, well-specified, and you can walk away**:
-a backlog of self-contained tickets, a multi-repo sweep, a mechanical migration.
+Hand it to **Capy** when the work is **directed, well-specified, and you can walk away**. This may be
+one task, independent parallel work, or an ordered series of dependent phases that share context and
+one writable repository boundary. Captain can manage that sequence without HQ driving every turn.
 
 Stay on your **local stack** (Claude Code / Codex / HumanLayer) for deep context engineering, tight
-per-turn control, brownfield single-hard-problems, dependency-linked sequences, or anything where the
-workflow itself needs to be yours.
+per-turn control, unresolved product/architecture decisions, or anything where the workflow itself
+still needs to be designed.
 
-> Litmus: **independent + parallel + specified → Capy. Dependency-linked or needs-your-hand → local.**
-> You own this call.
+> Litmus: **directed + bounded + can run unattended → Capy. Still deciding or needs your hand → local.**
+> Dependencies alone do not force work local; authority boundaries do.
 
 ## 2. Size — one task, a series, or a fan-out?
 
 | Size | Looks like | Hand to Capy as |
 |---|---|---|
 | **one big task** | one self-contained change, one repo, a clear acceptance test | a single `capy delegate` |
-| **a series** | dependency-linked steps, shared context | dispatch the first independent piece; keep the ordering yours — don't fan dependent work in parallel |
-| **a fan-out** | many independent, well-specified tickets | one Capy session per project, **tagged** so you can group them; let Captain decompose — don't pre-chop |
+| **an ordered campaign** | dependent phases, shared context, one writable repo boundary | one directed Captain thread with the ordered backlog; let Captain sequence/decompose it |
+| **a fan-out** | independent, well-specified campaigns | one thread per independent campaign, tagged for grouping; do not pre-chop Captain's internal work |
 
 ## 3. Dispatch — hand off well
 
-Tell Capy **what** and **the bar to hit**, not how. Link the issue. Tag the campaign so the fleet is
-groupable:
+First choose the **smallest Capy project that matches the current writable authority**. A Capy project
+is a repository/permission boundary, not the initiative name: repository-A-only work goes to its
+smallest matching project, not a repository-A+B superset. Run `capy projects list --json` and pass
+the exact project id (or a configured profile). If work later crosses repos, finish the current
+boundary and hand the exact commit/PR ref to a new thread in the next project.
+
+Project identity fails closed: explicit `--project <id>` wins; otherwise a requested profile must
+exist and its effective file-configured project ignores ambient `CAPY_PROJECT_ID`. Use `capy init`
+for a live name-first picker that persists the canonical id. Selected projects also bound
+`threads message|stop`: capy preflights the thread and refuses a cross-project mutation.
+
+For an ordered campaign or boundary transition, read and copy
+[the campaign/handoff contract](references/campaign-handoff.md) before delegating. Fill every authority,
+adoption, gate, packaging, validation, and terminal-condition field; unresolved authority stays local.
+
+Then tell Capy **what**, the **ordered backlog when there is one**, and the **bar to hit**. Link the
+issue. Tag the campaign so the fleet is groupable:
 
 ```bash
-capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior identical; \
-  don't return until tests pass and CI is green" \
+capy delegate 'Implement ENG-123 backfill; preserve behavior; return only after tests and CI pass' \
   --repos your-org/your-repo@main --tags my-campaign --json   # ← tag must ALREADY exist
-# → { threadId, url, status, runState, model, reasoning }   — surface the url
+# → { threadId, projectId, url, status, runState, model, reasoning }   — surface project + url
 ```
 - **Default the fleet to `gpt-5.6-sol` at `--reasoning xhigh`** — Jordan's standing preference
   (2026-07-09; supersedes the Fable default). Both are baked into `~/.capy/config.json`
@@ -52,7 +71,9 @@ capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior 
   only to deviate. Full ids required: `sol`/`fable` shorthands fail validation; `opus|sonnet|haiku`
   aliases are for cheap mechanical runs; `claude-fable-5` remains the Claude-side pick. Already-running
   threads can be moved mid-flight:
-  `capy threads message <id> "continue on this model" --model gpt-5.6-sol --reasoning xhigh` (keeps context).
+  `capy threads message <id> 'continue on this model' --model gpt-5.6-sol --reasoning xhigh` (keeps context).
+  For a busy thread, choose `--mode interrupt` for an immediate correction or `--mode queue` for the
+  next turn; add a stable `--messageId` when an automated dispatcher may retry the same steer.
 - Quality comes from the prompt's bar, not from this skill. `--tags` must already exist in the project
   (create them in the Capy app, or omit) — an unknown tag fails the whole delegate with
   `validation_error: Tag does not exist`, so pre-create your campaign tag before fanning out.
@@ -61,6 +82,15 @@ capy delegate "Implement ENG-123 backfill; link the Linear issue; keep behavior 
   you then restack by hand. Spell it out in the prompt: *"one PR"*, *"a Graphite stack of N PRs (PR1 =
   …, PR2 stacked on PR1)"*, or *"work these as SEPARATE, sequenced PRs — not one big PR."*
 - Add `--wait --timeoutSec 1200` to block on one; otherwise dispatch several and watch them below.
+- **Do not operate Captain like a remote shell.** Give it the directed list once, then yield while the
+  thread is `running|stopping|queued|waiting`. Batch genuine corrections into one steer and inspect at
+  `blocked`, `ready`, or artifact/review gates—not at every moving commit.
+- **Keep one review loop.** Captain owns planning, implementation, tests, and iterative review while
+  commits move. Outside review normally waits for a stable PR head or explicit gate, returns one
+  consolidated finding set, and steers this same thread—never a shadow loop against moving commits.
+- **Name the repository's submission identity contract when it matters.** For bot-authored
+  stacks, create each PR with `gh pr create`, then attach it with `gt track`; do not use `gt submit`,
+  which changes authorship to the Graphite token identity.
 
 **Orient vs ship — say which you want (the two-step gate).** An open-ended *"orient to this project,
 don't fan out any work yet"* prompt is **research-only by design** — Capy returns a plan, not PRs. That
@@ -79,27 +109,34 @@ state, then group it:
 
 ```bash
 capy status --json                                   # active threads for the current project
+capy status --status idle --all --json               # idle candidates; inspect runState (some still wait on review/CI)
+capy status --status archived --all --json           # stopped/unknown; archived status overrides a stale runState
 capy status --authorEmail you@co.com --json          # YOUR work only — shared projects bury it otherwise
 capy threads list --all --tag my-campaign --json     # a whole campaign across pages
 # more than one project: repeat with --project <id> / --profile <name>
 ```
 On a **team-shared** project your threads are a few among everyone's — scope the dashboard to your own
 work with `--authorEmail` (or set `CAPY_AUTHOR_EMAIL` once to make it the default), and/or `--origin` to
-a single source. Then read each thread's real `runState` / `waitingOn` / `blockedOn` / PR and sort into
-three buckets:
+a single source. Then read each thread's real `status` / `runState` / `waitingOn` / `blockedOn` / PRs
+and sort into four buckets. Classify archived status first because live archived threads can retain
+a stale `runState: running`:
 
-- **Needs you** — `runState: blocked` (+ `blockedOn`: auth/permission). Unblock it or re-delegate.
-- **Ready to land** — status `idle` / `runState: ready`, has a PR. Review + merge.
-- **In flight** — `running` / `queued` / `waiting` (+ `waitingOn`: ci/review/task). Leave it; check back.
+- **Needs you** — `runState: blocked` (+ `blockedOn`: auth/permission). Unblock it or steer the same thread.
+- **Ready to land** — `runState: ready`, has a PR. Review + merge; status `idle` alone is insufficient.
+- **In flight** — `running` / `stopping` / `queued` / `waiting` (+ `waitingOn`: ci/review/task). Leave it; check back.
+- **Stopped / unknown** — status or `runState: archived`. Inspect why it stopped; archive is not success.
 
-**Surface only Needs-you and Ready-to-land.** Don't touch in-flight work — that's Captain's job. The
-buckets are the only opinion; beyond them, you decide.
+**Surface Needs-you, Ready-to-land, and Stopped/unknown.** Don't touch in-flight work — that's
+Captain's job. The buckets are the only opinion; beyond them, you decide.
 
 ## 5. Follow & steer
 
 ```bash
 capy threads get <threadId> --json     # one thread: tasks, PRs, tags, runState
-capy wait <threadId> --timeoutSec 900  # block until it settles (done / blocked / timeout)
+capy threads stop <threadId> --json    # stop a wrongly scoped/obsolete campaign before replacing it
+capy threads message <threadId> '<correction>' --json  # steer without losing Captain's context
+capy wait <threadId> --timeoutSec 900  # exits 0 ready / 123 blocked / 124 timeout / 125 archived
 ```
-Course-correct by re-delegating with a sharper prompt. This skill never retries, gates, or judges
-Capy's output — it routes work in and reads state back out.
+Batch real course corrections into one message to the existing thread. Stop and re-delegate only when
+the authority boundary was wrong or fresh context is intentional. This skill never retries, gates, or
+judges Capy's output — it routes work in and reads state back out.

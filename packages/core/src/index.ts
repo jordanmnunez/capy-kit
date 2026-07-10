@@ -3,9 +3,12 @@
 
 export {
   resolveContext,
+  readCapyConfig,
   DEFAULTS,
   type CapyContext,
   type CapyContextInput,
+  type CapyConfigLayer,
+  type CapyConfigDocument,
 } from "./client/context.js";
 
 export {
@@ -19,6 +22,7 @@ export {
   exitCodeFor,
   WAIT_BLOCKED_EXIT_CODE,
   WAIT_TIMEOUT_EXIT_CODE,
+  WAIT_ARCHIVED_EXIT_CODE,
 } from "./client/errors.js";
 
 export { request, backoffMs, type RequestOptions, type HttpMethod } from "./client/transport.js";
@@ -40,6 +44,9 @@ export {
   type ListMessagesResponse,
   type ThreadMessage,
   type ListMessagesQuery,
+  type ListModelsResponse,
+  type Model,
+  type StopThreadResponse,
 } from "./client/resources.js";
 
 export * from "./model.js";
@@ -51,12 +58,14 @@ export {
   delegate,
   threadsList,
   threadsGet,
+  threadsStop,
   threadsMessage,
   threadsMessages,
   wait,
   status,
   projectsList,
   projectsGet,
+  modelsList,
   listAllThreads,
   pollUntilTerminal,
   waitForThread,
@@ -65,9 +74,9 @@ export {
   type PollOptions,
 } from "./ops/index.js";
 
-export { defineOp, csvArray, type Op, type OpSpec, type TypedOp, type Effect } from "./ops/define.js";
+export { defineOp, parseInput, csvArray, type Op, type OpSpec, type TypedOp, type Effect } from "./ops/define.js";
 
-export { render, type OutputFormat } from "./render/index.js";
+export { render, sanitizeTerminalText, type OutputFormat } from "./render/index.js";
 
 export {
   ThreadListItemSchema,
@@ -78,4 +87,7 @@ export {
   ThreadMessageSchema,
   ListMessagesResponseSchema,
   SendMessageResponseSchema,
+  ModelSchema,
+  ListModelsResponseSchema,
+  StopThreadResponseSchema,
 } from "./client/schemas.js";

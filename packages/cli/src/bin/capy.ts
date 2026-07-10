@@ -1,5 +1,6 @@
 import {
   delegate,
+  modelsList,
   projectsGet,
   projectsList,
   status,
@@ -7,11 +8,12 @@ import {
   threadsList,
   threadsMessage,
   threadsMessages,
+  threadsStop,
   wait,
 } from "@capy-kit/core";
 import { defineCommand, runMain } from "citty";
 
-import { argsForOp, buildCtx, driveWait, emit, fail, formatOf, globalArgs, numOpt, opCommand, withTagsHint } from "../build.js";
+import { argsForOp, buildCtx, driveWait, emit, fail, formatOf, globalArgs, opCommand, waitOptions, withTagsHint } from "../build.js";
 import { initCommand } from "../commands/init.js";
 
 // delegate is custom: it adds the cross-op `--wait` convenience (delegate then wait).
@@ -28,6 +30,8 @@ const delegateCommand = defineCommand({
     const fmt = formatOf(args);
     try {
       const ctx = buildCtx(args);
+      // Validate before the create call so a bad polling flag never creates work and then fails.
+      const validatedWait = args.wait ? waitOptions(args, "pending-thread-id") : undefined;
       const result = await delegate.run(args as unknown as Parameters<typeof delegate.run>[0], ctx);
       if (!args.wait) {
         emit("delegate", result, fmt);
@@ -35,8 +39,8 @@ const delegateCommand = defineCommand({
       }
       const waitOpts = {
         id: result.threadId,
-        timeoutSec: numOpt(args.timeoutSec),
-        intervalSec: numOpt(args.intervalSec),
+        timeoutSec: validatedWait?.timeoutSec,
+        intervalSec: validatedWait?.intervalSec,
       };
       if (fmt === "json") {
         // Stable --json contract: the delegate fields are ALWAYS at the root; --wait merely
@@ -61,11 +65,7 @@ const waitCommand = defineCommand({
   async run({ args }) {
     const fmt = formatOf(args);
     try {
-      await driveWait(
-        buildCtx(args),
-        { id: String(args.id), timeoutSec: numOpt(args.timeoutSec), intervalSec: numOpt(args.intervalSec) },
-        fmt,
-      );
+      await driveWait(buildCtx(args), waitOptions(args, String(args.id)), fmt);
     } catch (e) {
       fail(e, fmt);
     }
@@ -77,6 +77,7 @@ const threadsCommand = defineCommand({
   subCommands: {
     list: opCommand(threadsList),
     get: opCommand(threadsGet),
+    stop: opCommand(threadsStop),
     message: opCommand(threadsMessage),
     messages: opCommand(threadsMessages),
   },
@@ -90,6 +91,11 @@ const projectsCommand = defineCommand({
   },
 });
 
+const modelsCommand = defineCommand({
+  meta: { name: "models", description: "List current API model availability." },
+  subCommands: { list: opCommand(modelsList) },
+});
+
 const main = defineCommand({
   meta: { name: "capy", version: "0.0.0", description: "Manage Capy from the terminal. Capy manages the work." },
   subCommands: {
@@ -99,6 +105,7 @@ const main = defineCommand({
     threads: threadsCommand,
     status: opCommand(status),
     projects: projectsCommand,
+    models: modelsCommand,
   },
 });
 

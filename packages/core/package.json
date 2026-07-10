@@ -14,7 +14,6 @@
   },
   "files": ["dist"],
   "dependencies": {
-    "openapi-fetch": "^0.17.0",
     "zod": "^4.4.0"
   }
 }

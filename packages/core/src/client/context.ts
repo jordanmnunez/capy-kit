@@ -1,8 +1,9 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
 import { DEFAULT_MODEL } from "../model.js";
+import { CapyError } from "./errors.js";
 
 // Resolved, ready-to-use context. Every op takes one of these. project/org are
 // optional here and resolved per-call (`arg ?? ctx.projectId ?? …`) so one client
@@ -57,7 +58,7 @@ export const DEFAULTS = {
   defaultModel: DEFAULT_MODEL,
 } as const;
 
-interface FileLayer {
+export interface CapyConfigLayer {
   apiKey?: string;
   baseUrl?: string;
   webBaseUrl?: string;
@@ -67,6 +68,22 @@ interface FileLayer {
   defaultModel?: string;
   defaultReasoning?: string;
 }
+
+export interface CapyConfigDocument extends CapyConfigLayer {
+  profiles?: Record<string, CapyConfigLayer>;
+  [key: string]: unknown;
+}
+
+const CONFIG_STRING_FIELDS = [
+  "apiKey",
+  "baseUrl",
+  "webBaseUrl",
+  "projectId",
+  "orgId",
+  "authorEmail",
+  "defaultModel",
+  "defaultReasoning",
+] as const satisfies ReadonlyArray<keyof CapyConfigLayer>;
 
 function firstString(...vals: Array<unknown>): string | undefined {
   for (const v of vals) {
@@ -88,23 +105,91 @@ function toBool(v: unknown): boolean | undefined {
   return undefined;
 }
 
-/** ~/.capy/config.json, optionally merging a named `profile` block over the top level. */
-function readConfigFile(profile?: string): FileLayer {
-  try {
-    const raw = readFileSync(join(homedir(), ".capy", "config.json"), "utf8");
-    const parsed = JSON.parse(raw) as Record<string, unknown> & { profiles?: Record<string, FileLayer> };
-    const base = parsed as FileLayer;
-    const block = profile ? parsed.profiles?.[profile] : undefined;
-    return { ...base, ...(block ?? {}) };
-  } catch {
-    return {};
+function assertPrivateFile(path: string): void {
+  if (process.platform !== "win32" && (statSync(path).mode & 0o077) !== 0) {
+    throw new CapyError({
+      code: "validation_error",
+      message: `Refusing to read ${path}: it is accessible by group/other users. Run \`chmod 600 ${path}\`.`,
+    });
   }
+}
+
+function isErrno(e: unknown, code: string): boolean {
+  return e instanceof Error && "code" in e && (e as NodeJS.ErrnoException).code === code;
+}
+
+function configError(message: string, cause?: unknown): CapyError {
+  return new CapyError({ code: "validation_error", message, cause });
+}
+
+function requireObject(value: unknown, label: string): Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw configError(`${label} must be a JSON object.`);
+  }
+  return value as Record<string, unknown>;
+}
+
+function validateConfigLayer(value: unknown, label: string): Record<string, unknown> {
+  const record = requireObject(value, label);
+  for (const key of CONFIG_STRING_FIELDS) {
+    if (record[key] !== undefined && typeof record[key] !== "string") {
+      throw configError(`${label}.${key} must be a string when present.`);
+    }
+  }
+  return record;
+}
+
+/** Read and validate ~/.capy/config.json. Only a genuinely missing file is treated as absent. */
+export function readCapyConfig(): CapyConfigDocument | undefined {
+  const path = join(homedir(), ".capy", "config.json");
+  let raw: string;
+  try {
+    assertPrivateFile(path);
+    raw = readFileSync(path, "utf8");
+  } catch (e) {
+    if (e instanceof CapyError) throw e;
+    if (isErrno(e, "ENOENT")) return undefined;
+    throw configError(`Unable to read ${path}: ${e instanceof Error ? e.message : String(e)}.`, e);
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw) as unknown;
+  } catch (e) {
+    throw configError(`Invalid ${path}: malformed JSON.`, e);
+  }
+
+  const document = validateConfigLayer(parsed, path);
+  const rawProfiles = document.profiles;
+  if (rawProfiles === undefined) return document as CapyConfigDocument;
+
+  const profilesRecord = requireObject(rawProfiles, `${path}.profiles`);
+  const profiles = Object.create(null) as Record<string, CapyConfigLayer>;
+  for (const [name, value] of Object.entries(profilesRecord)) {
+    profiles[name] = validateConfigLayer(value, `${path}.profiles.${name}`) as CapyConfigLayer;
+  }
+  return { ...document, profiles } as CapyConfigDocument;
+}
+
+/** Select the top-level file layer or merge an explicitly requested profile over it. */
+function readConfigFile(profile?: string): { file: CapyConfigLayer; profileSelected: boolean } {
+  const document = readCapyConfig();
+  if (profile === undefined) return { file: document ?? {}, profileSelected: false };
+
+  const name = profile.trim();
+  if (!name) throw configError("A non-empty config profile name is required.");
+  if (!document || !document.profiles || !Object.hasOwn(document.profiles, name)) {
+    throw configError(`Config profile \"${name}\" was requested but does not exist in ~/.capy/config.json.`);
+  }
+  return { file: { ...document, ...document.profiles[name] }, profileSelected: true };
 }
 
 /** ~/.capy/.env — minimal KEY=VALUE parser for CAPY_* vars (no shell expansion). */
 function readDotEnv(): Record<string, string> {
   try {
-    const raw = readFileSync(join(homedir(), ".capy", ".env"), "utf8");
+    const path = join(homedir(), ".capy", ".env");
+    assertPrivateFile(path);
+    const raw = readFileSync(path, "utf8");
     const out: Record<string, string> = {};
     for (const line of raw.split(/\r?\n/)) {
       const m = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/.exec(line);
@@ -116,18 +201,24 @@ function readDotEnv(): Record<string, string> {
       out[m[1]] = val;
     }
     return out;
-  } catch {
-    return {};
+  } catch (e) {
+    if (e instanceof CapyError) throw e;
+    if (isErrno(e, "ENOENT")) return {};
+    const path = join(homedir(), ".capy", ".env");
+    throw configError(`Unable to read ${path}: ${e instanceof Error ? e.message : String(e)}.`, e);
   }
 }
 
 /**
- * Build a CapyContext. Precedence (low -> high):
+ * Build a CapyContext. Ordinary precedence (low -> high):
  *   DEFAULTS < ~/.capy/config.json < ~/.capy/.env < process.env (CAPY_*) < explicit input.
+ * Project identity fails closed for an explicit profile:
+ *   explicit input > effective profile config (profile over top-level), ignoring ambient project vars.
  * Never throws on a missing key — transport raises `no_api_key` only when a request is attempted.
  */
 export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: string }): CapyContext {
-  const file = readConfigFile(opts?.profile);
+  const selection = readConfigFile(opts?.profile);
+  const file = selection.file;
   const dot = readDotEnv();
   const env = process.env;
 
@@ -138,7 +229,9 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
     apiKey: input.apiKey ?? pick("CAPY_API_KEY", file.apiKey) ?? "",
     baseUrl: input.baseUrl ?? pick("CAPY_BASE_URL", file.baseUrl) ?? DEFAULTS.baseUrl,
     webBaseUrl: input.webBaseUrl ?? pick("CAPY_WEB_URL", file.webBaseUrl) ?? DEFAULTS.webBaseUrl,
-    projectId: input.projectId ?? pick("CAPY_PROJECT_ID", file.projectId),
+    projectId:
+      input.projectId ??
+      (selection.profileSelected ? firstString(file.projectId) : pick("CAPY_PROJECT_ID", file.projectId)),
     orgId: input.orgId ?? pick("CAPY_ORG_ID", file.orgId),
     authorEmail: input.authorEmail ?? pick("CAPY_AUTHOR_EMAIL", file.authorEmail),
     fetch: input.fetch ?? globalThis.fetch,

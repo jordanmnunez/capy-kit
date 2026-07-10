@@ -26,5 +26,5 @@ export default defineConfig([
     external: ["@capy-kit/core", "citty", "@clack/prompts"],
     banner: { js: "#!/usr/bin/env node" },
   },
-  // capy-mcp / capy-mcp-http entries are added in M2.
+  // capy-mcp entries belong here only after the planned server is implemented.
 ]);

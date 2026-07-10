@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -7,6 +7,19 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DEFAULTS, resolveContext } from "../src/index.js";
 
 const SAVED = { ...process.env };
+
+function capyDir(): string {
+  return join(process.env.HOME as string, ".capy");
+}
+
+function writeConfig(value: unknown): string {
+  const dir = capyDir();
+  mkdirSync(dir, { recursive: true });
+  const path = join(dir, "config.json");
+  writeFileSync(path, typeof value === "string" ? value : JSON.stringify(value));
+  chmodSync(path, 0o600);
+  return path;
+}
 
 beforeEach(() => {
   for (const key of Object.keys(process.env)) {
@@ -26,7 +39,7 @@ afterEach(() => {
 });
 
 describe("resolveContext precedence", () => {
-  it("uses defaults with no input or env", () => {
+  it("treats a genuinely missing config file as absent", () => {
     const ctx = resolveContext();
     expect(ctx.apiKey).toBe("");
     expect(ctx.baseUrl).toBe(DEFAULTS.baseUrl);
@@ -56,12 +69,76 @@ describe("resolveContext precedence", () => {
     expect(ctx.projectId).toBe("prj_explicit");
   });
 
+  it("rejects malformed config JSON instead of treating it as absent", () => {
+    writeConfig("{ not-json");
+    process.env.CAPY_PROJECT_ID = "prj_env";
+    expect(() => resolveContext({ projectId: "prj_explicit" })).toThrow(/malformed JSON/);
+  });
+
+  it("rejects non-ENOENT config read failures instead of treating them as absent", () => {
+    const dir = capyDir();
+    mkdirSync(dir, { recursive: true });
+    const path = join(dir, "config.json");
+    mkdirSync(path, { mode: 0o700 });
+    expect(() => resolveContext()).toThrow(/Unable to read/);
+  });
+
+  it("rejects an explicitly requested profile when the config or profile is missing", () => {
+    expect(() => resolveContext({}, { profile: "work" })).toThrow(/profile "work".*does not exist/i);
+    writeConfig({ projectId: "prj_top", profiles: { other: { projectId: "prj_other" } } });
+    expect(() => resolveContext({}, { profile: "work" })).toThrow(/profile "work".*does not exist/i);
+    expect(() => resolveContext({ projectId: "prj_explicit" }, { profile: "work" })).toThrow(
+      /profile "work".*does not exist/i,
+    );
+    expect(() => resolveContext({}, { profile: "   " })).toThrow(/non-empty config profile/i);
+  });
+
+  it("makes an explicit profile's effective project authoritative over ambient project ids", () => {
+    writeConfig({
+      projectId: "prj_top",
+      profiles: { work: { projectId: "prj_profile" } },
+    });
+    const dir = capyDir();
+    writeFileSync(join(dir, ".env"), "CAPY_PROJECT_ID=prj_dot\n");
+    chmodSync(join(dir, ".env"), 0o600);
+    process.env.CAPY_PROJECT_ID = "prj_env";
+    expect(resolveContext({}, { profile: "work" }).projectId).toBe("prj_profile");
+  });
+
+  it("keeps explicit --project/input precedence over profile and ambient projects", () => {
+    writeConfig({ profiles: { work: { projectId: "prj_profile" } } });
+    process.env.CAPY_PROJECT_ID = "prj_env";
+    expect(resolveContext({ projectId: "prj_explicit" }, { profile: "work" }).projectId).toBe("prj_explicit");
+  });
+
+  it("resolves normal top-level and profile configuration", () => {
+    writeConfig({
+      apiKey: "top-key",
+      projectId: "prj_top",
+      defaultModel: "top-model",
+      profiles: { work: { projectId: "prj_profile", defaultModel: "profile-model" } },
+    });
+    expect(resolveContext()).toMatchObject({ apiKey: "top-key", projectId: "prj_top", defaultModel: "top-model" });
+    expect(resolveContext({}, { profile: "work" })).toMatchObject({
+      apiKey: "top-key",
+      projectId: "prj_profile",
+      defaultModel: "profile-model",
+    });
+  });
+
+  it("lets a profile inherit top-level project config but never an ambient project fallback", () => {
+    writeConfig({ projectId: "prj_top", profiles: { inherited: {} } });
+    process.env.CAPY_PROJECT_ID = "prj_env";
+    expect(resolveContext({}, { profile: "inherited" }).projectId).toBe("prj_top");
+
+    writeConfig({ profiles: { isolated: {} } });
+    expect(resolveContext({}, { profile: "isolated" }).projectId).toBeUndefined();
+  });
+
   it("resolves defaultReasoning (unset by default; config.json < env < explicit input)", () => {
     expect(resolveContext().defaultReasoning).toBeUndefined();
 
-    const dir = join(process.env.HOME as string, ".capy");
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, "config.json"), JSON.stringify({ defaultReasoning: "xhigh" }));
+    writeConfig({ defaultReasoning: "xhigh" });
     expect(resolveContext().defaultReasoning).toBe("xhigh");
 
     process.env.CAPY_DEFAULT_REASONING = "max";
@@ -71,12 +148,13 @@ describe("resolveContext precedence", () => {
   });
 
   it("reads ~/.capy/.env including the tuning vars, with process.env winning", () => {
-    const dir = join(process.env.HOME as string, ".capy");
+    const dir = capyDir();
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, ".env"),
       "CAPY_API_KEY=dotkey\nCAPY_TIMEOUT_MS=30000\nCAPY_MAX_RETRIES=5\nCAPY_VALIDATE=true\n",
     );
+    chmodSync(join(dir, ".env"), 0o600);
     const fromDot = resolveContext();
     expect(fromDot.apiKey).toBe("dotkey");
     expect(fromDot.timeoutMs).toBe(30000);
@@ -85,5 +163,25 @@ describe("resolveContext precedence", () => {
 
     process.env.CAPY_TIMEOUT_MS = "1000";
     expect(resolveContext().timeoutMs).toBe(1000); // process.env wins over ~/.capy/.env
+  });
+
+  it("refuses a group/world-readable ~/.capy/.env instead of loading a leaked key", () => {
+    if (process.platform === "win32") return;
+    const dir = capyDir();
+    mkdirSync(dir, { recursive: true });
+    const path = join(dir, ".env");
+    writeFileSync(path, "CAPY_API_KEY=too-open\n");
+    chmodSync(path, 0o644);
+    expect(() => resolveContext()).toThrow(/chmod 600/);
+  });
+
+  it("refuses a group/world-readable ~/.capy/config.json before loading a stored key", () => {
+    if (process.platform === "win32") return;
+    const dir = capyDir();
+    mkdirSync(dir, { recursive: true });
+    const path = join(dir, "config.json");
+    writeFileSync(path, JSON.stringify({ apiKey: "too-open" }));
+    chmodSync(path, 0o644);
+    expect(() => resolveContext()).toThrow(/chmod 600/);
   });
 });
