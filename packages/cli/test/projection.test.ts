@@ -59,6 +59,9 @@ describe("CLI projection from OPS", () => {
     expect(args).toMatchObject({
       prompt: "positional",
       model: "string",
+      reasoning: "string",
+      buildModel: "string",
+      buildReasoning: "string",
       repos: "string",
       branch: "string",
       tags: "string",

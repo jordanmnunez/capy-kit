@@ -62,16 +62,19 @@ issue. Tag the campaign so the fleet is groupable:
 
 ```bash
 capy delegate 'Implement ENG-123 backfill; preserve behavior; return only after tests and CI pass' \
-  --repos your-org/your-repo@main --tags my-campaign --json   # ← tag must ALREADY exist
-# → { threadId, projectId, url, status, runState, model, reasoning }   — surface project + url
+  --repos your-org/your-repo@main --tags my-campaign \
+  --model gpt-5.6-terra --reasoning max \
+  --buildModel gpt-5.6-terra --buildReasoning max --json   # ← tag must ALREADY exist
+# → { threadId, projectId, url, status, runState, model, reasoning, buildModel, buildReasoning }
 ```
-- **Default the fleet to `gpt-5.6-sol` at `--reasoning xhigh`** — Jordan's standing preference
-  (2026-07-09; supersedes the Fable default). Both are baked into `~/.capy/config.json`
-  (`defaultModel`/`defaultReasoning`), so a bare `capy delegate` already applies them — pass the flags
-  only to deviate. Full ids required: `sol`/`fable` shorthands fail validation; `opus|sonnet|haiku`
-  aliases are for cheap mechanical runs; `claude-fable-5` remains the Claude-side pick. Already-running
-  threads can be moved mid-flight:
-  `capy threads message <id> 'continue on this model' --model gpt-5.6-sol --reasoning xhigh` (keeps context).
+- **Default the fleet's Captain and builders to `gpt-5.6-terra` at `max` effort** — Jordan's
+  standing preference as of 2026-07-14. `~/.capy/config.json` sets `defaultModel` /
+  `defaultReasoning` for Captain and `defaultBuildModel` / `defaultBuildReasoning` for builders, so a
+  bare `capy delegate` already applies all four. Override only the role that differs with
+  `--model` / `--reasoning` or `--buildModel` / `--buildReasoning`; the API validates the selected
+  role/model/effort combination. Full ids required: `sol`/`fable` shorthands fail validation;
+  `opus|sonnet|haiku` aliases remain available. Already-running threads can be moved mid-flight:
+  `capy threads message <id> 'continue on this model' --model gpt-5.6-terra --reasoning max` (keeps context).
   For a busy thread, choose `--mode interrupt` for an immediate correction or `--mode queue` for the
   next turn; add a stable `--messageId` when an automated dispatcher may retry the same steer.
 - Quality comes from the prompt's bar, not from this skill. `--tags` must already exist in the project

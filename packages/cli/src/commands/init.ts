@@ -6,6 +6,7 @@ import {
   CapyError,
   DEFAULTS,
   DEFAULT_MODEL,
+  REASONING_MODES,
   modelsList,
   projectsList,
   readCapyConfig,
@@ -23,10 +24,13 @@ import { fail } from "../build.js";
 const MODEL_FALLBACK_CHOICES = [
   { value: DEFAULT_MODEL, label: `${DEFAULT_MODEL} (offline fallback)` },
   { value: "gpt-5.6-sol", label: "gpt-5.6-sol" },
+  { value: "gpt-5.6-terra", label: "gpt-5.6-terra" },
   { value: "claude-fable-5", label: "claude-fable-5" },
   { value: "claude-sonnet-5", label: "claude-sonnet-5" },
   { value: "claude-sonnet-4-6", label: "claude-sonnet-4-6" },
 ];
+
+const REASONING_CHOICES = REASONING_MODES.map((mode) => ({ value: mode, label: mode }));
 
 export type ProjectIdentity = Pick<ProjectListItem, "id" | "name" | "taskCode" | "repos">;
 
@@ -177,13 +181,22 @@ interface InitConfigAnswers {
   orgId: string;
   authorEmail: string;
   defaultModel: string;
+  defaultReasoning: string;
+  defaultBuildModel: string;
+  defaultBuildReasoning: string;
 }
 
 export function buildInitConfig(
   existing: CapyConfigDocument,
   answers: InitConfigAnswers,
 ): CapyConfigDocument {
-  const cfg: CapyConfigDocument = { ...existing, defaultModel: answers.defaultModel };
+  const cfg: CapyConfigDocument = {
+    ...existing,
+    defaultModel: answers.defaultModel,
+    defaultReasoning: answers.defaultReasoning,
+    defaultBuildModel: answers.defaultBuildModel,
+    defaultBuildReasoning: answers.defaultBuildReasoning,
+  };
   if (answers.storeApiKey) cfg.apiKey = answers.apiKey;
   else delete cfg.apiKey;
   if (answers.projectId) cfg.projectId = answers.projectId;
@@ -195,6 +208,16 @@ export function buildInitConfig(
 
 function errorMessage(error: unknown): string {
   return sanitizeTerminalText(error instanceof Error ? error.message : String(error));
+}
+
+function initialChoice(
+  choices: ReadonlyArray<{ value: string }>,
+  configured: string | undefined,
+  fallback: string,
+): string {
+  if (configured && choices.some((choice) => choice.value === configured)) return configured;
+  if (choices.some((choice) => choice.value === fallback)) return fallback;
+  return choices[0]!.value;
 }
 
 export function initDiscoveryContext(apiKey: string) {
@@ -263,7 +286,12 @@ async function runInit(): Promise<void> {
   if (p.isCancel(authorEmail)) return p.cancel("Cancelled.");
 
   let modelChoices = MODEL_FALLBACK_CHOICES;
+  let buildModelChoices = MODEL_FALLBACK_CHOICES;
   if (modelDiscovery.status === "fulfilled") {
+    const available = modelDiscovery.value.models.map((model) => ({
+      value: model.id,
+      label: sanitizeTerminalText(`${model.name} (${model.id}, ${model.provider})`),
+    }));
     const eligible = modelDiscovery.value.models.filter((model) => model.captainEligible);
     if (eligible.length > 0) {
       modelChoices = eligible.map((model) => ({
@@ -271,23 +299,48 @@ async function runInit(): Promise<void> {
         label: sanitizeTerminalText(`${model.name} (${model.id}, ${model.provider})`),
       }));
     }
+    // The API reports Captain eligibility but not builder eligibility. Surface all live models
+    // for builders and let the create-thread endpoint validate role/model support faithfully.
+    if (available.length > 0) buildModelChoices = available;
   } else {
     p.log.warn(`Live model discovery failed (${errorMessage(modelDiscovery.reason)}); using the offline fallback list.`);
   }
 
   const configuredModel = typeof existing.defaultModel === "string" ? existing.defaultModel : undefined;
-  const initialModel = modelChoices.some((choice) => choice.value === configuredModel)
-    ? configuredModel
-    : modelChoices.some((choice) => choice.value === DEFAULT_MODEL)
-      ? DEFAULT_MODEL
-      : modelChoices[0]!.value;
+  const initialModel = initialChoice(modelChoices, configuredModel, DEFAULT_MODEL);
 
   const defaultModel = await p.select({
-    message: "Default model",
+    message: "Default Captain model",
     options: modelChoices,
     initialValue: initialModel,
   });
   if (p.isCancel(defaultModel)) return p.cancel("Cancelled.");
+
+  const configuredReasoning = typeof existing.defaultReasoning === "string" ? existing.defaultReasoning : undefined;
+  const defaultReasoning = await p.select({
+    message: "Default Captain reasoning effort",
+    options: REASONING_CHOICES,
+    initialValue: initialChoice(REASONING_CHOICES, configuredReasoning, "max"),
+  });
+  if (p.isCancel(defaultReasoning)) return p.cancel("Cancelled.");
+
+  const configuredBuildModel =
+    typeof existing.defaultBuildModel === "string" ? existing.defaultBuildModel : undefined;
+  const defaultBuildModel = await p.select({
+    message: "Default builder model",
+    options: buildModelChoices,
+    initialValue: initialChoice(buildModelChoices, configuredBuildModel, defaultModel),
+  });
+  if (p.isCancel(defaultBuildModel)) return p.cancel("Cancelled.");
+
+  const configuredBuildReasoning =
+    typeof existing.defaultBuildReasoning === "string" ? existing.defaultBuildReasoning : undefined;
+  const defaultBuildReasoning = await p.select({
+    message: "Default builder reasoning effort",
+    options: REASONING_CHOICES,
+    initialValue: initialChoice(REASONING_CHOICES, configuredBuildReasoning, defaultReasoning),
+  });
+  if (p.isCancel(defaultBuildReasoning)) return p.cancel("Cancelled.");
 
   const dir = join(homedir(), ".capy");
   const cfgPath = join(dir, "config.json");
@@ -299,6 +352,9 @@ async function runInit(): Promise<void> {
     orgId,
     authorEmail,
     defaultModel,
+    defaultReasoning,
+    defaultBuildModel,
+    defaultBuildReasoning,
   });
   writeFileSync(cfgPath, JSON.stringify(cfg, null, 2) + "\n", { mode: 0o600 });
   chmodSync(cfgPath, 0o600);

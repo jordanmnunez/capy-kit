@@ -116,13 +116,26 @@ describe("resolveContext precedence", () => {
       apiKey: "top-key",
       projectId: "prj_top",
       defaultModel: "top-model",
-      profiles: { work: { projectId: "prj_profile", defaultModel: "profile-model" } },
+      defaultBuildModel: "top-build-model",
+      profiles: {
+        work: {
+          projectId: "prj_profile",
+          defaultModel: "profile-model",
+          defaultBuildModel: "profile-build-model",
+        },
+      },
     });
-    expect(resolveContext()).toMatchObject({ apiKey: "top-key", projectId: "prj_top", defaultModel: "top-model" });
+    expect(resolveContext()).toMatchObject({
+      apiKey: "top-key",
+      projectId: "prj_top",
+      defaultModel: "top-model",
+      defaultBuildModel: "top-build-model",
+    });
     expect(resolveContext({}, { profile: "work" })).toMatchObject({
       apiKey: "top-key",
       projectId: "prj_profile",
       defaultModel: "profile-model",
+      defaultBuildModel: "profile-build-model",
     });
   });
 
@@ -147,12 +160,34 @@ describe("resolveContext precedence", () => {
     expect(resolveContext({ defaultReasoning: "high" }).defaultReasoning).toBe("high");
   });
 
+  it("resolves builder defaults (unset by default; config.json < env < explicit input)", () => {
+    expect(resolveContext().defaultBuildModel).toBeUndefined();
+    expect(resolveContext().defaultBuildReasoning).toBeUndefined();
+
+    writeConfig({ defaultBuildModel: "gpt-5.6-terra", defaultBuildReasoning: "xhigh" });
+    expect(resolveContext()).toMatchObject({
+      defaultBuildModel: "gpt-5.6-terra",
+      defaultBuildReasoning: "xhigh",
+    });
+
+    process.env.CAPY_DEFAULT_BUILD_MODEL = "gpt-5.6-sol";
+    process.env.CAPY_DEFAULT_BUILD_REASONING = "max";
+    expect(resolveContext()).toMatchObject({
+      defaultBuildModel: "gpt-5.6-sol",
+      defaultBuildReasoning: "max",
+    });
+
+    expect(
+      resolveContext({ defaultBuildModel: "claude-opus-4-8", defaultBuildReasoning: "high" }),
+    ).toMatchObject({ defaultBuildModel: "claude-opus-4-8", defaultBuildReasoning: "high" });
+  });
+
   it("reads ~/.capy/.env including the tuning vars, with process.env winning", () => {
     const dir = capyDir();
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, ".env"),
-      "CAPY_API_KEY=dotkey\nCAPY_TIMEOUT_MS=30000\nCAPY_MAX_RETRIES=5\nCAPY_VALIDATE=true\n",
+      "CAPY_API_KEY=dotkey\nCAPY_TIMEOUT_MS=30000\nCAPY_MAX_RETRIES=5\nCAPY_VALIDATE=true\nCAPY_DEFAULT_BUILD_MODEL=gpt-5.6-terra\nCAPY_DEFAULT_BUILD_REASONING=max\n",
     );
     chmodSync(join(dir, ".env"), 0o600);
     const fromDot = resolveContext();
@@ -160,6 +195,8 @@ describe("resolveContext precedence", () => {
     expect(fromDot.timeoutMs).toBe(30000);
     expect(fromDot.maxRetries).toBe(5);
     expect(fromDot.validate).toBe(true);
+    expect(fromDot.defaultBuildModel).toBe("gpt-5.6-terra");
+    expect(fromDot.defaultBuildReasoning).toBe("max");
 
     process.env.CAPY_TIMEOUT_MS = "1000";
     expect(resolveContext().timeoutMs).toBe(1000); // process.env wins over ~/.capy/.env

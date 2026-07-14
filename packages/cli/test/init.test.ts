@@ -206,11 +206,20 @@ describe("capy init project selection", () => {
         orgId: "",
         authorEmail: "",
         defaultModel: "model-live",
+        defaultReasoning: "max",
+        defaultBuildModel: "build-model-live",
+        defaultBuildReasoning: "max",
       },
     );
     expect(selected.projectId).toBe("proj_alpha");
     expect(selected.profiles).toEqual({ work: { projectId: "proj_profile" } });
     expect(selected.apiKey).toBeUndefined();
+    expect(selected).toMatchObject({
+      defaultModel: "model-live",
+      defaultReasoning: "max",
+      defaultBuildModel: "build-model-live",
+      defaultBuildReasoning: "max",
+    });
 
     const none = buildInitConfig(selected, {
       apiKey: "capy_key",
@@ -219,6 +228,9 @@ describe("capy init project selection", () => {
       orgId: "org_1",
       authorEmail: "you@example.com",
       defaultModel: "model-live",
+      defaultReasoning: "high",
+      defaultBuildModel: "build-model-live",
+      defaultBuildReasoning: "high",
     });
     expect(none.projectId).toBeUndefined();
     expect(none.apiKey).toBe("capy_key");

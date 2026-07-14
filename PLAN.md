@@ -34,6 +34,8 @@ The implementation also includes:
 - live model discovery (`id`, name, provider, and Captain eligibility), also used by `capy init`;
 - fail-closed config/profile loading plus live name-first project selection in `capy init`, storing
   a verified canonical id when online or an explicitly caller-asserted id offline;
+- independent Captain and builder model/reasoning selection at thread creation, including local
+  defaults and explicit per-delegation overrides;
 - network-free core/CLI tests plus an opt-in live smoke test;
 - two manually maintained skills: faithful `capy` and opinionated `capy-fleet-hq`, including a
   reusable campaign/cross-project handoff contract.
@@ -115,9 +117,9 @@ capabilities; its registry has 11 Ops because `wait` and `status` are mechanical
 | Sessions | 1 | 0 | verify |
 | **Total** | **37** | **9** | **28** |
 
-The implemented create/message endpoints also have useful passthrough gaps. `delegate` does not yet
-expose impersonation, speed/build model settings, browser snapshot ids, Slack channel configuration,
-or reliability-investigation context. `threads.message` does not yet expose speed/build settings or
+The implemented create/message endpoints still have useful passthrough gaps. `delegate` does not yet
+expose impersonation, speed, browser snapshot ids, Slack channel configuration, or
+reliability-investigation context. `threads.message` does not yet expose speed/build settings or
 browser snapshot ids. Keep these faithful and optional rather than turning them into local policy.
 
 ### Upstream API gaps worth requesting
@@ -157,8 +159,8 @@ Implement each capability as an Op, then project it into the CLI:
 - project tags, especially tag discovery/creation for delegation workflows;
 - usage/cost;
 - setup get/update, which local config-as-code already consumes through raw HTTP;
-- any useful create/message passthroughs newly present in the spec, such as speed/build settings and
-  browser snapshot ids, without inventing policy around them.
+- any useful create/message passthroughs newly present in the spec, such as speed and browser
+  snapshot ids (plus message-time build settings), without inventing policy around them.
 
 Improve discovery and observation without turning core into a fleet judge:
 

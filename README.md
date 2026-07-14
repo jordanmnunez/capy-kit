@@ -25,7 +25,10 @@ capy projects list --json
 capy models list --json
 
 capy delegate 'Implement ENG-123; preserve behavior; return with tests and CI green' \
-  --repos your-org/your-repo@main --wait --timeoutSec 1200 --json
+  --repos your-org/your-repo@main \
+  --model gpt-5.6-terra --reasoning max \
+  --buildModel gpt-5.6-terra --buildReasoning max \
+  --wait --timeoutSec 1200 --json
 
 capy status --json
 capy threads messages <threadId> --all --json
@@ -90,10 +93,24 @@ Human terminal output strips API-controlled escape/control sequences; JSON outpu
 escaped for machine consumers.
 
 Models accept a full API id plus the static convenience aliases `opus`, `sonnet`, and `haiku`.
-`GET /v1/models` reports availability and `captainEligible`; it does **not** provide those aliases or
-a default. `capy models list` exposes that live data, and `capy init` uses live model and project
-pickers with explicit offline fallbacks. Configure `defaultModel` or pass `--model` to choose local
-policy.
+Thread creation can independently set Captain and builder settings: `--model` / `--reasoning` and
+`--buildModel` / `--buildReasoning`. Omitted values resolve from `defaultModel`, `defaultReasoning`,
+`defaultBuildModel`, and `defaultBuildReasoning` in `~/.capy/config.json` (or the matching
+`CAPY_DEFAULT_*` environment variables). For example:
+
+```json
+{
+  "defaultModel": "gpt-5.6-terra",
+  "defaultReasoning": "max",
+  "defaultBuildModel": "gpt-5.6-terra",
+  "defaultBuildReasoning": "max"
+}
+```
+
+`GET /v1/models` reports availability and `captainEligible`; it does **not** provide aliases,
+defaults, or builder eligibility. `capy models list` exposes that live data, and `capy init` offers
+separate Captain/builder default pickers; the create endpoint validates the selected role/model and
+effort combination.
 
 ## OpenAPI status
 
@@ -112,7 +129,8 @@ The current registry has 11 Ops, so important official functionality remains to 
 - usage;
 - setup, snapshots, browser snapshots, personal environment variables, automations, and session
   verification;
-- selected new create/message fields such as speed/build settings and browser snapshot ids.
+- selected new create/message fields such as speed, browser snapshot ids, and message-time build
+  settings.
 
 Local usage points to completing the work/observe controls first. Environment parity, automatic
 projections, MCP, and publishing follow explicit prioritization rather than a stale milestone order.

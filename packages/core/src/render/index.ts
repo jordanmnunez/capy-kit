@@ -39,6 +39,9 @@ interface DelegateResult {
   status: string;
   runState: string;
   model: string;
+  reasoning: string | null;
+  buildModel: string | null;
+  buildReasoning: string | null;
   url: string;
 }
 
@@ -95,7 +98,7 @@ function table(rows: string[][]): string {
 
 function renderDelegate(d: DelegateResult): string {
   return [
-    `delegated → ${sanitizeTerminalText(d.threadId)}  project=${sanitizeTerminalText(d.projectId)}  model=${sanitizeTerminalText(d.model)}  status=${sanitizeTerminalText(d.status)} runState=${sanitizeTerminalText(d.runState)}`,
+    `delegated → ${sanitizeTerminalText(d.threadId)}  project=${sanitizeTerminalText(d.projectId)}  model=${sanitizeTerminalText(d.model)} reasoning=${sanitizeTerminalText(d.reasoning ?? "—")} buildModel=${sanitizeTerminalText(d.buildModel ?? "—")} buildReasoning=${sanitizeTerminalText(d.buildReasoning ?? "—")} status=${sanitizeTerminalText(d.status)} runState=${sanitizeTerminalText(d.runState)}`,
     sanitizeTerminalText(d.url),
   ].join("\n");
 }

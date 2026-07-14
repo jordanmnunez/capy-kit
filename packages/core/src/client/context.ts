@@ -26,6 +26,10 @@ export interface CapyContext {
   // Unset = omit `reasoning` from the request entirely (API/model default). Steer messages
   // never inherit this — a mid-thread effort change must be explicit.
   defaultReasoning?: string;
+  // Builder settings are independently optional. When set, they apply only when a thread is
+  // created; they do not alter an existing Captain turn or steer message.
+  defaultBuildModel?: string;
+  defaultBuildReasoning?: string;
   onRequest?: (req: Request) => void;
   onResponse?: (res: Response) => void;
 }
@@ -43,6 +47,8 @@ export interface CapyContextInput {
   maxRetries?: number;
   defaultModel?: string;
   defaultReasoning?: string;
+  defaultBuildModel?: string;
+  defaultBuildReasoning?: string;
   onRequest?: (req: Request) => void;
   onResponse?: (res: Response) => void;
 }
@@ -67,6 +73,8 @@ export interface CapyConfigLayer {
   authorEmail?: string;
   defaultModel?: string;
   defaultReasoning?: string;
+  defaultBuildModel?: string;
+  defaultBuildReasoning?: string;
 }
 
 export interface CapyConfigDocument extends CapyConfigLayer {
@@ -83,6 +91,8 @@ const CONFIG_STRING_FIELDS = [
   "authorEmail",
   "defaultModel",
   "defaultReasoning",
+  "defaultBuildModel",
+  "defaultBuildReasoning",
 ] as const satisfies ReadonlyArray<keyof CapyConfigLayer>;
 
 function firstString(...vals: Array<unknown>): string | undefined {
@@ -240,6 +250,9 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
     maxRetries: input.maxRetries ?? toInt(env.CAPY_MAX_RETRIES ?? dot.CAPY_MAX_RETRIES) ?? DEFAULTS.maxRetries,
     defaultModel: input.defaultModel ?? pick("CAPY_DEFAULT_MODEL", file.defaultModel) ?? DEFAULTS.defaultModel,
     defaultReasoning: input.defaultReasoning ?? pick("CAPY_DEFAULT_REASONING", file.defaultReasoning),
+    defaultBuildModel: input.defaultBuildModel ?? pick("CAPY_DEFAULT_BUILD_MODEL", file.defaultBuildModel),
+    defaultBuildReasoning:
+      input.defaultBuildReasoning ?? pick("CAPY_DEFAULT_BUILD_REASONING", file.defaultBuildReasoning),
     onRequest: input.onRequest,
     onResponse: input.onResponse,
   };

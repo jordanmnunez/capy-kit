@@ -48,6 +48,39 @@ describe("delegate", () => {
     expect(out.reasoning).toBe("xhigh");
   });
 
+  it("sends dedicated builder model and reasoning overrides, resolving aliases", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: makeCreateResponse() }));
+    const out = await delegate.run(
+      { prompt: "x", buildModel: "sonnet", buildReasoning: "max" },
+      testContext({ fetch, defaultBuildModel: "gpt-5.6-terra", defaultBuildReasoning: "high" }),
+    );
+    expect(calls[0]!.body).toMatchObject({
+      buildModel: "claude-sonnet-4-6",
+      buildReasoning: { mode: "max" },
+    });
+    expect(out.buildModel).toBe("claude-sonnet-4-6");
+    expect(out.buildReasoning).toBe("max");
+  });
+
+  it("falls back to context defaults for builders and omits them when neither is set", async () => {
+    const { fetch, calls } = makeMockFetch(() => ({ json: makeCreateResponse() }));
+    await delegate.run(
+      { prompt: "x" },
+      testContext({ fetch, defaultBuildModel: "gpt-5.6-terra", defaultBuildReasoning: "max" }),
+    );
+    expect(calls[0]!.body).toMatchObject({
+      buildModel: "gpt-5.6-terra",
+      buildReasoning: { mode: "max" },
+    });
+
+    const bare = makeMockFetch(() => ({ json: makeCreateResponse() }));
+    const out = await delegate.run({ prompt: "x" }, testContext({ fetch: bare.fetch }));
+    expect((bare.calls[0]!.body as Record<string, unknown>).buildModel).toBeUndefined();
+    expect((bare.calls[0]!.body as Record<string, unknown>).buildReasoning).toBeUndefined();
+    expect(out.buildModel).toBeNull();
+    expect(out.buildReasoning).toBeNull();
+  });
+
   it("falls back to ctx.defaultReasoning, and omits reasoning when neither is set", async () => {
     const { fetch, calls } = makeMockFetch(() => ({ json: makeCreateResponse() }));
     await delegate.run({ prompt: "x" }, testContext({ fetch, defaultReasoning: "max" }));

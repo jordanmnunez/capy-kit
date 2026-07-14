@@ -119,6 +119,8 @@ type CapyContext = {
   maxRetries: number;
   defaultModel: string;
   defaultReasoning?: string;
+  defaultBuildModel?: string;
+  defaultBuildReasoning?: string;
   onRequest?(request: Request): void;
   onResponse?(response: Response): void;
 };
@@ -162,7 +164,8 @@ Current convenience contracts:
 
 - `delegate` calls `POST /v1/threads`, which creates and starts work, and returns a clickable thread
   URL. Human output includes the returned project id, and a response-project mismatch fails closed.
-  A model may be a full id or one of capy-kit's static `opus|sonnet|haiku` aliases.
+  Captain and builder model/reasoning settings are independently optional, can use the local
+  `default*` settings, and accept a full model id or capy-kit's static `opus|sonnet|haiku` aliases.
 - `threads.message` steers the existing Captain context. It exposes queue/interrupt delivery,
   caller deduplication ids, model/reasoning overrides, attachments, and impersonation. When context
   selects a project, it preflights thread identity and refuses a cross-project mutation.
@@ -176,9 +179,10 @@ Current convenience contracts:
   0 done, 123 blocked, 124 timeout, and 125 archived.
 - `delegate --wait --json` retains delegate fields at the root and adds a `wait` field.
 - `models.list` reports live availability and Captain eligibility. `init` uses it and `projects.list`
-  to populate model and name-first project pickers while retaining explicit offline fallbacks; the
-  live project picker stores a verified canonical id and never guesses an ambiguous name. Offline
-  mode stores a caller-asserted id because no identity lookup is available.
+  to populate separate Captain/builder default-model and name-first project pickers while retaining
+  explicit offline fallbacks; builder eligibility remains API-validated because it is not supplied
+  by model discovery. The live project picker stores a verified canonical id and never guesses an
+  ambiguous name. Offline mode stores a caller-asserted id because no identity lookup is available.
 
 ## Planned API parity
 

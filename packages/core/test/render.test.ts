@@ -18,6 +18,9 @@ describe("render", () => {
         status: "active",
         runState: "running",
         model: "claude-opus-4-8",
+        reasoning: "max",
+        buildModel: "gpt-5.6-terra",
+        buildReasoning: "max",
         url: "https://capy.ai/x",
       },
       "human",
@@ -25,6 +28,9 @@ describe("render", () => {
     expect(out).toContain("thr_1");
     expect(out).toContain("project=proj_selected");
     expect(out).toContain("claude-opus-4-8");
+    expect(out).toContain("reasoning=max");
+    expect(out).toContain("buildModel=gpt-5.6-terra");
+    expect(out).toContain("buildReasoning=max");
     expect(out).toContain("status=active");
     expect(out).toContain("runState=running");
     expect(out).toContain("https://capy.ai/x");

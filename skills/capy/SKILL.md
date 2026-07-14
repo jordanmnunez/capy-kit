@@ -35,20 +35,22 @@ not *how*. Link the issue. Let Captain run it.
 
 ```bash
 capy delegate 'Implement ENG-123 backfill; preserve behavior; return only after tests and CI pass' \
-  --repos your-org/your-repo@main --tags eng-123 --json
-# → { threadId, projectId, url, status, runState, model, reasoning }   (created AND started)
-# model + reasoning come from ~/.capy/config.json when the flags are omitted.
+  --repos your-org/your-repo@main --tags eng-123 \
+  --model gpt-5.6-terra --reasoning max \
+  --buildModel gpt-5.6-terra --buildReasoning max --json
+# → { threadId, projectId, url, status, runState, model, reasoning, buildModel, buildReasoning }
+# Captain + builder settings come from ~/.capy/config.json when their flags are omitted.
 ```
-- **Model: the standing default is `gpt-5.6-sol` (GPT-5.6 Sol) at `--reasoning xhigh`** — Jordan's
-  preference (2026-07-09; supersedes the 2026-07-01 Fable default). Both are baked into
-  `~/.capy/config.json` (`defaultModel`/`defaultReasoning`), so a bare `capy delegate` already applies
-  them — pass `--model`/`--reasoning` only to deviate. Full ids only: `sol`/`fable` shorthands fail
-  with validation_error; aliases `opus|sonnet|haiku` work (`opus`→claude-opus-4-8). Drop to
-  opus/sonnet only for cheap mechanical runs; `claude-fable-5` remains the Claude-side pick.
-- `--repos owner/name@branch` (repeatable / comma-separated), `--model gpt-5.6-sol|opus|sonnet|haiku|<id>`,
-  `--reasoning off|on|none|minimal|low|medium|high|xhigh|max` (sent as `reasoning.mode`; the API
-  validates per-model support), `--tags t` (**each tag must already exist in the Capy project** —
-  create it in the app, or omit; passing an unknown tag fails with
+- **Captain and builders default to `gpt-5.6-terra` at `max` effort** — Jordan's preference as of
+  2026-07-14. `~/.capy/config.json` sets `defaultModel` / `defaultReasoning` for Captain and
+  `defaultBuildModel` / `defaultBuildReasoning` for builders, so a bare `capy delegate` applies all
+  four. Pass the matching flags only to deviate. Full ids only: `sol`/`fable` shorthands fail with
+  validation_error; aliases `opus|sonnet|haiku` work (`opus`→claude-opus-4-8).
+- `--repos owner/name@branch` (repeatable / comma-separated), `--model <id>` / `--reasoning <mode>`
+  for Captain, and `--buildModel <id>` / `--buildReasoning <mode>` for builders. The effort modes are
+  `off|on|none|minimal|low|medium|high|xhigh|max`, sent as `reasoning.mode` or
+  `buildReasoning.mode`; the API validates role/model support. `--tags t` (**each tag must already
+  exist in the Capy project** — create it in the app, or omit; passing an unknown tag fails with
   `validation_error: Tag does not exist`), `--attachmentUrls <url>`.
 - `--branch` is a **shared fallback** applied to *every* `--repos` entry that omits `@branch`. For a
   multi-repo fan-out where bases differ, give each repo its own `@branch` (e.g.
@@ -86,8 +88,8 @@ Thread-list filters are `--status --branch --prNumber --prState --authorEmail --
 re-delegate when you genuinely want a fresh thread:
 ```bash
 capy threads message <threadId> 'Finish the rest of the stack — PRs #2–#5 — and keep CI green'
-# --model gpt-5.6-sol|opus|sonnet|haiku switches models for the turn (full ids — `sol`/`fable`
-#   aliases fail validation); --reasoning xhigh sets effort for the turn (explicit ONLY — the config
+# --model gpt-5.6-terra|opus|sonnet|haiku switches models for the turn (full ids — `sol`/`fable`
+#   aliases fail validation); --reasoning max sets effort for the turn (explicit ONLY — the config
 #   defaultReasoning applies at thread START, never to steers); a mid-flight correction is just a
 #   steer message with --model/--reasoning; --mode interrupt|queue controls delivery to a busy thread;
 #   --messageId <key> gives the server a deduplication id if a caller retries the steer;

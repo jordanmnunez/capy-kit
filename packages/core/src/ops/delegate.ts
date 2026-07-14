@@ -17,6 +17,19 @@ const DelegateInput = z.object({
       "Reasoning effort for the thread (off|on|none|minimal|low|medium|high|xhigh|max); falls back to defaultReasoning from config/CAPY_DEFAULT_REASONING, else omitted.",
     )
     .optional(),
+  // Alias (opus/sonnet/haiku) or a full model id for builders; resolved against MODEL_ALIASES.
+  buildModel: z
+    .string()
+    .describe(
+      "Model for builder agents; falls back to defaultBuildModel from config/CAPY_DEFAULT_BUILD_MODEL, else omitted.",
+    )
+    .optional(),
+  buildReasoning: z
+    .enum(REASONING_MODES)
+    .describe(
+      "Reasoning effort for builder agents (off|on|none|minimal|low|medium|high|xhigh|max); falls back to defaultBuildReasoning from config/CAPY_DEFAULT_BUILD_REASONING, else omitted.",
+    )
+    .optional(),
   // "owner/name@branch" specs; branch falls back to --branch when omitted.
   repos: csvArray(z.string())
     .describe("Repos as owner/name@branch (repeatable / comma-separated). Multi-repo fan-out: give EACH its own @branch.")
@@ -43,6 +56,8 @@ const DelegateResult = z.object({
   blockedOn: z.array(z.string()),
   model: z.string(),
   reasoning: z.string().nullable(),
+  buildModel: z.string().nullable(),
+  buildReasoning: z.string().nullable(),
   title: z.string().nullable(),
   url: z.string(),
   createdAt: z.string(),
@@ -62,10 +77,16 @@ export const delegate = defineOp({
     const projectId = requireProject(args.projectId, ctx);
     const model = resolveModelAlias(args.model) ?? ctx.defaultModel;
     const reasoning = args.reasoning ?? ctx.defaultReasoning;
+    const buildModel = resolveModelAlias(args.buildModel) ?? ctx.defaultBuildModel;
+    const buildReasoning = args.buildReasoning ?? ctx.defaultBuildReasoning;
 
     const body: CreateThreadBody = { projectId, prompt: args.prompt };
     if (model) body.model = model as CreateThreadBody["model"];
     if (reasoning) body.reasoning = { mode: reasoning as NonNullable<CreateThreadBody["reasoning"]>["mode"] };
+    if (buildModel) body.buildModel = buildModel as CreateThreadBody["buildModel"];
+    if (buildReasoning) {
+      body.buildReasoning = { mode: buildReasoning as NonNullable<CreateThreadBody["buildReasoning"]>["mode"] };
+    }
     if (args.repos && args.repos.length > 0) {
       body.repos = args.repos.map((spec) => parseRepo(spec, args.branch));
     }
@@ -88,6 +109,8 @@ export const delegate = defineOp({
       blockedOn: res.blockedOn,
       model,
       reasoning: reasoning ?? null,
+      buildModel: buildModel ?? null,
+      buildReasoning: buildReasoning ?? null,
       title: res.title,
       url: threadUrl(ctx.webBaseUrl, res.projectId, res.id),
       createdAt: res.createdAt,
