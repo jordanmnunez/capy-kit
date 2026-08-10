@@ -230,7 +230,9 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
     firstString(env[key], dot[key], fileVal);
 
   return {
-    apiKey: input.apiKey ?? pick("CAPY_API_KEY", file.apiKey) ?? "",
+    // Current Capy authentication uses service-user keys. CAPY_API_KEY remains a
+    // compatibility fallback for callers that pass a key explicitly or have not migrated config.
+    apiKey: input.apiKey ?? firstString(env.CAPY_SERVICE_USER_API_KEY, dot.CAPY_SERVICE_USER_API_KEY, file.apiKey, env.CAPY_API_KEY, dot.CAPY_API_KEY) ?? "",
     baseUrl: input.baseUrl ?? pick("CAPY_BASE_URL", file.baseUrl) ?? DEFAULTS.baseUrl,
     webBaseUrl: input.webBaseUrl ?? pick("CAPY_WEB_URL", file.webBaseUrl) ?? DEFAULTS.webBaseUrl,
     projectId:

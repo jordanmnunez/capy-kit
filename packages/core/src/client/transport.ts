@@ -163,7 +163,7 @@ export async function request<T>(ctx: CapyContext, opts: RequestOptions): Promis
   if (!ctx.apiKey) {
     throw new CapyError({
       code: "no_api_key",
-      message: "No Capy API key. Set CAPY_API_KEY or run `capy init`.",
+      message: "No Capy service-user API key. Set CAPY_SERVICE_USER_API_KEY or run `capy init`.",
     });
   }
 

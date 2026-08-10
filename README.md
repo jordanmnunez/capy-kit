@@ -2,10 +2,10 @@
 
 A TypeScript SDK and CLI for Capy's current public API. The legacy Capy API is intentionally unsupported.
 
-Set an organization-scoped key from **Settings → API**:
+Set a Capy service-user key:
 
 ```bash
-export CAPY_API_KEY=capy_…
+export CAPY_SERVICE_USER_API_KEY=capy_…
 ```
 
 The default base URL is `https://api.capy.ai/api/v1`. The public API is organization-key scoped.

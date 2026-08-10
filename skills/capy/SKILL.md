@@ -6,7 +6,7 @@ allowed-tools: Bash(capy:*)
 
 # Current Capy API
 
-Set an organization-scoped `CAPY_API_KEY` (Settings → API). The current base URL is `https://api.capy.ai/api/v1`; no project configuration is required.
+Set `CAPY_SERVICE_USER_API_KEY` to a Capy service-user API key. The current base URL is `https://api.capy.ai/api/v1`; no project configuration is required.
 
 ```bash
 capy delegate 'Investigate the failing integration' caller-stable-request-id --json
