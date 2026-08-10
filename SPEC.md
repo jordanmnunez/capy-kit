@@ -1,4 +1,6 @@
-# capy-kit — target design specification
+# capy-kit — legacy target design specification
+
+> Historical reference. The current Capy API migration supersedes the legacy contract described below.
 
 > **Architecture target, not an as-built inventory.** This document describes the intended end
 > state. The SDK/core and 11-op CLI are implemented; MCP and automatic cross-surface generation are

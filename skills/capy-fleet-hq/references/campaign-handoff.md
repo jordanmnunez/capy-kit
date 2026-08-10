@@ -17,7 +17,7 @@ work local until it is resolved.
 Campaign: [short outcome]
 
 Current authority boundary
-- Capy project: [canonical project id and recognizable name]
+- Capy organization/account: [recognizable organization or workspace]
 - Writable repositories: [owner/repo@base branch, ...]
 - Read-only context allowed: [repos/docs/systems, or none]
 - Do not write outside this boundary.
@@ -59,15 +59,15 @@ Terminal handoff condition
   [PR/artifact packaging matches the contract], and [remaining blockers/decisions are explicitly listed].
 ```
 
-## Cross-project handoff prompt
+## Cross-thread handoff prompt
 
 Use this as the input to the consumer thread after the producer reaches its terminal handoff condition.
 
 ```text
-Cross-project handoff: [producer outcome] → [consumer outcome]
+Cross-thread handoff: [producer outcome] → [consumer outcome]
 
 Completed producer work
-- Producer Capy project/repository: [project id; owner/repo]
+- Producer repository/context: [owner/repo]
 - Completed PRs: [URLs, merge state, and merge order]
 - Producer validation: [tests/CI/release/deploy evidence]
 
@@ -81,7 +81,7 @@ External start gate
 - If the gate is not satisfied, stop without writing consumer changes.
 
 Consumer authority boundary
-- Next Capy project: [canonical project id and recognizable name]
+- Next Capy thread/context: [thread id or new-thread goal]
 - Writable repositories: [owner/repo@base branch, ...]
 - Read-only producer context: [exact refs/URLs only]
 - Do not write back to the producer repository unless separately authorized.

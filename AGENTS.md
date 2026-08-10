@@ -32,7 +32,9 @@ not current fact. Until those generators exist, adding an op means registering i
 explicitly projecting it into each implemented surface. Never duplicate an op's API logic in a
 shell.
 
-## Current layout and surface
+## Legacy API layout and surface
+
+> Historical only. The current API migration is represented by `packages/core/src/client/current-schema.ts`; do not use the legacy API facts below for new work.
 
 ```text
 packages/core/   @capy-kit/core — transport, generated wire types, resources, 11 Ops, rendering

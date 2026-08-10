@@ -1,4 +1,6 @@
-# capy-kit — status and roadmap
+# capy-kit — legacy API status and roadmap
+
+> Historical reference. The current Capy API is organization-key scoped; this document predates its migration.
 
 Updated **2026-07-10**. This is the living implementation plan. `README.md` describes what users can
 run now, `AGENTS.md` contains repository rules, and `SPEC.md` describes the target architecture.
