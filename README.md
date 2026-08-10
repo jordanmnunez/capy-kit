@@ -2,14 +2,13 @@
 
 A TypeScript SDK and CLI for Capy's current public API. The legacy Capy API is intentionally unsupported.
 
-Set an organization-scoped key from **Settings → API** and retain the project ID from the Capy app:
+Set an organization-scoped key from **Settings → API**:
 
 ```bash
 export CAPY_API_KEY=capy_…
-export CAPY_PROJECT_ID=proj_…
 ```
 
-The default base URL is `https://api.capy.ai/api/v1`. The public API no longer discovers projects or models.
+The default base URL is `https://api.capy.ai/api/v1`. The public API is organization-key scoped.
 
 ```bash
 capy delegate 'Investigate the failing integration' caller-stable-request-id --json
