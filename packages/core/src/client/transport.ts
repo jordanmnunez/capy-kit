@@ -77,7 +77,7 @@ function requestIdFrom(headers: Headers, body?: { error?: { details?: unknown } 
 }
 
 async function errorFromResponse(res: Response): Promise<CapyError> {
-  let parsed: { error?: { code?: string; message?: string; details?: unknown } } | undefined;
+  let parsed: { _tag?: string; error?: { code?: string; message?: string; details?: unknown } } | undefined;
   let text = "";
   try {
     text = await res.text();
@@ -86,8 +86,7 @@ async function errorFromResponse(res: Response): Promise<CapyError> {
     /* non-JSON error body — fall back to status text */
   }
   const code: CapyErrorCode = statusToCode(res.status);
-  const message =
-    parsed?.error?.message ?? (text && text.length < 300 ? text : `${res.status} ${res.statusText}`.trim());
+  const message = parsed?.error?.message ?? parsed?._tag ?? (text && text.length < 300 ? text : `${res.status} ${res.statusText}`.trim());
   // Honor Retry-After on any retryable status (429 + 5xx), not just 429/503.
   const retryAfterMs = RETRYABLE_STATUS(res.status) ? parseRetryAfter(res.headers) : undefined;
   return new CapyError({
@@ -96,7 +95,7 @@ async function errorFromResponse(res: Response): Promise<CapyError> {
     status: res.status,
     retryAfterMs,
     requestId: requestIdFrom(res.headers, parsed),
-    details: parsed?.error?.details,
+    details: parsed?._tag ? parsed : parsed?.error?.details,
   });
 }
 

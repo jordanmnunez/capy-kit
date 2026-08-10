@@ -7,10 +7,10 @@ describe("transport", () => {
   it("sends auth, no body on GET, and parses JSON", async () => {
     const { fetch, calls } = makeMockFetch(() => ({ json: { ok: true } }));
     const ctx = testContext({ fetch });
-    const out = await request<{ ok: boolean }>(ctx, { method: "GET", path: "/v1/threads", query: { projectId: "proj_test" } });
+    const out = await request<{ ok: boolean }>(ctx, { method: "GET", path: "/threads", query: { projectId: "proj_test" } });
     expect(out).toEqual({ ok: true });
     expect(calls).toHaveLength(1);
-    expect(calls[0]!.url).toBe("https://capy.ai/api/v1/threads?projectId=proj_test");
+    expect(calls[0]!.url).toBe("https://api.capy.ai/api/v1/threads?projectId=proj_test");
     expect(calls[0]!.headers.get("authorization")).toBe("Bearer test-key");
     expect(calls[0]!.body).toBeUndefined();
   });

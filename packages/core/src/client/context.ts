@@ -2,7 +2,6 @@ import { readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-import { DEFAULT_MODEL } from "../model.js";
 import { CapyError } from "./errors.js";
 
 // Resolved, ready-to-use context. Every op takes one of these. project/org are
@@ -21,7 +20,6 @@ export interface CapyContext {
   validate: boolean;
   timeoutMs: number;
   maxRetries: number;
-  defaultModel: string;
   // Reasoning effort applied when STARTING a thread (delegate) unless overridden per-call.
   // Unset = omit `reasoning` from the request entirely (API/model default). Steer messages
   // never inherit this — a mid-thread effort change must be explicit.
@@ -45,7 +43,6 @@ export interface CapyContextInput {
   validate?: boolean;
   timeoutMs?: number;
   maxRetries?: number;
-  defaultModel?: string;
   defaultReasoning?: string;
   defaultBuildModel?: string;
   defaultBuildReasoning?: string;
@@ -54,14 +51,13 @@ export interface CapyContextInput {
 }
 
 export const DEFAULTS = {
-  baseUrl: "https://capy.ai/api",
+  baseUrl: "https://api.capy.ai/api/v1",
   // Confirmed live (2026-06-26): capy.ai/project/{projectId}/captain/{threadId}.
   // Override via CAPY_WEB_URL / config.webBaseUrl.
   webBaseUrl: "https://capy.ai",
   validate: false,
   timeoutMs: 60_000,
   maxRetries: 2,
-  defaultModel: DEFAULT_MODEL,
 } as const;
 
 export interface CapyConfigLayer {
@@ -71,7 +67,6 @@ export interface CapyConfigLayer {
   projectId?: string;
   orgId?: string;
   authorEmail?: string;
-  defaultModel?: string;
   defaultReasoning?: string;
   defaultBuildModel?: string;
   defaultBuildReasoning?: string;
@@ -89,7 +84,6 @@ const CONFIG_STRING_FIELDS = [
   "projectId",
   "orgId",
   "authorEmail",
-  "defaultModel",
   "defaultReasoning",
   "defaultBuildModel",
   "defaultBuildReasoning",
@@ -248,7 +242,6 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
     validate: input.validate ?? toBool(env.CAPY_VALIDATE ?? dot.CAPY_VALIDATE) ?? DEFAULTS.validate,
     timeoutMs: input.timeoutMs ?? toInt(env.CAPY_TIMEOUT_MS ?? dot.CAPY_TIMEOUT_MS) ?? DEFAULTS.timeoutMs,
     maxRetries: input.maxRetries ?? toInt(env.CAPY_MAX_RETRIES ?? dot.CAPY_MAX_RETRIES) ?? DEFAULTS.maxRetries,
-    defaultModel: input.defaultModel ?? pick("CAPY_DEFAULT_MODEL", file.defaultModel) ?? DEFAULTS.defaultModel,
     defaultReasoning: input.defaultReasoning ?? pick("CAPY_DEFAULT_REASONING", file.defaultReasoning),
     defaultBuildModel: input.defaultBuildModel ?? pick("CAPY_DEFAULT_BUILD_MODEL", file.defaultBuildModel),
     defaultBuildReasoning:
