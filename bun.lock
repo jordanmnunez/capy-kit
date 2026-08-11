@@ -15,7 +15,7 @@
     },
     "packages/cli": {
       "name": "@capy-kit/cli",
-      "version": "0.0.0",
+      "version": "2.0.0",
       "bin": {
         "capy": "./dist/capy.js",
       },
@@ -27,14 +27,14 @@
     },
     "packages/core": {
       "name": "@capy-kit/core",
-      "version": "0.0.0",
+      "version": "2.0.0",
       "dependencies": {
         "zod": "^4.4.0",
       },
     },
     "packages/mcp": {
       "name": "@capy-kit/mcp",
-      "version": "0.0.0",
+      "version": "2.0.0",
     },
   },
   "overrides": {

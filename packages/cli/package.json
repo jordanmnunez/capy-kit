@@ -1,6 +1,6 @@
 {
   "name": "@capy-kit/cli",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "description": "capy — CLI over @capy-kit/core. Every command is a projection of the ops registry (Citty).",

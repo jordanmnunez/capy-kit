@@ -5,6 +5,10 @@ dist/
 .env
 .env.*
 !.env.example
+.capy/
+config.json
+config.local.json
+*.local.json
 coverage/
 .vitest/
 *.log

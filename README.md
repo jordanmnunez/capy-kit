@@ -17,8 +17,8 @@ without prompting for or replacing the API key. For example:
 
 ```json
 {
-  "projects": { "central": "13301322-ef3d-4b2b-a602-9638fd053dc2" },
-  "defaultProject": "central"
+  "projects": { "my-project": "your-project-id" },
+  "defaultProject": "my-project"
 }
 ```
 

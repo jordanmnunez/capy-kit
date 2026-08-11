@@ -1,6 +1,6 @@
 {
   "name": "capy-kit",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "description": "TypeScript toolkit for the Capy API: a shared operations core with an SDK and CLI, plus agent skills.",
