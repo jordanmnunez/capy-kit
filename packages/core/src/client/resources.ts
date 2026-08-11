@@ -1,1 +1,39 @@
-import type{CapyContext}from"./context.js";import type{CreateThreadBody,Message,Page,SendMessageBody,Task,Thread}from"./current-schema.js";import{request}from"./transport.js";export type{CreateThreadBody,Message as ThreadMessage,Page as ListThreadsResponse,Page as ListMessagesResponse,SendMessageBody as SendThreadMessageBody,Task,Thread as ThreadListItem,Thread as CreateThreadResponse};export type ListThreadsQuery={status?:Thread["status"];limit?:number;cursor?:string};export type ListMessagesQuery={after?:string;limit?:number};const e=encodeURIComponent;export function resources(c:CapyContext){return{threads:{create:(b:CreateThreadBody,s?:AbortSignal)=>request<Thread>(c,{method:"POST",path:"/threads",body:b,signal:s,idempotent:true}),get:(id:string,s?:AbortSignal)=>request<Thread>(c,{method:"GET",path:`/threads/${e(id)}`,signal:s}),list:(q:ListThreadsQuery={},s?:AbortSignal)=>request<Page<Thread>>(c,{method:"GET",path:"/threads",query:q,signal:s}),interrupt:(id:string,s?:AbortSignal)=>request<Thread>(c,{method:"POST",path:`/threads/${e(id)}/interrupt`,signal:s}),archive:(id:string,s?:AbortSignal)=>request<Thread>(c,{method:"POST",path:`/threads/${e(id)}/archive`,signal:s}),unarchive:(id:string,s?:AbortSignal)=>request<Thread>(c,{method:"POST",path:`/threads/${e(id)}/unarchive`,signal:s}),message:(id:string,b:SendMessageBody,s?:AbortSignal)=>request<{id:string;deduped:boolean}>(c,{method:"POST",path:`/threads/${e(id)}/message`,body:b,signal:s,idempotent:false}),messages:(id:string,q:ListMessagesQuery={},s?:AbortSignal)=>request<Page<Message>>(c,{method:"GET",path:`/threads/${e(id)}/messages`,query:q,signal:s}),tasks:(id:string,q:{after?:string;limit?:number}={},s?:AbortSignal)=>request<Page<Task>>(c,{method:"GET",path:`/threads/${e(id)}/tasks`,query:q,signal:s})},tasks:{get:(id:string,s?:AbortSignal)=>request<Task>(c,{method:"GET",path:`/tasks/${e(id)}`,signal:s}),messages:(id:string,q:ListMessagesQuery={},s?:AbortSignal)=>request<Page<Message>>(c,{method:"GET",path:`/tasks/${e(id)}/messages`,query:q,signal:s})}}}
+import type { CapyContext } from "./context.js";
+import type { CreateThreadBody, Message, Page, SendMessageBody, Task, Thread } from "./current-schema.js";
+import { request } from "./transport.js";
+
+export type {
+  CreateThreadBody,
+  Message as ThreadMessage,
+  Page as ListThreadsResponse,
+  Page as ListMessagesResponse,
+  SendMessageBody as SendThreadMessageBody,
+  Task,
+  Thread as ThreadListItem,
+  Thread as CreateThreadResponse,
+};
+
+export type ListThreadsQuery = { projectId: string; status?: Thread["status"]; limit?: number; cursor?: string };
+export type ListMessagesQuery = { after?: string; limit?: number };
+
+const e = encodeURIComponent;
+
+export function resources(c: CapyContext) {
+  return {
+    threads: {
+      create: (b: CreateThreadBody, s?: AbortSignal) => request<Thread>(c, { method: "POST", path: "/threads", body: b, signal: s, idempotent: true }),
+      get: (id: string, s?: AbortSignal) => request<Thread>(c, { method: "GET", path: `/threads/${e(id)}`, signal: s }),
+      list: (q: ListThreadsQuery, s?: AbortSignal) => request<Page<Thread>>(c, { method: "GET", path: "/threads", query: q, signal: s }),
+      interrupt: (id: string, s?: AbortSignal) => request<Thread>(c, { method: "POST", path: `/threads/${e(id)}/interrupt`, signal: s }),
+      archive: (id: string, s?: AbortSignal) => request<Thread>(c, { method: "POST", path: `/threads/${e(id)}/archive`, signal: s }),
+      unarchive: (id: string, s?: AbortSignal) => request<Thread>(c, { method: "POST", path: `/threads/${e(id)}/unarchive`, signal: s }),
+      message: (id: string, b: SendMessageBody, s?: AbortSignal) => request<{ id: string; deduped: boolean }>(c, { method: "POST", path: `/threads/${e(id)}/message`, body: b, signal: s, idempotent: false }),
+      messages: (id: string, q: ListMessagesQuery = {}, s?: AbortSignal) => request<Page<Message>>(c, { method: "GET", path: `/threads/${e(id)}/messages`, query: q, signal: s }),
+      tasks: (id: string, q: { after?: string; limit?: number } = {}, s?: AbortSignal) => request<Page<Task>>(c, { method: "GET", path: `/threads/${e(id)}/tasks`, query: q, signal: s }),
+    },
+    tasks: {
+      get: (id: string, s?: AbortSignal) => request<Task>(c, { method: "GET", path: `/tasks/${e(id)}`, signal: s }),
+      messages: (id: string, q: ListMessagesQuery = {}, s?: AbortSignal) => request<Page<Message>>(c, { method: "GET", path: `/tasks/${e(id)}/messages`, query: q, signal: s }),
+    },
+  };
+}

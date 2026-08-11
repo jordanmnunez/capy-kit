@@ -74,6 +74,8 @@ export interface CapyConfigLayer {
 
 export interface CapyConfigDocument extends CapyConfigLayer {
   profiles?: Record<string, CapyConfigLayer>;
+  projects?: Record<string, string>;
+  defaultProject?: string;
   [key: string]: unknown;
 }
 
@@ -164,6 +166,19 @@ export function readCapyConfig(): CapyConfigDocument | undefined {
   }
 
   const document = validateConfigLayer(parsed, path);
+  const rawProjects = document.projects;
+  if (rawProjects !== undefined) {
+    const projects = requireObject(rawProjects, `${path}.projects`);
+    for (const [name, id] of Object.entries(projects)) {
+      if (!name.trim() || typeof id !== "string" || !id.trim()) throw configError(`${path}.projects entries must map non-empty names to ids.`);
+    }
+  }
+  if (document.defaultProject !== undefined && typeof document.defaultProject !== "string") {
+    throw configError(`${path}.defaultProject must be a string when present.`);
+  }
+  if (document.defaultProject !== undefined && !(document.projects as Record<string, string> | undefined)?.[document.defaultProject]) {
+    throw configError(`${path}.defaultProject must name an entry in ${path}.projects.`);
+  }
   const rawProfiles = document.profiles;
   if (rawProfiles === undefined) return document as CapyConfigDocument;
 
@@ -175,9 +190,13 @@ export function readCapyConfig(): CapyConfigDocument | undefined {
   return { ...document, profiles } as CapyConfigDocument;
 }
 
+function resolveProjectReference(value: string | undefined, document: CapyConfigDocument | undefined): string | undefined {
+  if (!value) return undefined;
+  return document?.projects?.[value] ?? value;
+}
+
 /** Select the top-level file layer or merge an explicitly requested profile over it. */
-function readConfigFile(profile?: string): { file: CapyConfigLayer; profileSelected: boolean } {
-  const document = readCapyConfig();
+function readConfigFile(document: CapyConfigDocument | undefined, profile?: string): { file: CapyConfigLayer; profileSelected: boolean } {
   if (profile === undefined) return { file: document ?? {}, profileSelected: false };
 
   const name = profile.trim();
@@ -221,7 +240,8 @@ function readDotEnv(): Record<string, string> {
  * Never throws on a missing key — transport raises `no_api_key` only when a request is attempted.
  */
 export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: string }): CapyContext {
-  const selection = readConfigFile(opts?.profile);
+  const document = readCapyConfig();
+  const selection = readConfigFile(document, opts?.profile);
   const file = selection.file;
   const dot = readDotEnv();
   const env = process.env;
@@ -235,9 +255,10 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
     apiKey: input.apiKey ?? firstString(env.CAPY_SERVICE_USER_API_KEY, dot.CAPY_SERVICE_USER_API_KEY, file.apiKey, env.CAPY_API_KEY, dot.CAPY_API_KEY) ?? "",
     baseUrl: input.baseUrl ?? pick("CAPY_BASE_URL", file.baseUrl) ?? DEFAULTS.baseUrl,
     webBaseUrl: input.webBaseUrl ?? pick("CAPY_WEB_URL", file.webBaseUrl) ?? DEFAULTS.webBaseUrl,
-    projectId:
-      input.projectId ??
-      (selection.profileSelected ? firstString(file.projectId) : pick("CAPY_PROJECT_ID", file.projectId)),
+    projectId: resolveProjectReference(
+      input.projectId ?? (selection.profileSelected ? firstString(file.projectId) : pick("CAPY_PROJECT_ID", file.projectId)) ?? document?.projects?.[document.defaultProject ?? ""],
+      document,
+    ),
     orgId: input.orgId ?? pick("CAPY_ORG_ID", file.orgId),
     authorEmail: input.authorEmail ?? pick("CAPY_AUTHOR_EMAIL", file.authorEmail),
     fetch: input.fetch ?? globalThis.fetch,
