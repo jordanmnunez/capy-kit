@@ -6,7 +6,7 @@ allowed-tools: Bash(capy:*)
 
 # Current Capy API
 
-Set `CAPY_SERVICE_USER_API_KEY` to a Capy service-user API key. The current base URL is `https://api.capy.ai/api/v1`. The public API cannot discover projects, but thread listing and creation require a project ID. Run `capy init` to save any number of named project IDs and choose a primary one. Commands use the primary project unless `--project <configured-name-or-raw-id>` is supplied.
+Set `CAPY_SERVICE_USER_API_KEY` to a Capy service-user API key. The current base URL is `https://api.capy.ai/api/v1`. The public API cannot discover projects, but thread listing and creation require a project ID. Run `capy init` to save any number of named project IDs and choose a primary one. Use `capy projects` later to edit those IDs without changing the API key. Commands use the primary project unless `--project <configured-name-or-raw-id>` is supplied.
 
 ```bash
 capy delegate 'Investigate the failing integration' caller-stable-request-id --json

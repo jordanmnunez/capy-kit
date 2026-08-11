@@ -12,7 +12,8 @@ The default base URL is `https://api.capy.ai/api/v1`. The public API is organiza
 
 The public API requires a project ID for thread lists and creates, but cannot list or retrieve
 projects. Configure the IDs you already know with `capy init`; give each a name and select a
-primary project. For example:
+primary project. Later use `capy projects` to add or update IDs and change the primary project
+without prompting for or replacing the API key. For example:
 
 ```json
 {
