@@ -28,9 +28,12 @@ for non-interactive automation.
 
 ```bash
 capy delegate 'Investigate the failing integration' caller-stable-request-id --json
+capy delegate 'Investigate the failing integration' caller-stable-request-id --model-id openai/gpt-5.6-sol --reasoning-mode high
 capy threads list --status active --json
 capy threads list --project central --json
 capy threads message jam_123 'Focus on the failure' --delivery steer --json
+capy threads message jam_123 'Use a different model for this turn' --model-id openai/gpt-5.6-sol --fast
+capy threads rename jam_123 --clear-title --json
 capy threads interrupt jam_123 --json
 capy threads archive jam_123 --json
 capy threads tasks jam_123 --json
