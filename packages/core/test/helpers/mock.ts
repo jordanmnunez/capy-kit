@@ -70,9 +70,7 @@ export function testContext(over: Partial<CapyContext> & { fetch: typeof fetch }
   return {
     apiKey: "test-key",
     baseUrl: "https://api.capy.ai/api/v1",
-    webBaseUrl: "https://capy.ai",
     projectId: "proj_test",
-    orgId: "org_test",
     validate: true, // tests exercise the output-validation boundary by default
     timeoutMs: 1_000,
     maxRetries: 2,

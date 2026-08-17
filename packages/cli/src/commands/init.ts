@@ -5,13 +5,13 @@ import { readCapyConfig } from "@capy-kit/core";
 import { defineCommand } from "citty";
 
 export const initCommand = defineCommand({
-  meta: { name: "init", description: "Configure a Capy service-user key and named projects." },
+  meta: { name: "init", description: "Configure a Capy API key and named projects." },
   args: {},
   async run() {
-    if (!process.stdin.isTTY) throw new Error("capy init needs an interactive terminal; set CAPY_SERVICE_USER_API_KEY and CAPY_PROJECT_ID instead.");
+    if (!process.stdin.isTTY) throw new Error("capy init needs an interactive terminal; set CAPY_API_KEY and CAPY_PROJECT_ID instead.");
     const p = await import("@clack/prompts");
     const existing = readCapyConfig() ?? {};
-    const key = await p.password({ message: "Capy service-user API key" });
+    const key = await p.password({ message: "Capy API key" });
     if (p.isCancel(key)) return;
 
     const projects: Record<string, string> = { ...(existing.projects ?? {}) };

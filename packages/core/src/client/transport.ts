@@ -6,7 +6,7 @@ export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 export interface RequestOptions {
   method: HttpMethod;
-  path: string; // e.g. "/v1/threads"
+  path: string; // e.g. "/threads" (relative to ctx.baseUrl)
   query?: Record<string, string | number | boolean | undefined | null>;
   body?: unknown; // serialized and sent iff !== undefined (so valid falsy bodies are sent)
   /** Override the default idempotency inference (GET/PUT/DELETE idempotent, POST/PATCH not). */
@@ -163,7 +163,7 @@ export async function request<T>(ctx: CapyContext, opts: RequestOptions): Promis
   if (!ctx.apiKey) {
     throw new CapyError({
       code: "no_api_key",
-      message: "No Capy service-user API key. Set CAPY_SERVICE_USER_API_KEY or run `capy init`.",
+      message: "No Capy API key. Set CAPY_API_KEY or run `capy init`.",
     });
   }
 

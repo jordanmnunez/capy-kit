@@ -10,24 +10,11 @@ import { CapyError } from "./errors.js";
 export interface CapyContext {
   apiKey: string;
   baseUrl: string;
-  webBaseUrl: string;
   projectId?: string;
-  orgId?: string;
-  // Your own email. Opt-in (CAPY_AUTHOR_EMAIL / config), used to default `status` to YOUR
-  // threads on team-shared projects (where your work is otherwise buried among everyone's).
-  authorEmail?: string;
   fetch: typeof fetch;
   validate: boolean;
   timeoutMs: number;
   maxRetries: number;
-  // Reasoning effort applied when STARTING a thread (delegate) unless overridden per-call.
-  // Unset = omit `reasoning` from the request entirely (API/model default). Steer messages
-  // never inherit this — a mid-thread effort change must be explicit.
-  defaultReasoning?: string;
-  // Builder settings are independently optional. When set, they apply only when a thread is
-  // created; they do not alter an existing Captain turn or steer message.
-  defaultBuildModel?: string;
-  defaultBuildReasoning?: string;
   onRequest?: (req: Request) => void;
   onResponse?: (res: Response) => void;
 }
@@ -35,26 +22,17 @@ export interface CapyContext {
 export interface CapyContextInput {
   apiKey?: string;
   baseUrl?: string;
-  webBaseUrl?: string;
   projectId?: string;
-  orgId?: string;
-  authorEmail?: string;
   fetch?: typeof fetch;
   validate?: boolean;
   timeoutMs?: number;
   maxRetries?: number;
-  defaultReasoning?: string;
-  defaultBuildModel?: string;
-  defaultBuildReasoning?: string;
   onRequest?: (req: Request) => void;
   onResponse?: (res: Response) => void;
 }
 
 export const DEFAULTS = {
   baseUrl: "https://api.capy.ai/api/v1",
-  // Confirmed live (2026-06-26): capy.ai/project/{projectId}/captain/{threadId}.
-  // Override via CAPY_WEB_URL / config.webBaseUrl.
-  webBaseUrl: "https://capy.ai",
   validate: false,
   timeoutMs: 60_000,
   maxRetries: 2,
@@ -63,13 +41,7 @@ export const DEFAULTS = {
 export interface CapyConfigLayer {
   apiKey?: string;
   baseUrl?: string;
-  webBaseUrl?: string;
   projectId?: string;
-  orgId?: string;
-  authorEmail?: string;
-  defaultReasoning?: string;
-  defaultBuildModel?: string;
-  defaultBuildReasoning?: string;
 }
 
 export interface CapyConfigDocument extends CapyConfigLayer {
@@ -82,13 +54,7 @@ export interface CapyConfigDocument extends CapyConfigLayer {
 const CONFIG_STRING_FIELDS = [
   "apiKey",
   "baseUrl",
-  "webBaseUrl",
   "projectId",
-  "orgId",
-  "authorEmail",
-  "defaultReasoning",
-  "defaultBuildModel",
-  "defaultBuildReasoning",
 ] as const satisfies ReadonlyArray<keyof CapyConfigLayer>;
 
 function firstString(...vals: Array<unknown>): string | undefined {
@@ -250,25 +216,16 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
     firstString(env[key], dot[key], fileVal);
 
   return {
-    // Current Capy authentication uses service-user keys. CAPY_API_KEY remains a
-    // compatibility fallback for callers that pass a key explicitly or have not migrated config.
-    apiKey: input.apiKey ?? firstString(env.CAPY_SERVICE_USER_API_KEY, dot.CAPY_SERVICE_USER_API_KEY, file.apiKey, env.CAPY_API_KEY, dot.CAPY_API_KEY) ?? "",
+    apiKey: input.apiKey ?? firstString(env.CAPY_API_KEY, dot.CAPY_API_KEY, file.apiKey) ?? "",
     baseUrl: input.baseUrl ?? pick("CAPY_BASE_URL", file.baseUrl) ?? DEFAULTS.baseUrl,
-    webBaseUrl: input.webBaseUrl ?? pick("CAPY_WEB_URL", file.webBaseUrl) ?? DEFAULTS.webBaseUrl,
     projectId: resolveProjectReference(
       input.projectId ?? (selection.profileSelected ? firstString(file.projectId) : pick("CAPY_PROJECT_ID", file.projectId)) ?? document?.projects?.[document.defaultProject ?? ""],
       document,
     ),
-    orgId: input.orgId ?? pick("CAPY_ORG_ID", file.orgId),
-    authorEmail: input.authorEmail ?? pick("CAPY_AUTHOR_EMAIL", file.authorEmail),
     fetch: input.fetch ?? globalThis.fetch,
     validate: input.validate ?? toBool(env.CAPY_VALIDATE ?? dot.CAPY_VALIDATE) ?? DEFAULTS.validate,
     timeoutMs: input.timeoutMs ?? toInt(env.CAPY_TIMEOUT_MS ?? dot.CAPY_TIMEOUT_MS) ?? DEFAULTS.timeoutMs,
     maxRetries: input.maxRetries ?? toInt(env.CAPY_MAX_RETRIES ?? dot.CAPY_MAX_RETRIES) ?? DEFAULTS.maxRetries,
-    defaultReasoning: input.defaultReasoning ?? pick("CAPY_DEFAULT_REASONING", file.defaultReasoning),
-    defaultBuildModel: input.defaultBuildModel ?? pick("CAPY_DEFAULT_BUILD_MODEL", file.defaultBuildModel),
-    defaultBuildReasoning:
-      input.defaultBuildReasoning ?? pick("CAPY_DEFAULT_BUILD_REASONING", file.defaultBuildReasoning),
     onRequest: input.onRequest,
     onResponse: input.onResponse,
   };

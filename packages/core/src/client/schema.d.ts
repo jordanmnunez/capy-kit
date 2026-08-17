@@ -4,51 +4,43 @@
  */
 
 export interface paths {
-    "/v1/threads": {
+    "/api/v1/threads": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * List threads
-         * @description List captain threads for a project.
-         */
-        get: operations["listThreads"];
+        /** List threads */
+        get: operations["threads.list"];
         put?: never;
-        /**
-         * Create and start thread
-         * @description Create a new captain thread and immediately start execution, optionally assigning existing project tags.
-         */
-        post: operations["createAndStartThread"];
+        /** Create thread */
+        post: operations["threads.create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/threads/{threadId}": {
+    "/api/v1/threads/{threadId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get thread
-         * @description Get a single captain thread.
-         */
-        get: operations["getThread"];
+        /** Get thread */
+        get: operations["threads.get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Rename thread */
+        patch: operations["threads.rename"];
         trace?: never;
     };
-    "/v1/threads/{threadId}/stop": {
+    "/api/v1/threads/{threadId}/archive": {
         parameters: {
             query?: never;
             header?: never;
@@ -57,18 +49,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Stop thread
-         * @description Stop an actively running captain thread.
-         */
-        post: operations["stopThread"];
+        /** Archive thread */
+        post: operations["threads.archive"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/threads/{threadId}/archive": {
+    "/api/v1/threads/{threadId}/unarchive": {
         parameters: {
             query?: never;
             header?: never;
@@ -77,18 +66,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Archive thread
-         * @description Archive a captain thread. If the thread is actively running, the archive succeeds first and then the API attempts to stop the active run on a best-effort basis.
-         */
-        post: operations["archiveThread"];
+        /** Unarchive thread */
+        post: operations["threads.unarchive"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/threads/{threadId}/unarchive": {
+    "/api/v1/threads/{threadId}/regenerate-title": {
         parameters: {
             query?: never;
             header?: never;
@@ -97,29 +83,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Unarchive thread
-         * @description Unarchive a captain thread. This does not restart or resume execution.
-         */
-        post: operations["unarchiveThread"];
+        /** Regenerate thread title */
+        post: operations["threads.regenerateTitle"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/threads/{threadId}/session-token": {
+    "/api/v1/threads/{threadId}/tasks": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get session token
-         * @description Fetch the current session identity token for a captain thread. The caller must have access to the project that owns the thread. The same token is also written inside the captain VM to `/etc/capy/session-token` with permissions `0600`, so code running inside the VM can read it locally. A `410` response means the session has already ended. A `422` response with code `session_not_ready` means the token has not been minted yet during initial bootstrap; retry with backoff.
-         */
-        get: operations["getThreadSessionToken"];
+        /** List tasks */
+        get: operations["tasks.list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -128,7 +108,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/threads/{threadId}/message": {
+    "/api/v1/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get task */
+        get: operations["tasks.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{taskId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List task messages */
+        get: operations["tasks.messages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/threads/{threadId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List thread messages */
+        get: operations["messages.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/threads/{threadId}/message": {
         parameters: {
             query?: never;
             header?: never;
@@ -137,326 +168,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Send thread message
-         * @description Send a message to an existing thread.
-         */
-        post: operations["sendThreadMessage"];
+        /** Send message */
+        post: operations["messages.send"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/threads/{threadId}/messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List thread messages
-         * @description List messages in a captain thread.
-         */
-        get: operations["listThreadMessages"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/threads/{threadId}/tags": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Set thread tags
-         * @description Replace the tags assigned to a captain thread. Every tag must already be defined for the project's organization.
-         */
-        put: operations["setThreadTags"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/tasks/{taskId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get task
-         * @description Get a task by UUID.
-         */
-        get: operations["getTask"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/tasks/{taskId}/diff": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get task diff
-         * @description Get the current diff for a task by UUID.
-         */
-        get: operations["getTaskDiff"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List projects
-         * @description List projects available to the API token.
-         */
-        get: operations["listProjects"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects/{projectId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get project
-         * @description Get a single project.
-         */
-        get: operations["getProject"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/tags": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List tags
-         * @description List reusable captain-thread tags defined for the project's organization.
-         */
-        get: operations["listThreadTags"];
-        put?: never;
-        /**
-         * Create tag
-         * @description Create a reusable captain-thread tag for the project's organization. Reusing an existing tag name restores it and updates its color.
-         */
-        post: operations["createThreadTag"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/models": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List models
-         * @description List models available to the API.
-         */
-        get: operations["listModels"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/usage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get usage
-         * @description Get organization usage totals, user breakdowns, and the paginated thread activity timeline shown in the usage dashboard. Monetary amounts are decimal US dollar numbers.
-         */
-        get: operations["getUsage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/setup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get setup
-         * @description Get Setup used for future project runs. Setup contains VM size, three automatic repository scripts, opt-in Commands, terminals, previews, and pre/post tool hooks. Environment variables are configured separately.
-         */
-        get: operations["getSetup"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Update setup
-         * @description Save Setup for future project runs. The update becomes active immediately; secret and environment variable fields are not accepted.
-         */
-        patch: operations["updateSetup"];
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/snapshots": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get snapshots setting
-         * @description Get whether optional Snapshots are enabled for the project. Snapshots are independent from Setup.
-         */
-        get: operations["getSnapshots"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Update snapshots setting
-         * @description Enable or disable optional Snapshots. This does not gate saving or testing Setup.
-         */
-        patch: operations["updateSnapshots"];
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/browser-snapshots": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List browser snapshots
-         * @description List browser snapshots for a project. Private snapshots are only visible to their creator.
-         */
-        get: operations["listBrowserSnapshots"];
-        put?: never;
-        /**
-         * Create browser snapshot
-         * @description Create a new browser snapshot with cookies and localStorage state. Domains are automatically extracted from cookie domains.
-         */
-        post: operations["createBrowserSnapshot"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/browser-snapshots/{snapshotId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get browser snapshot
-         * @description Get a browser snapshot by ID including its full storage state.
-         */
-        get: operations["getBrowserSnapshot"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete browser snapshot
-         * @description Delete a browser snapshot.
-         */
-        delete: operations["deleteBrowserSnapshot"];
-        options?: never;
-        head?: never;
-        /**
-         * Update browser snapshot
-         * @description Update browser snapshot metadata. Only the snapshot creator can change the isPrivate flag.
-         */
-        patch: operations["updateBrowserSnapshot"];
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/environment-variables/personal": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List personal environment variables
-         * @description List names and configuration metadata for the effective actor's personal project environment variables. Secret values are never returned. Admin service users may explicitly target a same-organization project member with impersonateUserEmail.
-         */
-        get: operations["listPersonalEnvironmentVariables"];
-        /**
-         * Upsert personal environment variables
-         * @description Bulk-upsert personal project environment variables for the effective actor. Omitted variables are preserved and secret values are never returned. Admin service users may explicitly target a same-organization project member with impersonateUserEmail.
-         */
-        put: operations["upsertPersonalEnvironmentVariables"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/environment-variables/personal/{name}": {
+    "/api/v1/threads/{threadId}/interrupt": {
         parameters: {
             query?: never;
             header?: never;
@@ -465,70 +185,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post?: never;
-        /**
-         * Delete personal environment variable
-         * @description Soft-delete one personal project environment variable for the effective actor. The name path segment must be URL encoded. Admin service users may explicitly target a same-organization project member with impersonateUserEmail.
-         */
-        delete: operations["deletePersonalEnvironmentVariable"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/automations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List automations
-         * @description List project automations visible to the effective actor. Creator-scoped automations are private to their creator. Admin service users may explicitly target a same-organization project member with impersonateUserEmail.
-         */
-        get: operations["listAutomations"];
-        put?: never;
-        /**
-         * Create automation
-         * @description Create an automation owned by the effective actor. Admin service users may create on behalf of a same-organization project member only with the explicit impersonateUserEmail query parameter.
-         */
-        post: operations["createAutomation"];
+        /** Interrupt thread */
+        post: operations["messages.interrupt"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/projects/{projectId}/automations/{automationId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get automation
-         * @description Get an automation visible to the effective actor. Creator-scoped automations are private to their creator.
-         */
-        get: operations["getAutomation"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete automation
-         * @description Soft-delete an automation visible to the effective actor. Creator-private ownership is enforced.
-         */
-        delete: operations["deleteAutomation"];
-        options?: never;
-        head?: never;
-        /**
-         * Update automation
-         * @description Partially update an automation visible to the effective actor. Creator-private ownership is enforced.
-         */
-        patch: operations["updateAutomation"];
-        trace?: never;
-    };
-    "/v1/projects/{projectId}/automations/{automationId}/trigger": {
+    "/api/v1/threads/{threadId}/messages/{eventId}/cancel": {
         parameters: {
             query?: never;
             header?: never;
@@ -537,18 +202,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Trigger automation
-         * @description Run an automation now as its immutable creator. The caller must be able to view the automation; service tokens never silently inherit a human identity.
-         */
-        post: operations["triggerAutomation"];
+        /** Cancel queued message */
+        post: operations["messages.cancel"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/sessions/verify": {
+    "/api/v1/threads/{threadId}/messages/{eventId}/send-now": {
         parameters: {
             query?: never;
             header?: never;
@@ -557,11 +219,145 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Verify session token
-         * @description Verify a session identity token issued for a captain session. The caller must have access to the project that owns the session so the endpoint cannot be used for cross-tenant enumeration. Failure responses are intentionally opaque: only `expired` is distinguished from `invalid`, and callers should always confirm the returned `projectId` matches the project they expect before trusting the result.
-         */
-        post: operations["verifySession"];
+        /** Send queued message now */
+        post: operations["messages.sendNow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/review-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get review settings */
+        get: operations["reviews.settings"];
+        /** Configure review settings */
+        put: operations["reviews.configure"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/review-billing-transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get review billing transfer */
+        get: operations["reviews.billingTransfer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/review-billing-transfer/offer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Offer review billing transfer */
+        post: operations["reviews.offerBillingTransfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/review-billing-transfer/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept review billing transfer */
+        post: operations["reviews.acceptBillingTransfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/review-billing-transfer/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel review billing transfer */
+        post: operations["reviews.cancelBillingTransfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/review-billing-transfer/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline review billing transfer */
+        post: operations["reviews.declineBillingTransfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start review */
+        post: operations["reviews.start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get usage report */
+        get: operations["usage.get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -572,1842 +368,261 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        BrowserSnapshot: {
+        UsageTotals: {
+            llmCredits: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            imageCredits: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            vmCredits: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            totalCredits: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+        };
+        Thread: {
             id: string;
-            projectId: string;
-            name: string;
-            domains: string[] | null;
-            isPrivate: boolean;
-            isDefault: boolean;
-            createdAt: string;
-            updatedAt: string;
-        };
-        BrowserSnapshotCookie: {
-            name: string;
-            value: string;
-            domain: string;
-            path: string;
-            expires: number;
-            httpOnly: boolean;
-            secure: boolean;
-            /** @enum {string} */
-            sameSite: "Strict" | "Lax" | "None";
-        };
-        BrowserSnapshotDetail: {
-            id: string;
-            projectId: string;
-            name: string;
-            domains: string[] | null;
-            isPrivate: boolean;
-            isDefault: boolean;
-            createdAt: string;
-            updatedAt: string;
-            storageState: {
-                cookies: {
-                    name: string;
-                    value: string;
-                    domain: string;
-                    path: string;
-                    expires: number;
-                    httpOnly: boolean;
-                    secure: boolean;
-                    /** @enum {string} */
-                    sameSite: "Strict" | "Lax" | "None";
-                }[];
-                origins: {
-                    origin: string;
-                    localStorage: {
-                        name: string;
-                        value: string;
-                    }[];
-                }[];
-            } | null;
-        };
-        BrowserSnapshotLocalStorageItem: {
-            name: string;
-            value: string;
-        };
-        BrowserSnapshotOrigin: {
-            origin: string;
-            localStorage: {
-                name: string;
-                value: string;
-            }[];
-        };
-        BrowserSnapshotStorageState: {
-            cookies: {
-                name: string;
-                value: string;
-                domain: string;
-                path: string;
-                expires: number;
-                httpOnly: boolean;
-                secure: boolean;
-                /** @enum {string} */
-                sameSite: "Strict" | "Lax" | "None";
-            }[];
-            origins: {
-                origin: string;
-                localStorage: {
-                    name: string;
-                    value: string;
-                }[];
-            }[];
-        };
-        CreateBrowserSnapshotBody: {
-            name: string;
-            storageState: {
-                cookies: {
-                    name: string;
-                    value: string;
-                    domain: string;
-                    path: string;
-                    expires: number;
-                    httpOnly: boolean;
-                    secure: boolean;
-                    /** @enum {string} */
-                    sameSite: "Strict" | "Lax" | "None";
-                }[];
-                origins: {
-                    origin: string;
-                    localStorage: {
-                        name: string;
-                        value: string;
-                    }[];
-                }[];
-            };
-            isPrivate?: boolean;
-            isDefault?: boolean;
-        };
-        DeleteBrowserSnapshotResponse: {
-            success: boolean;
-        };
-        ErrorResponse: {
-            error: {
-                code: string;
-                message: string;
-                details?: unknown;
-            };
-        };
-        ListThreadsQuery: {
-            /** @default 20 */
-            limit: number;
-            cursor?: string;
-            projectId: string;
-            /** @enum {string} */
-            status?: "active" | "idle" | "archived";
-            prNumber?: number;
-            branch?: string;
-            slackThreadTs?: string;
-            /** @description Filter to threads created by this Capy user ID. Mutually exclusive with authorEmail. */
-            authorId?: string;
-            /**
-             * Format: email
-             * @description Filter to threads created by the organization member with this email address. Returns an empty page if the email does not match an organization member. Mutually exclusive with authorId.
-             */
-            authorEmail?: string;
-            /** @description Filter to threads this Capy user ID authored or participated in. Mutually exclusive with participantEmail. */
-            participantId?: string;
-            /**
-             * Format: email
-             * @description Filter to threads the organization member with this email address authored or participated in. Returns an empty page if the email does not match an organization member. Mutually exclusive with participantId.
-             */
-            participantEmail?: string;
-            /**
-             * @description Filter by thread origin source.
-             * @enum {string}
-             */
-            origin?: "web" | "slack" | "api" | "linear" | "automation" | "github";
-            /**
-             * @description Filter by the thread's rolled-up pull request state. Combines with prNumber and branch.
-             * @enum {string}
-             */
-            prState?: "open" | "merged" | "closed" | "none";
-            /** @description Filter to threads with this tag name (lowercase). */
-            tag?: string;
-            /** @description Filter to threads linked to this Slack channel ID (e.g. C0123456789). Combines with slackThreadTs. */
-            slackChannelId?: string;
-            /** @description Free-text search across thread titles and content. */
-            q?: string;
-        };
-        ThreadListItem: {
-            id: string;
-            projectId: string;
+            projectId: string | null;
             title: string | null;
-            /**
-             * @description Coarse Captain run-loop status retained for compatibility. Prefer runState/waitingOn/blockedOn for completion and waiting UX.
-             * @enum {string}
-             */
-            status: "active" | "idle" | "archived";
-            /**
-             * @description Full computed execution state for the agent thread.
-             * @enum {string}
-             */
-            runState: "running" | "stopping" | "queued" | "waiting" | "blocked" | "ready" | "archived";
-            /** @description Async system dependencies expected to continue without user action. */
-            waitingOn: ("task" | "review" | "ci" | "timer" | "worker")[];
-            /** @description User/integration gates required before progress can continue. */
-            blockedOn: ("auth" | "permission")[];
-            /** @description Pending append-and-resume notifications waiting to be processed. */
-            pendingWakeups: number;
-            tasks: {
-                id: string;
-                threadIndex: number | null;
-                identifier: string;
-                title: string;
-                /** @enum {string} */
-                status: "backlog" | "queued" | "in_progress" | "needs_review" | "completed" | "error" | "archived";
-            }[];
-            participants: {
-                userId: string;
-                /** @enum {string} */
-                userType: "human" | "service_user";
-                firstParticipatedAt: string;
-                lastParticipatedAt: string;
-            }[];
-            pullRequests: {
-                number: number;
-                url: string;
-                repoFullName: string;
-                state: string;
-                headRef: string;
-                baseRef: string;
-                draft: boolean;
-            }[];
-            slackThreads: {
-                teamId: string;
-                channelId: string;
-                threadTs: string;
-                url: string;
-            }[];
-            tags: {
-                name: string;
-                /** @enum {string} */
-                color: "default" | "primary" | "success" | "warning" | "destructive" | "blue" | "purple" | "pink" | "orange" | "lime";
-            }[];
+            titleCustom: boolean;
+            /** @enum {string} */
+            status: "active" | "waiting" | "pending_user" | "error" | "ready_for_review" | "idle" | "archived";
+            archived: boolean;
+            lastModelId: string | null;
+            usage: components["schemas"]["UsageTotals"];
             createdAt: string;
             updatedAt: string;
+            lastActivityAt: string | null;
         };
-        ListThreadsResponse: {
-            items: components["schemas"]["ThreadListItem"][];
-            nextCursor: string | null;
-            hasMore: boolean;
+        ThreadPage: {
+            items: components["schemas"]["Thread"][];
+            cursor: (string & unknown) | null;
         };
-        CreateThreadBody: {
+        capy_ProjectNotFound: {
+            /** @enum {string} */
+            _tag: "capy/ProjectNotFound";
             projectId: string;
-            /** Format: email */
-            impersonateUserEmail?: string;
-            prompt: string;
-            /** @enum {string} */
-            model?: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
-            /** @enum {string} */
-            speed?: "fast" | "standard";
-            reasoning?: {
-                /** @enum {string} */
-                mode: "off" | "on" | "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
-            };
-            /** @enum {string} */
-            buildModel?: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
-            /** @enum {string} */
-            buildSpeed?: "fast" | "standard";
-            buildReasoning?: {
-                /** @enum {string} */
-                mode: "off" | "on" | "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
-            };
-            repos?: {
-                repoFullName: string;
-                branch: string;
-            }[];
-            browserSnapshotIds?: string[];
-            attachmentUrls?: string[];
-            tags?: string[];
-            slack?: {
-                channel: string;
-            };
-            reliabilityInvestigationId?: string;
         };
-        CreateThreadResponse: {
-            id: string;
+        capy_Unauthorized: {
+            /** @enum {string} */
+            _tag: "capy/Unauthorized";
+        };
+        capy_ThreadNotFound: {
+            /** @enum {string} */
+            _tag: "capy/ThreadNotFound";
+            threadId: string;
+        };
+        CreateThreadRequest: {
+            requestId: string & (unknown & unknown);
             projectId: string;
-            title: string | null;
-            /**
-             * @description Coarse Captain run-loop status retained for compatibility. Prefer runState/waitingOn/blockedOn for completion and waiting UX.
-             * @enum {string}
-             */
-            status: "active" | "idle" | "archived";
-            /**
-             * @description Full computed execution state for the agent thread.
-             * @enum {string}
-             */
-            runState: "running" | "stopping" | "queued" | "waiting" | "blocked" | "ready" | "archived";
-            /** @description Async system dependencies expected to continue without user action. */
-            waitingOn: ("task" | "review" | "ci" | "timer" | "worker")[];
-            /** @description User/integration gates required before progress can continue. */
-            blockedOn: ("auth" | "permission")[];
-            /** @description Pending append-and-resume notifications waiting to be processed. */
-            pendingWakeups: number;
-            participants: {
-                userId: string;
-                /** @enum {string} */
-                userType: "human" | "service_user";
-                firstParticipatedAt: string;
-                lastParticipatedAt: string;
-            }[];
-            tags: {
-                name: string;
-                /** @enum {string} */
-                color: "default" | "primary" | "success" | "warning" | "destructive" | "blue" | "purple" | "pink" | "orange" | "lime";
-            }[];
-            slack?: {
-                teamId: string;
-                channelId: string;
-                threadTs: string;
-                url: string;
-            };
-            createdAt: string;
-        };
-        SendThreadMessageBody: {
-            /** Format: email */
-            impersonateUserEmail?: string;
-            messageId?: string;
+            title?: string;
             message: string;
-            /** @enum {string} */
-            mode?: "interrupt" | "queue";
-            /** @enum {string} */
-            model?: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
-            /** @enum {string} */
-            speed?: "fast" | "standard";
-            reasoning?: {
+            model?: {
+                modelId: string;
                 /** @enum {string} */
-                mode: "off" | "on" | "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+                reasoningMode?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+                modes?: {
+                    fast?: boolean;
+                    pro?: boolean;
+                };
             };
             /** @enum {string} */
-            buildModel?: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
-            /** @enum {string} */
-            buildSpeed?: "fast" | "standard";
-            buildReasoning?: {
-                /** @enum {string} */
-                mode: "off" | "on" | "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
-            };
-            browserSnapshotIds?: string[];
-            attachmentUrls?: string[];
+            machineSize?: "small" | "medium" | "large" | "ultra" | "hyper" | "bigguy";
         };
-        SendMessageResponse: {
+        capy_PaidFeatureUnavailable: {
+            /** @enum {string} */
+            _tag: "capy/PaidFeatureUnavailable";
+            /** @enum {string} */
+            feature: "bigguy";
+        };
+        capy_BillingAuthorityUnavailable: {
+            /** @enum {string} */
+            _tag: "capy/BillingAuthorityUnavailable";
+        };
+        RenameThreadRequest: {
+            title: string | null;
+        };
+        Task: {
             id: string;
+            threadId: string;
+            parentId: string;
+            taskPath: string;
+            projectId: string | null;
+            title: string | null;
             /** @enum {string} */
-            status: "sent" | "queued" | "pending";
-            inputEventId?: string;
-            timelineSequence?: string;
-            /** @enum {string} */
-            appendState?: "inserted" | "already_present";
+            status: "working" | "waiting" | "idle" | "done" | "failed";
+            usage: components["schemas"]["UsageTotals"];
+            createdAt: string;
+            updatedAt: string;
+            lastActivityAt: string | null;
         };
-        ListMessagesQuery: {
-            /** @default 50 */
-            limit: number;
-            cursor?: string;
+        TaskPage: {
+            items: components["schemas"]["Task"][];
+            cursor: string | null;
+        };
+        capy_TaskNotFound: {
+            /** @enum {string} */
+            _tag: "capy/TaskNotFound";
+            taskId: string;
         };
         Message: {
             id: string;
             /** @enum {string} */
-            source: "user" | "assistant";
-            content: string;
-            createdAt: string;
-        };
-        ListMessagesResponse: {
-            items: {
-                id: string;
-                /** @enum {string} */
-                source: "user" | "assistant";
-                content: string;
-                createdAt: string;
-            }[];
-            nextCursor: string | null;
-            hasMore: boolean;
-        };
-        StopThreadResponse: {
-            id: string;
-            /** @enum {string} */
-            status: "active" | "idle" | "archived";
-        };
-        ArchiveThreadBody: {
-            /** Format: email */
-            impersonateUserEmail?: string;
-        };
-        ArchiveThreadResponse: {
-            id: string;
-            /** @enum {string} */
-            status: "active" | "idle" | "archived";
-        };
-        UnarchiveThreadBody: {
-            /** Format: email */
-            impersonateUserEmail?: string;
-        };
-        SessionTokenResponse: {
-            /** @description Opaque session identity token. This value is a JWT and is typically 700-1000 bytes long. */
-            token: string;
-            /** Format: date-time */
-            expiresAt: string;
-            /** Format: date-time */
-            issuedAt: string;
-        };
-        VerifySessionBody: {
-            token: string;
-        };
-        VerifySessionResponse: {
-            /** @constant */
-            valid: true;
-            threadId: string;
-            projectId: string;
-            orgId: string | null;
-            userId: string;
-            instanceId: string;
-            issuedAt: string;
-            expiresAt: string;
-        } | {
-            /** @constant */
-            valid: false;
-            /** @enum {string} */
-            reason: "invalid" | "expired";
-        };
-        Task: {
-            id: string;
-            projectId: string;
-            threadIndex: number | null;
-            identifier: string;
-            title: string;
-            prompt: string;
-            /** @enum {string} */
-            status: "backlog" | "queued" | "in_progress" | "needs_review" | "completed" | "error" | "archived";
-            pullRequest: null;
-            slackThreads: {
-                teamId: string;
-                channelId: string;
-                threadTs: string;
-                url: string;
-            }[];
-            currentJamId: string | null;
-            createdAt: string;
-            updatedAt: string;
-            threadId: string | null;
-        };
-        TaskDiffQuery: {
-            /** @enum {string} */
-            mode?: "uncommitted" | "pr";
-        };
-        TaskDiffResponse: {
-            stats: {
-                files: number;
-                additions: number;
-                deletions: number;
-            };
-            files: {
-                path: string;
-                state: string;
-                additions: number;
-                deletions: number;
-                patch: string;
-            }[];
-            /** @enum {string} */
-            source: "snapshot" | "github" | "summary";
-        };
-        ListProjectsQuery: {
-            /** @default 20 */
-            limit: number;
-            cursor?: string;
-        };
-        Project: {
-            id: string;
-            name: string;
-            description: string | null;
-            taskCode: string;
-            repos: {
-                repoFullName: string;
-                branch: string;
-            }[];
-            createdAt: string;
-            updatedAt: string;
-        };
-        ListProjectsResponse: {
-            items: {
-                id: string;
-                name: string;
-                description: string | null;
-                taskCode: string;
-                repos: {
-                    repoFullName: string;
-                    branch: string;
-                }[];
-                createdAt: string;
-                updatedAt: string;
-            }[];
-            nextCursor: string | null;
-            hasMore: boolean;
-        };
-        ListModelsResponse: {
-            models: {
-                /** @enum {string} */
-                id: "claude-fable-5" | "claude-sonnet-5" | "claude-opus-4-8" | "claude-opus-4-7" | "claude-opus-4-6" | "claude-opus-4-5" | "claude-sonnet-4-6" | "claude-haiku-4-5" | "gpt-5.6-sol" | "gpt-5.6-terra" | "gpt-5.6-luna" | "gpt-5.5" | "gpt-5.5-pro" | "gpt-5.4" | "gpt-5.4-mini" | "gpt-5.3-codex" | "gpt-5.3-codex-spark" | "gemini-3.1-pro-preview" | "gemini-3-flash-preview" | "grok-4-1-fast" | "grok-4-5" | "composer-2.5-fast" | "glm-5.2" | "glm-5.1" | "glm-5v-turbo" | "deepseek-v4-pro" | "glm-5-turbo" | "glm-4.7" | "kimi-k2.7-code" | "kimi-k2.6" | "qwen3-coder";
-                name: string;
-                provider: string;
-                captainEligible: boolean;
-            }[];
-        };
-        UsageQuery: {
-            orgId: string;
-            /** Format: date-time */
-            from: string;
-            /** Format: date-time */
-            to: string;
-            /**
-             * @default paid
-             * @enum {string}
-             */
-            routed: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "external_xai" | "all";
-            userId?: string;
-            /** @description Comma-separated project IDs to include. */
-            projectIds?: string;
-            /**
-             * @description Filter usage to build, captain, or review activity.
-             * @enum {string}
-             */
-            agentType?: "build" | "captain" | "review";
-            /** @enum {string} */
-            sortBy?: "lastActivity" | "cost" | "name" | "diff" | "owner";
-            /** @enum {string} */
-            sortDirection?: "asc" | "desc";
-            /** @default 1 */
-            page: number;
-            /** @default 20 */
-            pageSize: number;
-        };
-        UsageResponse: {
-            orgId: string;
-            from: string;
-            to: string;
-            /** @constant */
-            currency: "USD";
-            /** @enum {string} */
-            routed: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "external_xai" | "all";
-            totals: {
-                llmDollars: number;
-                vmDollars: number;
-                totalDollars: number;
-            };
-            users: {
-                llmDollars: number;
-                vmDollars: number;
-                totalDollars: number;
-                userId: string;
-                /** @enum {string} */
-                userType: "human" | "service_user";
-                name: string | null;
-                email: string | null;
-                imageUrl: string | null;
-                isServiceUser: boolean;
-            }[];
-            items: {
-                llmDollars: number;
-                vmDollars: number;
-                totalDollars: number;
-                jamId: string;
-                jamTitle: string | null;
-                jamStatus: string | null;
-                jamAgentType: string | null;
-                jamProjectId: string | null;
-                jamCreatedAt: string | null;
-                jamUpdatedAt: string | null;
-                userId: string;
-                /** @enum {string} */
-                userType: "human" | "service_user";
-                userName: string | null;
-                userEmail: string | null;
-                userImageUrl: string | null;
-                isServiceUser: boolean;
-                taskId: string | null;
-                taskProjectId: string | null;
-                taskNumber: number | null;
-                taskTitle: string | null;
-                lastActivityAt: string;
-                modelCount: number;
-                diffSummaryByMode: {
-                    uncommitted?: {
-                        additions: number;
-                        deletions: number;
-                        hasChanges: boolean;
-                        generatedAt: string;
-                        baselineRef: string;
-                        fileCount?: number;
-                        changedFiles?: string[];
-                    };
-                    pr?: {
-                        additions: number;
-                        deletions: number;
-                        hasChanges: boolean;
-                        generatedAt: string;
-                        baselineRef: string;
-                        fileCount?: number;
-                        changedFiles?: string[];
-                    };
-                    run?: {
-                        additions: number;
-                        deletions: number;
-                        hasChanges: boolean;
-                        generatedAt: string;
-                        baselineRef: string;
-                        fileCount?: number;
-                        changedFiles?: string[];
-                    };
-                } | null;
-                /** @enum {string} */
-                routedSource: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "external_xai";
-                routedSpendDollars: {
-                    [key: string]: number;
-                } | null;
-            }[];
-            total: number;
-            page: number;
-            pageSize: number;
-            totalPages: number;
-        };
-        ListBrowserSnapshotsResponse: {
-            items: {
-                id: string;
-                projectId: string;
-                name: string;
-                domains: string[] | null;
-                isPrivate: boolean;
-                isDefault: boolean;
-                createdAt: string;
-                updatedAt: string;
-            }[];
-        };
-        UpdateBrowserSnapshotBody: {
-            name?: string;
-            isPrivate?: boolean;
-            isDefault?: boolean;
-        };
-        Setup: {
-            /** @enum {string} */
-            source: "legacy" | "setup" | "none";
-            legacyHooks: {
-                /** @enum {string} */
-                status: "active" | "ignored" | "none";
-                repositories: string[];
-                checkComplete: boolean;
-            };
-            setup: {
-                /** @enum {string} */
-                vmSize?: "small" | "medium" | "large" | "ultra" | "hyper";
-                repositories: {
-                    repository: string;
-                    branch: string;
-                    scripts: {
-                        initialize: string | null;
-                        updateAfterCheckout: string | null;
-                        startup: string | null;
-                    };
-                    timeouts?: {
-                        initialize?: number;
-                        updateAfterCheckout?: number;
-                        startup?: number;
-                    };
-                    commands: {
-                        name: string;
-                        command: string;
-                    }[];
-                }[];
-                hooks?: {
-                    /** @description Commands to run BEFORE a tool executes. Keys are tool names (bash_run, edit, write, etc.), values are arrays of shell commands or objects with commands and agents filter */
-                    pre?: {
-                        [key: string]: string[] | {
-                            /** @description Shell commands to run */
-                            commands: string[];
-                            /** @description Which agent types this applies to. Omit to apply to all agents (default: all) */
-                            agents?: ("captain" | "build" | "review")[];
-                        };
-                    };
-                    /** @description Commands to run AFTER a tool executes. Keys are tool names, values are arrays of shell commands or objects with commands and agents filter. Can use ${variable} interpolation from tool args/results */
-                    post?: {
-                        [key: string]: string[] | {
-                            /** @description Shell commands to run */
-                            commands: string[];
-                            /** @description Which agent types this applies to. Omit to apply to all agents (default: all) */
-                            agents?: ("captain" | "build" | "review")[];
-                        };
-                    };
-                    context?: {
-                        /** @description Maximum characters of hook output to include in context (default: 2000) */
-                        maxOutputLength?: number;
-                        /**
-                         * @description How to truncate output exceeding maxOutputLength: 'head' keeps start, 'tail' keeps end, 'middle' keeps both ends
-                         * @enum {string}
-                         */
-                        truncateStrategy?: "head" | "tail" | "middle";
-                    };
-                };
-            };
-        };
-        Snapshots: {
-            enabled: boolean;
-        };
-        UpdateSnapshotsBody: {
-            enabled: boolean;
-        };
-        UpdateSnapshotsResponse: {
-            enabled: boolean;
-            initialBuildId?: string;
-            reusedSnapshot?: {
-                snapshotId: string;
-                lane: string;
-            };
-            queuedBehindActiveBuild?: boolean;
-        };
-        UpdateSetupBody: {
-            /** @enum {string} */
-            vmSize?: "small" | "medium" | "large" | "ultra" | "hyper";
-            repositories: {
-                repository: string;
-                branch: string;
-                scripts: {
-                    initialize: string | null;
-                    updateAfterCheckout: string | null;
-                    startup: string | null;
-                };
-                timeouts?: {
-                    initialize?: number;
-                    updateAfterCheckout?: number;
-                    startup?: number;
-                };
-                commands: {
+            source: "user" | "assistant" | "tool";
+            tool?: string;
+            text: string;
+            authorName?: string;
+            model?: string;
+            attachments?: {
+                file: {
+                    fileId: string;
                     name: string;
-                    command: string;
-                }[];
-            }[];
-            hooks?: {
-                /** @description Commands to run BEFORE a tool executes. Keys are tool names (bash_run, edit, write, etc.), values are arrays of shell commands or objects with commands and agents filter */
-                pre?: {
-                    [key: string]: string[] | {
-                        /** @description Shell commands to run */
-                        commands: string[];
-                        /** @description Which agent types this applies to. Omit to apply to all agents (default: all) */
-                        agents?: ("captain" | "build" | "review")[];
-                    };
+                    mediaType: string;
+                    sizeBytes: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+                    preview?: boolean;
+                    width?: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+                    height?: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
                 };
-                /** @description Commands to run AFTER a tool executes. Keys are tool names, values are arrays of shell commands or objects with commands and agents filter. Can use ${variable} interpolation from tool args/results */
-                post?: {
-                    [key: string]: string[] | {
-                        /** @description Shell commands to run */
-                        commands: string[];
-                        /** @description Which agent types this applies to. Omit to apply to all agents (default: all) */
-                        agents?: ("captain" | "build" | "review")[];
-                    };
-                };
-                context?: {
-                    /** @description Maximum characters of hook output to include in context (default: 2000) */
-                    maxOutputLength?: number;
-                    /**
-                     * @description How to truncate output exceeding maxOutputLength: 'head' keeps start, 'tail' keeps end, 'middle' keeps both ends
-                     * @enum {string}
-                     */
-                    truncateStrategy?: "head" | "tail" | "middle";
-                };
-            };
-        };
-        UpdateSetupResponse: {
-            /** @enum {string} */
-            source: "legacy" | "setup" | "none";
-            legacyHooks: {
-                /** @enum {string} */
-                status: "active" | "ignored" | "none";
-                repositories: string[];
-                checkComplete: boolean;
-            };
-            setup: {
-                /** @enum {string} */
-                vmSize?: "small" | "medium" | "large" | "ultra" | "hyper";
-                repositories: {
-                    repository: string;
-                    branch: string;
-                    scripts: {
-                        initialize: string | null;
-                        updateAfterCheckout: string | null;
-                        startup: string | null;
-                    };
-                    timeouts?: {
-                        initialize?: number;
-                        updateAfterCheckout?: number;
-                        startup?: number;
-                    };
-                    commands: {
-                        name: string;
-                        command: string;
-                    }[];
-                }[];
-                hooks?: {
-                    /** @description Commands to run BEFORE a tool executes. Keys are tool names (bash_run, edit, write, etc.), values are arrays of shell commands or objects with commands and agents filter */
-                    pre?: {
-                        [key: string]: string[] | {
-                            /** @description Shell commands to run */
-                            commands: string[];
-                            /** @description Which agent types this applies to. Omit to apply to all agents (default: all) */
-                            agents?: ("captain" | "build" | "review")[];
-                        };
-                    };
-                    /** @description Commands to run AFTER a tool executes. Keys are tool names, values are arrays of shell commands or objects with commands and agents filter. Can use ${variable} interpolation from tool args/results */
-                    post?: {
-                        [key: string]: string[] | {
-                            /** @description Shell commands to run */
-                            commands: string[];
-                            /** @description Which agent types this applies to. Omit to apply to all agents (default: all) */
-                            agents?: ("captain" | "build" | "review")[];
-                        };
-                    };
-                    context?: {
-                        /** @description Maximum characters of hook output to include in context (default: 2000) */
-                        maxOutputLength?: number;
-                        /**
-                         * @description How to truncate output exceeding maxOutputLength: 'head' keeps start, 'tail' keeps end, 'middle' keeps both ends
-                         * @enum {string}
-                         */
-                        truncateStrategy?: "head" | "tail" | "middle";
-                    };
-                };
-            };
-        };
-        UpdateSetupQuery: {
-            /** @description Set to true to confirm that saving Setup replaces active deprecated .capy/settings.json hooks for future runs. */
-            replaceLegacyHooks?: boolean;
-        };
-        ThreadTag: {
-            name: string;
-            /** @enum {string} */
-            color: "default" | "primary" | "success" | "warning" | "destructive" | "blue" | "purple" | "pink" | "orange" | "lime";
-        };
-        ListThreadTagsResponse: {
-            items: {
-                name: string;
-                /** @enum {string} */
-                color: "default" | "primary" | "success" | "warning" | "destructive" | "blue" | "purple" | "pink" | "orange" | "lime";
+                title?: string;
             }[];
-        };
-        CreateThreadTagBody: {
-            name: string;
-            /** @enum {string} */
-            color: "default" | "primary" | "success" | "warning" | "destructive" | "blue" | "purple" | "pink" | "orange" | "lime";
-        };
-        SetThreadTagsBody: {
-            tags: string[];
-        };
-        SetThreadTagsResponse: {
-            tags: {
-                name: string;
-                /** @enum {string} */
-                color: "default" | "primary" | "success" | "warning" | "destructive" | "blue" | "purple" | "pink" | "orange" | "lime";
-            }[];
-        };
-        PersonalEnvironmentVariable: {
-            name: string;
-            /** @constant */
-            configured: true;
-            updatedAt: string;
-            lastUpdatedByUserId: string | null;
-        };
-        PersonalEnvironmentVariablesResponse: {
-            items: {
-                name: string;
-                /** @constant */
-                configured: true;
-                updatedAt: string;
-                lastUpdatedByUserId: string | null;
-            }[];
-        };
-        UpsertPersonalEnvironmentVariablesBody: {
-            variables: {
-                /** @description Shell environment variable name, limited to 191 characters by storage. */
-                name: string;
-                value: string;
-            }[];
-        };
-        DeletePersonalEnvironmentVariableResponse: {
-            deleted: boolean;
-            name: string;
-        };
-        ImpersonationQuery: {
-            /**
-             * Format: email
-             * @description Admin service users may explicitly act as this same-organization project member. Human and non-admin service-user tokens must omit this parameter.
-             */
-            impersonateUserEmail?: string;
-        };
-        Automation: {
-            id: string;
-            projectId: string;
-            createdByUserId: string;
-            name: string;
-            description: string | null;
-            enabled: boolean;
-            /** @enum {string} */
-            triggerType: "schedule" | "webhook" | "incoming_webhook" | "on_demand" | "integration";
-            webhookConfig: {
-                /** @constant */
-                source: "github";
-                events: {
-                    event: string;
-                    actions?: string[];
-                }[];
-                filters?: {
-                    branches?: string[];
-                };
-            } | null;
-            integrationTriggerConfig: unknown | null;
-            cron: string | null;
-            timezone: string;
-            prompt: string;
-            model: string | null;
-            buildModel: string | null;
-            baseBranch: string | null;
-            repoBranches: {
-                [key: string]: string;
-            } | null;
-            /** @enum {string} */
-            agentType: "build" | "captain";
-            /** @enum {string} */
-            visibilityScope: "project" | "creator";
-            /** @description Relative bearer-capability URL for incoming-webhook automations. Treat this value as sensitive because anyone who possesses it can trigger the automation. */
-            webhookUrl: string | null;
-            hasWebhookSecret: boolean;
-            runCount: number;
-            lastTriggeredAt: string | null;
             createdAt: string;
-            updatedAt: string;
-            configRevision: number;
-            mcpOverrides: {
-                enabledServerKeys?: string[];
-                disabledServerKeys?: string[];
-            } | null;
-            triggers: ({
-                id?: string;
-                /** @constant */
-                type: "schedule";
-                config: {
-                    /** @constant */
-                    version?: 2;
-                    cron: string;
-                    timezone: string;
-                };
-                scheduleId?: string | null;
-            } | {
-                id?: string;
-                /** @constant */
-                type: "github";
-                config: {
-                    /** @constant */
-                    source: "github";
-                    events: {
-                        event: string;
-                        actions?: string[];
-                    }[];
-                    filters?: {
-                        branches?: string[];
-                        headBranches?: string[];
-                        authors?: string[];
-                        labels?: string[];
-                        states?: ("open" | "draft" | "closed" | "merged")[];
-                    };
-                } | {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "github";
-                    /** @enum {string} */
-                    event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
-                    conditions?: {
-                        repositories?: string[];
-                        branches?: string[];
-                        headBranches?: string[];
-                        authors?: string[];
-                        labels?: string[];
-                        states?: ("open" | "draft" | "closed" | "merged")[];
-                        actions?: string[];
-                        conclusions?: string[];
-                        workflows?: string[];
-                        checkNames?: string[];
-                        reviewStates?: string[];
-                        actors?: string[];
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "slack";
-                config: {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "slack";
-                    /** @enum {string} */
-                    event: "message" | "reaction" | "channel_created";
-                    conditions?: {
-                        /** @description Slack team IDs (e.g. T0123456789) */
-                        workspaces?: string[];
-                        /** @description Slack channel IDs (e.g. C0123456789), not #channel-names */
-                        channels?: string[];
-                        /** @description Slack user IDs (e.g. U0123456789) of message authors */
-                        users?: string[];
-                        /** @description Slack user IDs (e.g. U0123456789) */
-                        actors?: string[];
-                        /** @description Emoji names without colons */
-                        reactions?: string[];
-                        messagePlacements?: ("top_level" | "reply")[];
-                        messageTypes?: ("human" | "bot")[];
-                        includeBots?: boolean;
-                        /** @default 10 */
-                        groupingWindowSeconds: number;
-                        contains?: string[];
-                        excludes?: string[];
-                        regex?: string;
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "sentry";
-                config: {
-                    /** @constant */
-                    provider: "sentry";
-                    events: ({
-                        /** @constant */
-                        resource: "issue";
-                        actions?: ("created" | "resolved" | "assigned" | "archived" | "unresolved")[];
-                    } | {
-                        /** @constant */
-                        resource: "event_alert";
-                        actions?: "triggered"[];
-                    })[];
-                    filters?: {
-                        sentryProjectIds?: string[];
-                        sentryProjectSlugs?: string[];
-                        levels?: string[];
-                    };
-                } | {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "sentry";
-                    /** @enum {string} */
-                    event: "issue_lifecycle" | "any_issue" | "event_alert";
-                    conditions?: {
-                        projects?: string[];
-                        levels?: string[];
-                        actions?: string[];
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "linear";
-                config: {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "linear";
-                    /** @enum {string} */
-                    event: "issue_created" | "status_changed" | "end_cycle";
-                    conditions?: {
-                        workspaces?: string[];
-                        teams?: string[];
-                        projects?: string[];
-                        statuses?: string[];
-                        fromStatuses?: string[];
-                        statusTransitions?: string[];
-                        priorities?: string[];
-                        actors?: string[];
-                        labels?: string[];
-                        assignees?: string[];
-                        cycles?: string[];
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "incoming_webhook";
-                config?: Record<string, never> | {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "incoming_webhook";
-                    /** @constant */
-                    event: "request";
-                    conditions?: {
-                        contains?: string[];
-                        excludes?: string[];
-                        regex?: string;
-                    };
-                    runWhen?: string;
-                };
-                webhookToken?: string | null;
-                webhookSecret?: string | null;
-            } | {
-                id?: string;
-                /** @constant */
-                type: "on_demand";
-                config?: Record<string, never>;
-            })[];
         };
-        ListAutomationsQuery: {
-            /**
-             * Format: email
-             * @description Admin service users may explicitly act as this same-organization project member. Human and non-admin service-user tokens must omit this parameter.
-             */
-            impersonateUserEmail?: string;
-            /**
-             * @default false
-             * @enum {string}
-             */
-            includeDisabled: "true" | "false";
-            /** @enum {string} */
-            enabled?: "true" | "false";
-            /** @default 20 */
-            limit: number;
-            cursor?: string;
+        MessagePage: {
+            items: components["schemas"]["Message"][];
+            cursor: (string & (unknown & unknown)) | null;
         };
-        ListAutomationsResponse: {
-            items: {
-                id: string;
-                projectId: string;
-                createdByUserId: string;
-                name: string;
-                description: string | null;
-                enabled: boolean;
+        SendMessageRequest: {
+            text: string;
+            model?: {
+                modelId: string;
                 /** @enum {string} */
-                triggerType: "schedule" | "webhook" | "incoming_webhook" | "on_demand" | "integration";
-                webhookConfig: {
-                    /** @constant */
-                    source: "github";
-                    events: {
-                        event: string;
-                        actions?: string[];
-                    }[];
-                    filters?: {
-                        branches?: string[];
-                    };
-                } | null;
-                integrationTriggerConfig: unknown | null;
-                cron: string | null;
-                timezone: string;
-                prompt: string;
-                model: string | null;
-                buildModel: string | null;
-                baseBranch: string | null;
-                repoBranches: {
-                    [key: string]: string;
-                } | null;
-                /** @enum {string} */
-                agentType: "build" | "captain";
-                /** @enum {string} */
-                visibilityScope: "project" | "creator";
-                /** @description Relative bearer-capability URL for incoming-webhook automations. Treat this value as sensitive because anyone who possesses it can trigger the automation. */
-                webhookUrl: string | null;
-                hasWebhookSecret: boolean;
-                runCount: number;
-                lastTriggeredAt: string | null;
-                createdAt: string;
-                updatedAt: string;
-                configRevision: number;
-                mcpOverrides: {
-                    enabledServerKeys?: string[];
-                    disabledServerKeys?: string[];
-                } | null;
-                triggers: ({
-                    id?: string;
-                    /** @constant */
-                    type: "schedule";
-                    config: {
-                        /** @constant */
-                        version?: 2;
-                        cron: string;
-                        timezone: string;
-                    };
-                    scheduleId?: string | null;
-                } | {
-                    id?: string;
-                    /** @constant */
-                    type: "github";
-                    config: {
-                        /** @constant */
-                        source: "github";
-                        events: {
-                            event: string;
-                            actions?: string[];
-                        }[];
-                        filters?: {
-                            branches?: string[];
-                            headBranches?: string[];
-                            authors?: string[];
-                            labels?: string[];
-                            states?: ("open" | "draft" | "closed" | "merged")[];
-                        };
-                    } | {
-                        /** @constant */
-                        version: 2;
-                        /** @constant */
-                        provider: "github";
-                        /** @enum {string} */
-                        event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
-                        conditions?: {
-                            repositories?: string[];
-                            branches?: string[];
-                            headBranches?: string[];
-                            authors?: string[];
-                            labels?: string[];
-                            states?: ("open" | "draft" | "closed" | "merged")[];
-                            actions?: string[];
-                            conclusions?: string[];
-                            workflows?: string[];
-                            checkNames?: string[];
-                            reviewStates?: string[];
-                            actors?: string[];
-                        };
-                        runWhen?: string;
-                    };
-                } | {
-                    id?: string;
-                    /** @constant */
-                    type: "slack";
-                    config: {
-                        /** @constant */
-                        version: 2;
-                        /** @constant */
-                        provider: "slack";
-                        /** @enum {string} */
-                        event: "message" | "reaction" | "channel_created";
-                        conditions?: {
-                            /** @description Slack team IDs (e.g. T0123456789) */
-                            workspaces?: string[];
-                            /** @description Slack channel IDs (e.g. C0123456789), not #channel-names */
-                            channels?: string[];
-                            /** @description Slack user IDs (e.g. U0123456789) of message authors */
-                            users?: string[];
-                            /** @description Slack user IDs (e.g. U0123456789) */
-                            actors?: string[];
-                            /** @description Emoji names without colons */
-                            reactions?: string[];
-                            messagePlacements?: ("top_level" | "reply")[];
-                            messageTypes?: ("human" | "bot")[];
-                            includeBots?: boolean;
-                            /** @default 10 */
-                            groupingWindowSeconds: number;
-                            contains?: string[];
-                            excludes?: string[];
-                            regex?: string;
-                        };
-                        runWhen?: string;
-                    };
-                } | {
-                    id?: string;
-                    /** @constant */
-                    type: "sentry";
-                    config: {
-                        /** @constant */
-                        provider: "sentry";
-                        events: ({
-                            /** @constant */
-                            resource: "issue";
-                            actions?: ("created" | "resolved" | "assigned" | "archived" | "unresolved")[];
-                        } | {
-                            /** @constant */
-                            resource: "event_alert";
-                            actions?: "triggered"[];
-                        })[];
-                        filters?: {
-                            sentryProjectIds?: string[];
-                            sentryProjectSlugs?: string[];
-                            levels?: string[];
-                        };
-                    } | {
-                        /** @constant */
-                        version: 2;
-                        /** @constant */
-                        provider: "sentry";
-                        /** @enum {string} */
-                        event: "issue_lifecycle" | "any_issue" | "event_alert";
-                        conditions?: {
-                            projects?: string[];
-                            levels?: string[];
-                            actions?: string[];
-                        };
-                        runWhen?: string;
-                    };
-                } | {
-                    id?: string;
-                    /** @constant */
-                    type: "linear";
-                    config: {
-                        /** @constant */
-                        version: 2;
-                        /** @constant */
-                        provider: "linear";
-                        /** @enum {string} */
-                        event: "issue_created" | "status_changed" | "end_cycle";
-                        conditions?: {
-                            workspaces?: string[];
-                            teams?: string[];
-                            projects?: string[];
-                            statuses?: string[];
-                            fromStatuses?: string[];
-                            statusTransitions?: string[];
-                            priorities?: string[];
-                            actors?: string[];
-                            labels?: string[];
-                            assignees?: string[];
-                            cycles?: string[];
-                        };
-                        runWhen?: string;
-                    };
-                } | {
-                    id?: string;
-                    /** @constant */
-                    type: "incoming_webhook";
-                    config?: Record<string, never> | {
-                        /** @constant */
-                        version: 2;
-                        /** @constant */
-                        provider: "incoming_webhook";
-                        /** @constant */
-                        event: "request";
-                        conditions?: {
-                            contains?: string[];
-                            excludes?: string[];
-                            regex?: string;
-                        };
-                        runWhen?: string;
-                    };
-                    webhookToken?: string | null;
-                    webhookSecret?: string | null;
-                } | {
-                    id?: string;
-                    /** @constant */
-                    type: "on_demand";
-                    config?: Record<string, never>;
-                })[];
-            }[];
-            nextCursor: string | null;
-            hasMore: boolean;
+                reasoningMode?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+                modes?: {
+                    fast?: boolean;
+                    pro?: boolean;
+                };
+            };
+            /** @enum {string} */
+            delivery?: "queue" | "steer" | "interrupt";
         };
-        CreateAutomationBody: {
-            name: string;
-            description?: string | null;
-            enabled?: boolean;
-            /** @enum {string} */
-            triggerType?: "schedule" | "webhook" | "incoming_webhook" | "on_demand";
-            cron?: string | null;
-            timezone?: string;
-            webhookConfig?: {
-                /** @constant */
-                source: "github";
-                events: {
-                    event: string;
-                    actions?: string[];
-                }[];
-                filters?: {
-                    branches?: string[];
-                };
-            } | null;
-            prompt: string;
-            model?: string | null;
-            buildModel?: string | null;
-            baseBranch?: string | null;
-            repoBranches?: {
-                [key: string]: string;
-            } | null;
-            /** @enum {string} */
-            agentType?: "build" | "captain";
-            /** @enum {string} */
-            visibilityScope?: "project" | "creator";
-            webhookSecret?: string | null;
-            triggers?: ({
-                id?: string;
-                /** @constant */
-                type: "schedule";
-                config: {
-                    /** @constant */
-                    version?: 2;
-                    cron: string;
-                    timezone: string;
-                };
-                scheduleId?: string | null;
-            } | {
-                id?: string;
-                /** @constant */
-                type: "github";
-                config: {
-                    /** @constant */
-                    source: "github";
-                    events: {
-                        event: string;
-                        actions?: string[];
-                    }[];
-                    filters?: {
-                        branches?: string[];
-                        headBranches?: string[];
-                        authors?: string[];
-                        labels?: string[];
-                        states?: ("open" | "draft" | "closed" | "merged")[];
-                    };
-                } | {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "github";
-                    /** @enum {string} */
-                    event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
-                    conditions?: {
-                        repositories?: string[];
-                        branches?: string[];
-                        headBranches?: string[];
-                        authors?: string[];
-                        labels?: string[];
-                        states?: ("open" | "draft" | "closed" | "merged")[];
-                        actions?: string[];
-                        conclusions?: string[];
-                        workflows?: string[];
-                        checkNames?: string[];
-                        reviewStates?: string[];
-                        actors?: string[];
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "slack";
-                config: {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "slack";
-                    /** @enum {string} */
-                    event: "message" | "reaction" | "channel_created";
-                    conditions?: {
-                        /** @description Slack team IDs (e.g. T0123456789) */
-                        workspaces?: string[];
-                        /** @description Slack channel IDs (e.g. C0123456789), not #channel-names */
-                        channels?: string[];
-                        /** @description Slack user IDs (e.g. U0123456789) of message authors */
-                        users?: string[];
-                        /** @description Slack user IDs (e.g. U0123456789) */
-                        actors?: string[];
-                        /** @description Emoji names without colons */
-                        reactions?: string[];
-                        messagePlacements?: ("top_level" | "reply")[];
-                        messageTypes?: ("human" | "bot")[];
-                        includeBots?: boolean;
-                        /** @default 10 */
-                        groupingWindowSeconds: number;
-                        contains?: string[];
-                        excludes?: string[];
-                        regex?: string;
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "sentry";
-                config: {
-                    /** @constant */
-                    provider: "sentry";
-                    events: ({
-                        /** @constant */
-                        resource: "issue";
-                        actions?: ("created" | "resolved" | "assigned" | "archived" | "unresolved")[];
-                    } | {
-                        /** @constant */
-                        resource: "event_alert";
-                        actions?: "triggered"[];
-                    })[];
-                    filters?: {
-                        sentryProjectIds?: string[];
-                        sentryProjectSlugs?: string[];
-                        levels?: string[];
-                    };
-                } | {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "sentry";
-                    /** @enum {string} */
-                    event: "issue_lifecycle" | "any_issue" | "event_alert";
-                    conditions?: {
-                        projects?: string[];
-                        levels?: string[];
-                        actions?: string[];
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "linear";
-                config: {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "linear";
-                    /** @enum {string} */
-                    event: "issue_created" | "status_changed" | "end_cycle";
-                    conditions?: {
-                        workspaces?: string[];
-                        teams?: string[];
-                        projects?: string[];
-                        statuses?: string[];
-                        fromStatuses?: string[];
-                        statusTransitions?: string[];
-                        priorities?: string[];
-                        actors?: string[];
-                        labels?: string[];
-                        assignees?: string[];
-                        cycles?: string[];
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "incoming_webhook";
-                config?: Record<string, never> | {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "incoming_webhook";
-                    /** @constant */
-                    event: "request";
-                    conditions?: {
-                        contains?: string[];
-                        excludes?: string[];
-                        regex?: string;
-                    };
-                    runWhen?: string;
-                };
-                webhookToken?: string | null;
-                webhookSecret?: string | null;
-            } | {
-                id?: string;
-                /** @constant */
-                type: "on_demand";
-                config?: Record<string, never>;
-            })[];
-            mcpOverrides?: {
-                enabledServerKeys?: string[];
-                disabledServerKeys?: string[];
-            } | null;
+        AdmitReceipt: {
+            id: string & (unknown & unknown);
+            deduped: boolean;
         };
-        UpdateAutomationBody: {
-            name?: string;
-            description?: string | null;
-            enabled?: boolean;
+        CancelMessageOutcome: {
             /** @enum {string} */
-            triggerType?: "schedule" | "webhook" | "incoming_webhook" | "on_demand";
-            cron?: string | null;
-            timezone?: string;
-            webhookConfig?: {
-                /** @constant */
-                source: "github";
-                events: {
-                    event: string;
-                    actions?: string[];
-                }[];
-                filters?: {
-                    branches?: string[];
-                };
-            } | null;
-            prompt?: string;
-            model?: string | null;
-            buildModel?: string | null;
-            baseBranch?: string | null;
-            repoBranches?: {
-                [key: string]: string;
-            } | null;
-            /** @enum {string} */
-            agentType?: "build" | "captain";
-            /** @enum {string} */
-            visibilityScope?: "project" | "creator";
-            webhookSecret?: string | null;
-            triggers?: ({
-                id?: string;
-                /** @constant */
-                type: "schedule";
-                config: {
-                    /** @constant */
-                    version?: 2;
-                    cron: string;
-                    timezone: string;
-                };
-                scheduleId?: string | null;
-            } | {
-                id?: string;
-                /** @constant */
-                type: "github";
-                config: {
-                    /** @constant */
-                    source: "github";
-                    events: {
-                        event: string;
-                        actions?: string[];
-                    }[];
-                    filters?: {
-                        branches?: string[];
-                        headBranches?: string[];
-                        authors?: string[];
-                        labels?: string[];
-                        states?: ("open" | "draft" | "closed" | "merged")[];
-                    };
-                } | {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "github";
-                    /** @enum {string} */
-                    event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
-                    conditions?: {
-                        repositories?: string[];
-                        branches?: string[];
-                        headBranches?: string[];
-                        authors?: string[];
-                        labels?: string[];
-                        states?: ("open" | "draft" | "closed" | "merged")[];
-                        actions?: string[];
-                        conclusions?: string[];
-                        workflows?: string[];
-                        checkNames?: string[];
-                        reviewStates?: string[];
-                        actors?: string[];
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "slack";
-                config: {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "slack";
-                    /** @enum {string} */
-                    event: "message" | "reaction" | "channel_created";
-                    conditions?: {
-                        /** @description Slack team IDs (e.g. T0123456789) */
-                        workspaces?: string[];
-                        /** @description Slack channel IDs (e.g. C0123456789), not #channel-names */
-                        channels?: string[];
-                        /** @description Slack user IDs (e.g. U0123456789) of message authors */
-                        users?: string[];
-                        /** @description Slack user IDs (e.g. U0123456789) */
-                        actors?: string[];
-                        /** @description Emoji names without colons */
-                        reactions?: string[];
-                        messagePlacements?: ("top_level" | "reply")[];
-                        messageTypes?: ("human" | "bot")[];
-                        includeBots?: boolean;
-                        /** @default 10 */
-                        groupingWindowSeconds: number;
-                        contains?: string[];
-                        excludes?: string[];
-                        regex?: string;
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "sentry";
-                config: {
-                    /** @constant */
-                    provider: "sentry";
-                    events: ({
-                        /** @constant */
-                        resource: "issue";
-                        actions?: ("created" | "resolved" | "assigned" | "archived" | "unresolved")[];
-                    } | {
-                        /** @constant */
-                        resource: "event_alert";
-                        actions?: "triggered"[];
-                    })[];
-                    filters?: {
-                        sentryProjectIds?: string[];
-                        sentryProjectSlugs?: string[];
-                        levels?: string[];
-                    };
-                } | {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "sentry";
-                    /** @enum {string} */
-                    event: "issue_lifecycle" | "any_issue" | "event_alert";
-                    conditions?: {
-                        projects?: string[];
-                        levels?: string[];
-                        actions?: string[];
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "linear";
-                config: {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "linear";
-                    /** @enum {string} */
-                    event: "issue_created" | "status_changed" | "end_cycle";
-                    conditions?: {
-                        workspaces?: string[];
-                        teams?: string[];
-                        projects?: string[];
-                        statuses?: string[];
-                        fromStatuses?: string[];
-                        statusTransitions?: string[];
-                        priorities?: string[];
-                        actors?: string[];
-                        labels?: string[];
-                        assignees?: string[];
-                        cycles?: string[];
-                    };
-                    runWhen?: string;
-                };
-            } | {
-                id?: string;
-                /** @constant */
-                type: "incoming_webhook";
-                config?: Record<string, never> | {
-                    /** @constant */
-                    version: 2;
-                    /** @constant */
-                    provider: "incoming_webhook";
-                    /** @constant */
-                    event: "request";
-                    conditions?: {
-                        contains?: string[];
-                        excludes?: string[];
-                        regex?: string;
-                    };
-                    runWhen?: string;
-                };
-                webhookToken?: string | null;
-                webhookSecret?: string | null;
-            } | {
-                id?: string;
-                /** @constant */
-                type: "on_demand";
-                config?: Record<string, never>;
-            })[];
-            mcpOverrides?: {
-                enabledServerKeys?: string[];
-                disabledServerKeys?: string[];
-            } | null;
-            expectedConfigRevision?: number;
+            outcome: "cancelled" | "tooLate";
         };
-        DeleteAutomationResponse: {
-            deleted: boolean;
-            id: string;
-        };
-        TriggerAutomationResponse: {
-            runId: string | null;
-            jamId: string | null;
+        SendNowOutcome: {
             /** @enum {string} */
-            status: "running" | "skipped" | "failed";
+            outcome: "sent" | "tooLate";
+            id?: string & (unknown & unknown);
+        };
+        ReviewSettings: {
+            repo: string;
+            billingOrgId: string | null;
+            heldByCaller: boolean;
+            /** @enum {string} */
+            autoReview: "off" | "once" | "always";
+            /** @enum {string} */
+            postingThreshold: "low" | "medium" | "high";
+            postInvestigate: boolean;
+            postNotes: boolean;
+        };
+        capy_ReviewRefused: {
+            /** @enum {string} */
+            _tag: "capy/ReviewRefused";
+            reason: string;
+        };
+        ConfigureReviewRequest: {
+            repo: string;
+            /** @enum {string} */
+            autoReview?: "off" | "once" | "always";
+            /** @enum {string} */
+            postingThreshold?: "low" | "medium" | "high";
+            postInvestigate?: boolean;
+            postNotes?: boolean;
+        };
+        capy_Forbidden: {
+            /** @enum {string} */
+            _tag: "capy/Forbidden";
+        };
+        ReviewBillingTransferOffer: {
+            fromOrgId: string;
+            toOrgId: string;
+            createdAt: string;
+        };
+        ReviewBillingTransferState: {
+            repo: string;
+            billingOrgId: string | null;
+            offer: components["schemas"]["ReviewBillingTransferOffer"] | null;
+        };
+        OfferReviewBillingTransferRequest: {
+            repo: string;
+            targetOrgId: string;
+        };
+        ReviewBillingTransferRequest: {
+            repo: string;
+        };
+        StartReviewRequest: {
+            repo: string;
+            prNumber: number;
+            idempotencyKey?: string & (unknown & unknown);
+            forceRefresh?: boolean;
+            sourceThreadId?: string;
+            model?: string;
+            /** @enum {string} */
+            effort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+        };
+        ReviewStarted: {
+            reviewId: string;
+            requestId: string;
+            threadId: string;
+            headSha: string;
+            adopted: boolean;
+            sourceRecorded?: boolean;
+        };
+        UsageDollars: {
+            llmDollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            imageDollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            vmDollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            totalDollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+        };
+        UsageTokenTotals: {
+            inputTokens: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            outputTokens: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            cacheReadTokens: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            cacheWriteTokens: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+        };
+        UsageMemberDollars: {
+            principalUserId: string | null;
+            llmDollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            imageDollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            vmDollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            totalDollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+        };
+        UsageModelDollars: {
+            model: string;
+            label: string;
+            dollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+            unbilled: boolean;
+            tokens: components["schemas"]["UsageTokenTotals"];
+        };
+        UsageImageDollars: {
+            endpoint: string;
+            label: string;
+            dollars: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
+        };
+        UsageReport: {
+            from: string;
+            to: string;
+            totals: components["schemas"]["UsageDollars"];
+            tokens: components["schemas"]["UsageTokenTotals"];
+            members: components["schemas"]["UsageMemberDollars"][];
+            models: components["schemas"]["UsageModelDollars"][];
+            images: components["schemas"]["UsageImageDollars"][];
+        };
+        capy_InvalidRequest: {
+            /** @enum {string} */
+            _tag: "capy/InvalidRequest";
+            message: string;
         };
     };
-    responses: {
-        /** @description Unauthorized */
-        Unauthorized: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Forbidden */
-        Forbidden: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Not found */
-        NotFound: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Conflict */
-        Conflict: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Too many requests */
-        TooManyRequests: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Gone */
-        Gone: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                /**
-                 * @example {
-                 *       "error": {
-                 *         "code": "session_ended",
-                 *         "message": "Session has already ended"
-                 *       }
-                 *     }
-                 */
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Validation error */
-        ValidationError: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Internal error */
-        InternalError: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-    };
+    responses: never;
     parameters: never;
     requestBodies: never;
     headers: never;
@@ -2415,25 +630,13 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    listThreads: {
+    "threads.list": {
         parameters: {
             query: {
-                limit?: number;
-                cursor?: string;
                 projectId: string;
-                status?: "active" | "idle" | "archived";
-                prNumber?: number;
-                branch?: string;
-                slackThreadTs?: string;
-                authorId?: string;
-                authorEmail?: string;
-                participantId?: string;
-                participantEmail?: string;
-                origin?: "web" | "slack" | "api" | "linear" | "automation" | "github";
-                prState?: "open" | "merged" | "closed" | "none";
-                tag?: string;
-                slackChannelId?: string;
-                q?: string;
+                status?: "active" | "waiting" | "pending_user" | "error" | "ready_for_review" | "idle";
+                limit?: number;
+                cursor?: string & unknown;
             };
             header?: never;
             path?: never;
@@ -2441,23 +644,36 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description ThreadPage */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ListThreadsResponse"];
+                    "application/json": components["schemas"]["ThreadPage"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ProjectNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ProjectNotFound"];
+                };
+            };
         };
     };
-    createAndStartThread: {
+    "threads.create": {
         parameters: {
             query?: never;
             header?: never;
@@ -2466,314 +682,316 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateThreadBody"];
+                "application/json": components["schemas"]["CreateThreadRequest"];
             };
         };
         responses: {
-            /** @description Success */
+            /** @description Thread */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CreateThreadResponse"];
+                    "application/json": components["schemas"]["Thread"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/PaidFeatureUnavailable */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_PaidFeatureUnavailable"];
+                };
+            };
+            /** @description capy/ProjectNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ProjectNotFound"];
+                };
+            };
+            /** @description capy/BillingAuthorityUnavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_BillingAuthorityUnavailable"];
+                };
+            };
         };
     };
-    getThread: {
+    "threads.get": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /**
-                 * @description Thread jam ID.
-                 * @example jam_123
-                 */
                 threadId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description Thread */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ThreadListItem"];
+                    "application/json": components["schemas"]["Thread"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    stopThread: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Thread jam ID.
-                 * @example jam_123
-                 */
-                threadId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
+            /** @description capy/Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StopThreadResponse"];
+                    "application/json": components["schemas"]["capy_Unauthorized"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            409: components["responses"]["Conflict"];
-            422: components["responses"]["ValidationError"];
-            429: components["responses"]["TooManyRequests"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    archiveThread: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Thread jam ID.
-                 * @example jam_123
-                 */
-                threadId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["ArchiveThreadBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
+            /** @description capy/ThreadNotFound */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ArchiveThreadResponse"];
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
         };
     };
-    unarchiveThread: {
+    "threads.rename": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /**
-                 * @description Thread jam ID.
-                 * @example jam_123
-                 */
-                threadId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["UnarchiveThreadBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ArchiveThreadResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    getThreadSessionToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Thread jam ID.
-                 * @example jam_123
-                 */
-                threadId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionTokenResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            410: components["responses"]["Gone"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    sendThreadMessage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Thread jam ID.
-                 * @example jam_123
-                 */
                 threadId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SendThreadMessageBody"];
+                "application/json": components["schemas"]["RenameThreadRequest"];
             };
         };
         responses: {
-            /** @description Success */
+            /** @description Thread */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SendMessageResponse"];
+                    "application/json": components["schemas"]["Thread"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            409: components["responses"]["Conflict"];
-            422: components["responses"]["ValidationError"];
-            429: components["responses"]["TooManyRequests"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
         };
     };
-    listThreadMessages: {
+    "threads.archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thread */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Thread"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
+        };
+    };
+    "threads.unarchive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thread */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Thread"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
+        };
+    };
+    "threads.regenerateTitle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Thread */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Thread"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
+        };
+    };
+    "tasks.list": {
         parameters: {
             query?: {
+                after?: string;
                 limit?: number;
-                cursor?: string;
             };
             header?: never;
             path: {
-                /**
-                 * @description Thread jam ID.
-                 * @example jam_123
-                 */
                 threadId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description TaskPage */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ListMessagesResponse"];
+                    "application/json": components["schemas"]["TaskPage"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    setThreadTags: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Thread jam ID.
-                 * @example jam_123
-                 */
-                threadId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetThreadTagsBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
+            /** @description capy/Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SetThreadTagsResponse"];
+                    "application/json": components["schemas"]["capy_Unauthorized"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
         };
     };
-    getTask: {
+    "tasks.get": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /**
-                 * @description Task UUID.
-                 * @example 550e8400-e29b-41d4-a716-446655440000
-                 */
                 taskId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description Task */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -2782,210 +1000,282 @@ export interface operations {
                     "application/json": components["schemas"]["Task"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/TaskNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_TaskNotFound"];
+                };
+            };
         };
     };
-    getTaskDiff: {
+    "tasks.messages": {
         parameters: {
             query?: {
-                mode?: "uncommitted" | "pr";
+                after?: string & (unknown & unknown);
+                limit?: number;
             };
             header?: never;
             path: {
-                /**
-                 * @description Task UUID.
-                 * @example 550e8400-e29b-41d4-a716-446655440000
-                 */
                 taskId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description MessagePage */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TaskDiffResponse"];
+                    "application/json": components["schemas"]["MessagePage"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/TaskNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_TaskNotFound"];
+                };
+            };
         };
     };
-    listProjects: {
+    "messages.list": {
         parameters: {
             query?: {
+                after?: string & (unknown & unknown);
                 limit?: number;
-                cursor?: string;
             };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListProjectsResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    getProject: {
-        parameters: {
-            query?: never;
             header?: never;
             path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
+                threadId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description MessagePage */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Project"];
+                    "application/json": components["schemas"]["MessagePage"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    listThreadTags: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
+            /** @description capy/Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ListThreadTagsResponse"];
+                    "application/json": components["schemas"]["capy_Unauthorized"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
         };
     };
-    createThreadTag: {
+    "messages.send": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
+                threadId: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateThreadTagBody"];
+                "application/json": components["schemas"]["SendMessageRequest"];
             };
         };
         responses: {
-            /** @description Success */
+            /** @description AdmitReceipt */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ThreadTag"];
+                    "application/json": components["schemas"]["AdmitReceipt"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
         };
     };
-    listModels: {
+    "messages.interrupt": {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                threadId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description AdmitReceipt */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ListModelsResponse"];
+                    "application/json": components["schemas"]["AdmitReceipt"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
         };
     };
-    getUsage: {
+    "messages.cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+                eventId: string & (unknown & unknown);
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CancelMessageOutcome */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CancelMessageOutcome"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
+        };
+    };
+    "messages.sendNow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                threadId: string;
+                eventId: string & (unknown & unknown);
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description SendNowOutcome */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendNowOutcome"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ThreadNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
+        };
+    };
+    "reviews.settings": {
         parameters: {
             query: {
-                orgId: string;
-                from: string;
-                to: string;
-                routed?: "paid" | "no_cost" | "oss" | "external_copilot" | "external_codex" | "external_byok" | "external_azure" | "external_unknown" | "external_xai" | "all";
-                userId?: string;
-                projectIds?: string;
-                agentType?: "build" | "captain" | "review";
-                sortBy?: "lastActivity" | "cost" | "name" | "diff" | "owner";
-                sortDirection?: "asc" | "desc";
-                page?: number;
-                pageSize?: number;
+                repo: string;
             };
             header?: never;
             path?: never;
@@ -2993,652 +1283,36 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
+            /** @description ReviewSettings */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UsageResponse"];
+                    "application/json": components["schemas"]["ReviewSettings"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    getSetup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
+            /** @description capy/Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Setup"];
+                    "application/json": components["schemas"]["capy_Unauthorized"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    updateSetup: {
-        parameters: {
-            query?: {
-                replaceLegacyHooks?: boolean;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateSetupBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
+            /** @description capy/ReviewRefused */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UpdateSetupResponse"];
+                    "application/json": components["schemas"]["capy_ReviewRefused"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
         };
     };
-    getSnapshots: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Snapshots"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    updateSnapshots: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateSnapshotsBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UpdateSnapshotsResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    listBrowserSnapshots: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListBrowserSnapshotsResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    createBrowserSnapshot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateBrowserSnapshotBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BrowserSnapshotDetail"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    getBrowserSnapshot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-                /** @description Browser snapshot ID. */
-                snapshotId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BrowserSnapshotDetail"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    deleteBrowserSnapshot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-                /** @description Browser snapshot ID. */
-                snapshotId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeleteBrowserSnapshotResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    updateBrowserSnapshot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-                /** @description Browser snapshot ID. */
-                snapshotId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateBrowserSnapshotBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BrowserSnapshotDetail"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    listPersonalEnvironmentVariables: {
-        parameters: {
-            query?: {
-                impersonateUserEmail?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PersonalEnvironmentVariablesResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    upsertPersonalEnvironmentVariables: {
-        parameters: {
-            query?: {
-                impersonateUserEmail?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertPersonalEnvironmentVariablesBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PersonalEnvironmentVariablesResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    deletePersonalEnvironmentVariable: {
-        parameters: {
-            query?: {
-                impersonateUserEmail?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-                /**
-                 * @description Environment variable name.
-                 * @example MY_TOKEN
-                 */
-                name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeletePersonalEnvironmentVariableResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    listAutomations: {
-        parameters: {
-            query?: {
-                impersonateUserEmail?: string;
-                includeDisabled?: "true" | "false";
-                enabled?: "true" | "false";
-                limit?: number;
-                cursor?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListAutomationsResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    createAutomation: {
-        parameters: {
-            query?: {
-                impersonateUserEmail?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateAutomationBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Automation"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    getAutomation: {
-        parameters: {
-            query?: {
-                impersonateUserEmail?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-                /** @description Automation ID. */
-                automationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Automation"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    deleteAutomation: {
-        parameters: {
-            query?: {
-                impersonateUserEmail?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-                /** @description Automation ID. */
-                automationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DeleteAutomationResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    updateAutomation: {
-        parameters: {
-            query?: {
-                impersonateUserEmail?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-                /** @description Automation ID. */
-                automationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateAutomationBody"];
-            };
-        };
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Automation"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    triggerAutomation: {
-        parameters: {
-            query?: {
-                impersonateUserEmail?: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description Project ID.
-                 * @example proj_123
-                 */
-                projectId: string;
-                /** @description Automation ID. */
-                automationId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TriggerAutomationResponse"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
-        };
-    };
-    verifySession: {
+    "reviews.configure": {
         parameters: {
             query?: never;
             header?: never;
@@ -3647,24 +1321,391 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["VerifySessionBody"];
+                "application/json": components["schemas"]["ConfigureReviewRequest"];
             };
         };
         responses: {
-            /** @description Success */
+            /** @description ReviewSettings */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["VerifySessionResponse"];
+                    "application/json": components["schemas"]["ReviewSettings"];
                 };
             };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
-            422: components["responses"]["ValidationError"];
-            500: components["responses"]["InternalError"];
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/ReviewRefused */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ReviewRefused"];
+                };
+            };
+        };
+    };
+    "reviews.billingTransfer": {
+        parameters: {
+            query: {
+                repo: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ReviewBillingTransferState */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewBillingTransferState"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ReviewRefused */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ReviewRefused"];
+                };
+            };
+        };
+    };
+    "reviews.offerBillingTransfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferReviewBillingTransferRequest"];
+            };
+        };
+        responses: {
+            /** @description ReviewBillingTransferState */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewBillingTransferState"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/ReviewRefused */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ReviewRefused"];
+                };
+            };
+        };
+    };
+    "reviews.acceptBillingTransfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewBillingTransferRequest"];
+            };
+        };
+        responses: {
+            /** @description ReviewBillingTransferState */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewBillingTransferState"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/ReviewRefused */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ReviewRefused"];
+                };
+            };
+        };
+    };
+    "reviews.cancelBillingTransfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewBillingTransferRequest"];
+            };
+        };
+        responses: {
+            /** @description ReviewBillingTransferState */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewBillingTransferState"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/ReviewRefused */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ReviewRefused"];
+                };
+            };
+        };
+    };
+    "reviews.declineBillingTransfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewBillingTransferRequest"];
+            };
+        };
+        responses: {
+            /** @description ReviewBillingTransferState */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewBillingTransferState"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/ReviewRefused */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ReviewRefused"];
+                };
+            };
+        };
+    };
+    "reviews.start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description ReviewStarted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewStarted"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/PaidFeatureUnavailable */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_PaidFeatureUnavailable"];
+                };
+            };
+            /** @description capy/ReviewRefused */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ReviewRefused"];
+                };
+            };
+            /** @description capy/BillingAuthorityUnavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_BillingAuthorityUnavailable"];
+                };
+            };
+        };
+    };
+    "usage.get": {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UsageReport */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageReport"];
+                };
+            };
+            /** @description capy/InvalidRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_InvalidRequest"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
         };
     };
 }
