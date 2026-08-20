@@ -16,6 +16,14 @@ export type ConfigureReviewBody = components["schemas"]["ConfigureReviewRequest"
 export type ReviewBillingTransferState = components["schemas"]["ReviewBillingTransferState"];
 export type OfferReviewBillingTransferBody = components["schemas"]["OfferReviewBillingTransferRequest"];
 export type ReviewBillingTransferBody = components["schemas"]["ReviewBillingTransferRequest"];
+export type Folder = components["schemas"]["Folder"];
+export type FolderList = components["schemas"]["FolderList"];
+export type FolderThreadPage = components["schemas"]["FolderThreadPage"];
+export type FileThreadsBody = components["schemas"]["FileThreadsRequest"];
+export type FileThreadsResult = components["schemas"]["FileThreadsResult"];
+export type PinThreadsBody = components["schemas"]["PinThreadsRequest"];
+export type User = components["schemas"]["User"];
+export type UserList = components["schemas"]["UserList"];
 export type Page<T> = { items: T[]; cursor: string | null };
 export type ThreadMessage = Message;
 export type ListThreadsResponse = Page<Thread>;
@@ -49,6 +57,17 @@ export function resources(c: CapyContext) {
     tasks: {
       get: (id: string, s?: AbortSignal) => request<Task>(c, { method: "GET", path: `/tasks/${e(id)}`, signal: s }),
       messages: (id: string, q: ListMessagesQuery = {}, s?: AbortSignal) => request<Page<Message>>(c, { method: "GET", path: `/tasks/${e(id)}/messages`, query: q, signal: s }),
+    },
+    folders: {
+      list: (s?: AbortSignal) => request<FolderList>(c, { method: "GET", path: "/folders", signal: s }),
+      threads: (id: string, q: ListMessagesQuery = {}, s?: AbortSignal) => request<FolderThreadPage>(c, { method: "GET", path: `/folders/${e(id)}/threads`, query: q, signal: s }),
+      file: (id: string, b: FileThreadsBody, s?: AbortSignal) => request<FileThreadsResult>(c, { method: "POST", path: `/folders/${e(id)}/threads`, body: b, signal: s }),
+      unfile: (id: string, b: FileThreadsBody, s?: AbortSignal) => request<FileThreadsResult>(c, { method: "DELETE", path: `/folders/${e(id)}/threads`, body: b, signal: s }),
+      pin: (b: PinThreadsBody, s?: AbortSignal) => request<FileThreadsResult>(c, { method: "POST", path: "/threads/pin", body: b, signal: s }),
+      unpin: (b: PinThreadsBody, s?: AbortSignal) => request<FileThreadsResult>(c, { method: "POST", path: "/threads/unpin", body: b, signal: s }),
+    },
+    users: {
+      list: (s?: AbortSignal) => request<UserList>(c, { method: "GET", path: "/users", signal: s }),
     },
     usage: {
       get: (q: { from?: string; to?: string } = {}, s?: AbortSignal) => request<UsageReport>(c, { method: "GET", path: "/usage", query: q, signal: s }),

@@ -1,8 +1,8 @@
 # Campaign and cross-project handoff contract
 
 Use one of these templates before delegating an ordered campaign or moving work across a project
-boundary. Replace every bracketed field. If the authority boundary or start gate is unknown, keep the
-work local until it is resolved.
+boundary. Replace every bracketed field. If the authority boundary or start gate is unknown, do not
+dispatch until it is resolved.
 
 ## Review boundary
 
@@ -39,7 +39,7 @@ Dependencies and decision gates
 - If a required permission, artifact, or decision is missing, stop at `blocked` and report exactly what is needed.
 
 Packaging/output shape
-- Deliver as: [one PR | Graphite stack with named layers | sequenced independent PRs].
+- Deliver as: [one PR | stacked PRs with named layers/provider | sequenced independent PRs].
 - Base/head/merge order: [exact contract].
 - Required final artifacts: [PR URLs, commit ids, generated files, release/deploy evidence].
 
@@ -57,6 +57,12 @@ Explicit non-goals
 Terminal handoff condition
 - Do not return merely because code exists. Return when [all deliverables complete], [validation is green],
   [PR/artifact packaging matches the contract], and [remaining blockers/decisions are explicitly listed].
+
+Delegation receipt
+- Owning thread ID and URL: [thread + canonical URL].
+- Accepted authority boundary: [writable repositories/projects].
+- Next legitimate inspection trigger: [input request | settling state | dependency gate | stable PR head | CI/review change].
+- Until that trigger, Captain owns ordinary progress and HQ yields.
 ```
 
 ## Cross-thread handoff prompt
@@ -110,4 +116,10 @@ Required validation and terminal condition
 - Verify provenance with: [command/check].
 - Return only after the start gate, merge order, validation, and packaging contract are satisfied; otherwise
   report the exact blocker and preserve the existing thread for steering.
+
+Lifecycle evidence
+- Capy thread state: [observed state and timestamp].
+- Pull request existence/head: [GitHub evidence or unknown].
+- Checks/review/merge: [separate owning-system evidence or unknown].
+- Deployment/shipping: [deployment/customer evidence or explicitly unverified].
 ```

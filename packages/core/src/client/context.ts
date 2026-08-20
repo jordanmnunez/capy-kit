@@ -11,6 +11,7 @@ export interface CapyContext {
   apiKey: string;
   baseUrl: string;
   projectId?: string;
+  authorId?: string;
   fetch: typeof fetch;
   validate: boolean;
   timeoutMs: number;
@@ -23,6 +24,7 @@ export interface CapyContextInput {
   apiKey?: string;
   baseUrl?: string;
   projectId?: string;
+  authorId?: string;
   fetch?: typeof fetch;
   validate?: boolean;
   timeoutMs?: number;
@@ -42,6 +44,7 @@ export interface CapyConfigLayer {
   apiKey?: string;
   baseUrl?: string;
   projectId?: string;
+  authorId?: string;
 }
 
 export interface CapyConfigDocument extends CapyConfigLayer {
@@ -55,6 +58,7 @@ const CONFIG_STRING_FIELDS = [
   "apiKey",
   "baseUrl",
   "projectId",
+  "authorId",
 ] as const satisfies ReadonlyArray<keyof CapyConfigLayer>;
 
 function firstString(...vals: Array<unknown>): string | undefined {
@@ -201,8 +205,8 @@ function readDotEnv(): Record<string, string> {
 /**
  * Build a CapyContext. Ordinary precedence (low -> high):
  *   DEFAULTS < ~/.capy/config.json < ~/.capy/.env < process.env (CAPY_*) < explicit input.
- * Project identity fails closed for an explicit profile:
- *   explicit input > effective profile config (profile over top-level), ignoring ambient project vars.
+ * Project and author identity fail closed for an explicit profile:
+ *   explicit input > effective profile config (profile over top-level), ignoring ambient identity vars.
  * Never throws on a missing key — transport raises `no_api_key` only when a request is attempted.
  */
 export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: string }): CapyContext {
@@ -222,6 +226,7 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
       input.projectId ?? (selection.profileSelected ? firstString(file.projectId) : pick("CAPY_PROJECT_ID", file.projectId)) ?? document?.projects?.[document.defaultProject ?? ""],
       document,
     ),
+    authorId: input.authorId ?? (selection.profileSelected ? firstString(file.authorId) : pick("CAPY_AUTHOR_ID", file.authorId)),
     fetch: input.fetch ?? globalThis.fetch,
     validate: input.validate ?? toBool(env.CAPY_VALIDATE ?? dot.CAPY_VALIDATE) ?? DEFAULTS.validate,
     timeoutMs: input.timeoutMs ?? toInt(env.CAPY_TIMEOUT_MS ?? dot.CAPY_TIMEOUT_MS) ?? DEFAULTS.timeoutMs,

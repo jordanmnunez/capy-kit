@@ -1,7 +1,7 @@
 import { CapyError, exitCodeFor, resolveContext, render, sanitizeTerminalText, type Op, type OutputFormat } from "@capy-kit/core";
 import type { ArgsDef, CommandDef } from "citty";
 
-export const globalArgs = { json: { type: "boolean" }, debug: { type: "boolean" }, project: { type: "string" } } satisfies ArgsDef;
+export const globalArgs = { json: { type: "boolean" }, debug: { type: "boolean" }, project: { type: "string" }, profile: { type: "string", description: "Named Capy configuration profile." } } satisfies ArgsDef;
 
 const MODEL_OPS = new Set(["delegate", "threads.message"]);
 const CLEARABLE_TITLE_OPS = new Set(["threads.rename"]);
@@ -22,7 +22,7 @@ export function buildCtx(a: Record<string, unknown>) {
     projectId: typeof a.project === "string" ? a.project : undefined,
     onRequest: a.debug ? (r) => process.stderr.write(`→ ${r.method} ${r.url}\n`) : undefined,
     onResponse: a.debug ? (r) => process.stderr.write(`← ${r.status} ${r.url}\n`) : undefined,
-  });
+  }, { profile: typeof a.profile === "string" ? a.profile : undefined });
 }
 
 export const formatOf = (a: Record<string, unknown>): OutputFormat => a.json ? "json" : "human";
@@ -39,9 +39,12 @@ export function argsForOp(op: Op): ArgsDef {
       a.title = { type: "string" };
       continue;
     }
-    a[k] = { type: k === "id" || k === "message" || k === "text" || k === "requestId" ? "positional" : (v as any).def?.type === "boolean" ? "boolean" : "string", required: (v as any).def?.type !== "optional" };
+    a[k] = { type: k === "id" || k === "message" || k === "text" || k === "requestId" || k === "folderId" || k === "threadIds" ? "positional" : (v as any).def?.type === "boolean" ? "boolean" : "string", required: (v as any).def?.type !== "optional" };
   }
-  if (MODEL_OPS.has(op.name)) Object.assign(a, modelArgs);
+  if (MODEL_OPS.has(op.name)) {
+    Object.assign(a, modelArgs);
+    if (op.name === "delegate") a.modelId = { ...modelArgs.modelId, required: true };
+  }
   if (CLEARABLE_TITLE_OPS.has(op.name)) Object.assign(a, clearTitleArgs);
   return a;
 }
@@ -52,10 +55,19 @@ export function apiArgsForOp(op: Op, args: Record<string, unknown>): Record<stri
   if (MODEL_OPS.has(op.name)) {
     const { modelId, reasoningMode, fast, pro } = next;
     delete next.modelId; delete next.reasoningMode; delete next.fast; delete next.pro;
+    if (op.name === "delegate" && modelId === undefined) {
+      throw new CapyError({ code: "validation_error", message: "--model-id is required when creating a thread." });
+    }
     if (modelId !== undefined || reasoningMode !== undefined || fast !== undefined || pro !== undefined) {
       const modes = fast !== undefined || pro !== undefined ? { ...(fast !== undefined ? { fast } : {}), ...(pro !== undefined ? { pro } : {}) } : undefined;
       next.model = { ...(modelId !== undefined ? { modelId } : {}), ...(reasoningMode !== undefined ? { reasoningMode } : {}), ...(modes ? { modes } : {}) };
     }
+  }
+  if (op.name === "delegate") {
+    const noAuthor = next.noAuthor;
+    delete next.noAuthor;
+    if (noAuthor && next.authorId !== undefined) throw new CapyError({ code: "validation_error", message: "Use either --author-id or --no-author, not both." });
+    if (noAuthor) next.authorId = null;
   }
   if (CLEARABLE_TITLE_OPS.has(op.name)) {
     const clearTitle = next.clearTitle;
@@ -68,5 +80,7 @@ export function apiArgsForOp(op: Op, args: Record<string, unknown>): Record<stri
   return next;
 }
 export function opCommand(op: Op): CommandDef {
-  return { meta: { name: op.name.split(".").pop()!, description: op.summary }, args: { ...argsForOp(op), ...globalArgs }, async run({ args }) { const f = formatOf(args); try { const out = await op.run(apiArgsForOp(op, args as Record<string, unknown>) as any, buildCtx(args)); process.stdout.write(render(op.name, out, f) + "\n"); } catch (e) { fail(e, f); } } };
+  const args = argsForOp(op);
+  if (op.name === "delegate") args.noAuthor = { type: "boolean", description: "Create without the configured default author." };
+  return { meta: { name: op.name.split(".").pop()!, description: op.summary }, args: { ...args, ...globalArgs }, async run({ args }) { const f = formatOf(args); try { const out = await op.run(apiArgsForOp(op, args as Record<string, unknown>) as any, buildCtx(args)); process.stdout.write(render(op.name, out, f) + "\n"); } catch (e) { fail(e, f); } } };
 }

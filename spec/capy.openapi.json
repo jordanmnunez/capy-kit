@@ -6,6 +6,440 @@
     "description": "Programmatic access to Capy's agent platform."
   },
   "paths": {
+    "/api/v1/automations": {
+      "get": {
+        "tags": ["automations"],
+        "operationId": "automations.list",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": false
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "allOf": [
+                {
+                  "pattern": "^\\d{1,15}:.+"
+                }
+              ]
+            },
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AutomationPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/ProjectNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_ProjectNotFound"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List automations"
+      },
+      "post": {
+        "tags": ["automations"],
+        "operationId": "automations.create",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AutomationCreated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutomationCreated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "capy/InvalidRequest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_InvalidRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "capy/PaidFeatureUnavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_PaidFeatureUnavailable"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/ProjectNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_ProjectNotFound"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "capy/BillingAuthorityUnavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_BillingAuthorityUnavailable"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAutomationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "summary": "Create automation"
+      }
+    },
+    "/api/v1/automations/{automationId}/enable": {
+      "post": {
+        "tags": ["automations"],
+        "operationId": "automations.enable",
+        "parameters": [
+          {
+            "name": "automationId",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Automation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Automation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "capy/InvalidRequest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_InvalidRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/AutomationNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_AutomationNotFound"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enable automation"
+      }
+    },
+    "/api/v1/automations/{automationId}/disable": {
+      "post": {
+        "tags": ["automations"],
+        "operationId": "automations.disable",
+        "parameters": [
+          {
+            "name": "automationId",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Automation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Automation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/AutomationNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_AutomationNotFound"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Disable automation"
+      }
+    },
+    "/api/v1/automations/{automationId}/delete": {
+      "post": {
+        "tags": ["automations"],
+        "operationId": "automations.delete",
+        "parameters": [
+          {
+            "name": "automationId",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Automation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Automation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/AutomationNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_AutomationNotFound"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Delete automation"
+      }
+    },
+    "/api/v1/automations/{automationId}/restore": {
+      "post": {
+        "tags": ["automations"],
+        "operationId": "automations.restore",
+        "parameters": [
+          {
+            "name": "automationId",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Automation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Automation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/AutomationNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_AutomationNotFound"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Restore automation"
+      }
+    },
     "/api/v1/threads": {
       "get": {
         "tags": ["threads"],
@@ -105,6 +539,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Thread"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "capy/InvalidRequest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_InvalidRequest"
                 }
               }
             }
@@ -439,6 +883,435 @@
           }
         },
         "summary": "Regenerate thread title"
+      }
+    },
+    "/api/v1/folders": {
+      "get": {
+        "tags": ["folders"],
+        "operationId": "folders.list",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FolderList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List"
+      }
+    },
+    "/api/v1/folders/{folderId}/threads": {
+      "get": {
+        "tags": ["folders"],
+        "operationId": "folders.threads",
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "allOf": [
+                {
+                  "pattern": "^-?\\d{1,15}:.+"
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "allOf": [
+                {
+                  "pattern": "^[+-]?\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?$"
+                }
+              ]
+            },
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FolderThreadPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderThreadPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/ThreadOrganizationNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_ThreadOrganizationNotFound"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Threads"
+      },
+      "post": {
+        "tags": ["folders"],
+        "operationId": "folders.file",
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FileThreadsResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileThreadsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "capy/InvalidRequest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_InvalidRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/ThreadOrganizationNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_ThreadOrganizationNotFound"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileThreadsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "summary": "File"
+      },
+      "delete": {
+        "tags": ["folders"],
+        "operationId": "folders.unfile",
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FileThreadsResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileThreadsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "capy/InvalidRequest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_InvalidRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/ThreadOrganizationNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_ThreadOrganizationNotFound"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileThreadsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "summary": "Unfile"
+      }
+    },
+    "/api/v1/threads/pin": {
+      "post": {
+        "tags": ["folders"],
+        "operationId": "folders.pin",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FileThreadsResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileThreadsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "capy/InvalidRequest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_InvalidRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinThreadsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "summary": "Pin"
+      }
+    },
+    "/api/v1/threads/unpin": {
+      "post": {
+        "tags": ["folders"],
+        "operationId": "folders.unpin",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FileThreadsResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileThreadsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "capy/InvalidRequest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_InvalidRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "capy/Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Forbidden"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinThreadsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "summary": "Unpin"
       }
     },
     "/api/v1/threads/{threadId}/tasks": {
@@ -1546,10 +2419,2241 @@
         },
         "summary": "Get usage report"
       }
+    },
+    "/api/v1/users": {
+      "get": {
+        "tags": ["users"],
+        "operationId": "users.list",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "UserList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List organization users"
+      }
     }
   },
   "components": {
     "schemas": {
+      "Automation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["schedule"]
+                    },
+                    "cron": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Five-field cron expression, e.g. `0 9 * * *` for daily at 09:00."
+                        }
+                      ]
+                    },
+                    "timezone": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "IANA timezone for the schedule, e.g. `America/New_York`."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "cron", "timezone"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["github"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": [
+                        "draft_opened",
+                        "pull_request_opened",
+                        "pull_request_pushed",
+                        "pull_request_merged",
+                        "comment",
+                        "branch_push",
+                        "label_change",
+                        "checks",
+                        "issue_comment",
+                        "pull_request_review_comment",
+                        "pull_request_review_submitted",
+                        "pull_request_review_thread",
+                        "workflow_run"
+                      ],
+                      "description": "The GitHub event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "repositories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Full repository names to match, e.g. owner/repo."
+                        },
+                        "branches": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Base branch names to match."
+                        },
+                        "head_branches": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Head branch names to match."
+                        },
+                        "authors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "GitHub login names of the author to match."
+                        },
+                        "labels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Match when any of these labels is present."
+                        },
+                        "states": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["open", "draft", "closed", "merged"]
+                          },
+                          "description": "Pull request states to match."
+                        },
+                        "actions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Raw event action names to match, e.g. opened, closed."
+                        },
+                        "conclusions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Check or workflow conclusions to match, e.g. success, failure."
+                        },
+                        "workflows": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Workflow names to match."
+                        },
+                        "check_names": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Check run names to match."
+                        },
+                        "review_states": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Review states to match, e.g. approved, changes_requested."
+                        },
+                        "actors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "GitHub login names of the actor that fired the event."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which GitHub events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["slack"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": ["message", "reaction", "channel_created"],
+                      "description": "The Slack event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "workspaces": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack team ids (T...) to match. Not workspace names."
+                        },
+                        "channels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack channel ids (C...) to match. Not #channel-names."
+                        },
+                        "users": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack user ids (U...) of the message author to match."
+                        },
+                        "actors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack user ids (U...) of the actor that fired the event."
+                        },
+                        "reactions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Emoji names without colons, e.g. eyes."
+                        },
+                        "message_placements": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["top_level", "reply"]
+                          },
+                          "description": "Match top-level messages, replies, or both."
+                        },
+                        "message_types": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["human", "bot"]
+                          },
+                          "description": "Match human messages, bot messages, or both."
+                        },
+                        "include_bots": {
+                          "type": "boolean",
+                          "description": "Include messages from bots. Defaults to false."
+                        },
+                        "grouping_window_seconds": {
+                          "type": "integer",
+                          "allOf": [
+                            {
+                              "minimum": 1
+                            },
+                            {
+                              "maximum": 300,
+                              "description": "Seconds to group a burst of messages into one run. Defaults to 10."
+                            }
+                          ]
+                        },
+                        "contains": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Run only when the message text contains one of these substrings."
+                        },
+                        "excludes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Skip when the message text contains one of these substrings."
+                        },
+                        "regex": {
+                          "type": "string",
+                          "description": "Run only when the message text matches this regular expression."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which Slack events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["sentry"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": ["issue_lifecycle", "any_issue", "event_alert"],
+                      "description": "The Sentry event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "projects": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Sentry project slugs or ids to match."
+                        },
+                        "levels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue levels to match, e.g. error, warning."
+                        },
+                        "actions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Raw event action names to match."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which Sentry events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["linear"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": ["issue_created", "status_changed", "end_cycle"],
+                      "description": "The Linear event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "workspaces": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear workspace ids to match."
+                        },
+                        "teams": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear team ids or keys to match."
+                        },
+                        "projects": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear project ids to match."
+                        },
+                        "statuses": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue statuses to match after the change."
+                        },
+                        "from_statuses": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue statuses to match before the change."
+                        },
+                        "status_transitions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Status transitions to match, e.g. Todo->In Progress."
+                        },
+                        "priorities": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue priorities to match."
+                        },
+                        "actors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear user ids of the actor that fired the event."
+                        },
+                        "labels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Match when any of these labels is present."
+                        },
+                        "assignees": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear user ids of the assignee to match."
+                        },
+                        "cycles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear cycle ids to match."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which Linear events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["incoming_webhook"]
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "contains": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Run only when the request body contains one of these substrings."
+                        },
+                        "excludes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Skip when the request body contains one of these substrings."
+                        },
+                        "regex": {
+                          "type": "string",
+                          "description": "Run only when the request body matches this regular expression."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which incoming requests start a run. A condition matches when the request matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["on_demand"]
+                    }
+                  },
+                  "required": ["type"],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "modelId": {
+                    "type": "string"
+                  },
+                  "reasoningMode": {
+                    "type": "string",
+                    "enum": ["none", "minimal", "low", "medium", "high", "xhigh", "max"]
+                  },
+                  "modes": {
+                    "type": "object",
+                    "properties": {
+                      "fast": {
+                        "type": "boolean"
+                      },
+                      "pro": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["modelId"],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The pinned model, or null when the automation is unpinned and each run resolves the run-as principal's default model at run creation."
+          },
+          "repos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "repo": {
+                  "type": "string"
+                },
+                "branch": {
+                  "type": "string"
+                }
+              },
+              "required": ["repo", "branch"],
+              "additionalProperties": false
+            }
+          },
+          "threadMode": {
+            "type": "string",
+            "enum": ["new", "single"]
+          },
+          "mcpOverrides": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "enabled_server_keys": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "External MCP server keys to enable for this automation's runs, beyond the project defaults. A key may not appear in both lists."
+                  },
+                  "disabled_server_keys": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "External MCP server keys to disable for this automation's runs."
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxRunsPerDay": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "machineSize": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["small", "medium", "large", "ultra", "hyper", "bigguy"]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "disabledReason": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": ["run_as_unavailable"]
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "runAsKind": {
+            "type": "string",
+            "enum": ["human", "service"]
+          },
+          "runAsId": {
+            "type": "string"
+          },
+          "runCount": {
+            "type": "integer"
+          },
+          "lastTriggeredAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "description",
+          "prompt",
+          "triggers",
+          "model",
+          "repos",
+          "threadMode",
+          "mcpOverrides",
+          "maxRunsPerDay",
+          "machineSize",
+          "enabled",
+          "deleted",
+          "disabledReason",
+          "runAsKind",
+          "runAsId",
+          "runCount",
+          "lastTriggeredAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "AutomationPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Automation"
+            }
+          },
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "allOf": [
+                  {
+                    "pattern": "^\\d{1,15}:.+"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["items", "cursor"],
+        "additionalProperties": false
+      },
+      "capy_ProjectNotFound": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["capy/ProjectNotFound"]
+          },
+          "projectId": {
+            "type": "string"
+          }
+        },
+        "required": ["_tag", "projectId"],
+        "additionalProperties": false
+      },
+      "capy_Unauthorized": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["capy/Unauthorized"]
+          }
+        },
+        "required": ["_tag"],
+        "additionalProperties": false
+      },
+      "CreateAutomationRequest": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "allOf": [
+              {
+                "minLength": 1
+              },
+              {
+                "maxLength": 191
+              }
+            ]
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "allOf": [
+              {
+                "minLength": 1
+              }
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string",
+            "allOf": [
+              {
+                "minLength": 1
+              }
+            ]
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["schedule"]
+                    },
+                    "cron": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Five-field cron expression, e.g. `0 9 * * *` for daily at 09:00."
+                        }
+                      ]
+                    },
+                    "timezone": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "IANA timezone for the schedule, e.g. `America/New_York`."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "cron", "timezone"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["github"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": [
+                        "draft_opened",
+                        "pull_request_opened",
+                        "pull_request_pushed",
+                        "pull_request_merged",
+                        "comment",
+                        "branch_push",
+                        "label_change",
+                        "checks",
+                        "issue_comment",
+                        "pull_request_review_comment",
+                        "pull_request_review_submitted",
+                        "pull_request_review_thread",
+                        "workflow_run"
+                      ],
+                      "description": "The GitHub event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "repositories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Full repository names to match, e.g. owner/repo."
+                        },
+                        "branches": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Base branch names to match."
+                        },
+                        "head_branches": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Head branch names to match."
+                        },
+                        "authors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "GitHub login names of the author to match."
+                        },
+                        "labels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Match when any of these labels is present."
+                        },
+                        "states": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["open", "draft", "closed", "merged"]
+                          },
+                          "description": "Pull request states to match."
+                        },
+                        "actions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Raw event action names to match, e.g. opened, closed."
+                        },
+                        "conclusions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Check or workflow conclusions to match, e.g. success, failure."
+                        },
+                        "workflows": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Workflow names to match."
+                        },
+                        "check_names": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Check run names to match."
+                        },
+                        "review_states": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Review states to match, e.g. approved, changes_requested."
+                        },
+                        "actors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "GitHub login names of the actor that fired the event."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which GitHub events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["slack"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": ["message", "reaction", "channel_created"],
+                      "description": "The Slack event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "workspaces": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack team ids (T...) to match. Not workspace names."
+                        },
+                        "channels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack channel ids (C...) to match. Not #channel-names."
+                        },
+                        "users": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack user ids (U...) of the message author to match."
+                        },
+                        "actors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack user ids (U...) of the actor that fired the event."
+                        },
+                        "reactions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Emoji names without colons, e.g. eyes."
+                        },
+                        "message_placements": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["top_level", "reply"]
+                          },
+                          "description": "Match top-level messages, replies, or both."
+                        },
+                        "message_types": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["human", "bot"]
+                          },
+                          "description": "Match human messages, bot messages, or both."
+                        },
+                        "include_bots": {
+                          "type": "boolean",
+                          "description": "Include messages from bots. Defaults to false."
+                        },
+                        "grouping_window_seconds": {
+                          "type": "integer",
+                          "allOf": [
+                            {
+                              "minimum": 1
+                            },
+                            {
+                              "maximum": 300,
+                              "description": "Seconds to group a burst of messages into one run. Defaults to 10."
+                            }
+                          ]
+                        },
+                        "contains": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Run only when the message text contains one of these substrings."
+                        },
+                        "excludes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Skip when the message text contains one of these substrings."
+                        },
+                        "regex": {
+                          "type": "string",
+                          "description": "Run only when the message text matches this regular expression."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which Slack events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["sentry"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": ["issue_lifecycle", "any_issue", "event_alert"],
+                      "description": "The Sentry event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "projects": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Sentry project slugs or ids to match."
+                        },
+                        "levels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue levels to match, e.g. error, warning."
+                        },
+                        "actions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Raw event action names to match."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which Sentry events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["linear"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": ["issue_created", "status_changed", "end_cycle"],
+                      "description": "The Linear event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "workspaces": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear workspace ids to match."
+                        },
+                        "teams": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear team ids or keys to match."
+                        },
+                        "projects": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear project ids to match."
+                        },
+                        "statuses": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue statuses to match after the change."
+                        },
+                        "from_statuses": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue statuses to match before the change."
+                        },
+                        "status_transitions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Status transitions to match, e.g. Todo->In Progress."
+                        },
+                        "priorities": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue priorities to match."
+                        },
+                        "actors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear user ids of the actor that fired the event."
+                        },
+                        "labels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Match when any of these labels is present."
+                        },
+                        "assignees": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear user ids of the assignee to match."
+                        },
+                        "cycles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear cycle ids to match."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which Linear events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["incoming_webhook"]
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "contains": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Run only when the request body contains one of these substrings."
+                        },
+                        "excludes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Skip when the request body contains one of these substrings."
+                        },
+                        "regex": {
+                          "type": "string",
+                          "description": "Run only when the request body matches this regular expression."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which incoming requests start a run. A condition matches when the request matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["on_demand"]
+                    }
+                  },
+                  "required": ["type"],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "allOf": [
+              {
+                "minItems": 1
+              },
+              {
+                "maxItems": 20
+              }
+            ]
+          },
+          "model": {
+            "type": "object",
+            "properties": {
+              "modelId": {
+                "type": "string"
+              },
+              "reasoningMode": {
+                "type": "string",
+                "enum": ["none", "minimal", "low", "medium", "high", "xhigh", "max"]
+              },
+              "modes": {
+                "type": "object",
+                "properties": {
+                  "fast": {
+                    "type": "boolean"
+                  },
+                  "pro": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": ["modelId"],
+            "additionalProperties": false
+          },
+          "repos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "repo": {
+                  "type": "string"
+                },
+                "branch": {
+                  "type": "string"
+                }
+              },
+              "required": ["repo", "branch"],
+              "additionalProperties": false
+            }
+          },
+          "threadMode": {
+            "type": "string",
+            "enum": ["new", "single"]
+          },
+          "mcpOverrides": {
+            "type": "object",
+            "properties": {
+              "enabled_server_keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "External MCP server keys to enable for this automation's runs, beyond the project defaults. A key may not appear in both lists."
+              },
+              "disabled_server_keys": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "External MCP server keys to disable for this automation's runs."
+              }
+            },
+            "additionalProperties": false
+          },
+          "maxRunsPerDay": {
+            "type": "integer",
+            "allOf": [
+              {
+                "minimum": 1
+              }
+            ]
+          },
+          "machineSize": {
+            "type": "string",
+            "enum": ["small", "medium", "large", "ultra", "hyper", "bigguy"]
+          },
+          "runAs": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": ["human"]
+                  },
+                  "user_id": {
+                    "type": "string"
+                  }
+                },
+                "required": ["kind"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": ["service"]
+                  },
+                  "service_user_id": {
+                    "type": "string"
+                  }
+                },
+                "required": ["kind", "service_user_id"],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": ["requestId", "projectId", "name", "prompt", "triggers"],
+        "additionalProperties": false
+      },
+      "AutomationCreated": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["schedule"]
+                    },
+                    "cron": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Five-field cron expression, e.g. `0 9 * * *` for daily at 09:00."
+                        }
+                      ]
+                    },
+                    "timezone": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "IANA timezone for the schedule, e.g. `America/New_York`."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "cron", "timezone"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["github"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": [
+                        "draft_opened",
+                        "pull_request_opened",
+                        "pull_request_pushed",
+                        "pull_request_merged",
+                        "comment",
+                        "branch_push",
+                        "label_change",
+                        "checks",
+                        "issue_comment",
+                        "pull_request_review_comment",
+                        "pull_request_review_submitted",
+                        "pull_request_review_thread",
+                        "workflow_run"
+                      ],
+                      "description": "The GitHub event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "repositories": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Full repository names to match, e.g. owner/repo."
+                        },
+                        "branches": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Base branch names to match."
+                        },
+                        "head_branches": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Head branch names to match."
+                        },
+                        "authors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "GitHub login names of the author to match."
+                        },
+                        "labels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Match when any of these labels is present."
+                        },
+                        "states": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["open", "draft", "closed", "merged"]
+                          },
+                          "description": "Pull request states to match."
+                        },
+                        "actions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Raw event action names to match, e.g. opened, closed."
+                        },
+                        "conclusions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Check or workflow conclusions to match, e.g. success, failure."
+                        },
+                        "workflows": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Workflow names to match."
+                        },
+                        "check_names": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Check run names to match."
+                        },
+                        "review_states": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Review states to match, e.g. approved, changes_requested."
+                        },
+                        "actors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "GitHub login names of the actor that fired the event."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which GitHub events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["slack"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": ["message", "reaction", "channel_created"],
+                      "description": "The Slack event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "workspaces": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack team ids (T...) to match. Not workspace names."
+                        },
+                        "channels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack channel ids (C...) to match. Not #channel-names."
+                        },
+                        "users": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack user ids (U...) of the message author to match."
+                        },
+                        "actors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Slack user ids (U...) of the actor that fired the event."
+                        },
+                        "reactions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Emoji names without colons, e.g. eyes."
+                        },
+                        "message_placements": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["top_level", "reply"]
+                          },
+                          "description": "Match top-level messages, replies, or both."
+                        },
+                        "message_types": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": ["human", "bot"]
+                          },
+                          "description": "Match human messages, bot messages, or both."
+                        },
+                        "include_bots": {
+                          "type": "boolean",
+                          "description": "Include messages from bots. Defaults to false."
+                        },
+                        "grouping_window_seconds": {
+                          "type": "integer",
+                          "allOf": [
+                            {
+                              "minimum": 1
+                            },
+                            {
+                              "maximum": 300,
+                              "description": "Seconds to group a burst of messages into one run. Defaults to 10."
+                            }
+                          ]
+                        },
+                        "contains": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Run only when the message text contains one of these substrings."
+                        },
+                        "excludes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Skip when the message text contains one of these substrings."
+                        },
+                        "regex": {
+                          "type": "string",
+                          "description": "Run only when the message text matches this regular expression."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which Slack events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["sentry"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": ["issue_lifecycle", "any_issue", "event_alert"],
+                      "description": "The Sentry event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "projects": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Sentry project slugs or ids to match."
+                        },
+                        "levels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue levels to match, e.g. error, warning."
+                        },
+                        "actions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Raw event action names to match."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which Sentry events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["linear"]
+                    },
+                    "event": {
+                      "type": "string",
+                      "enum": ["issue_created", "status_changed", "end_cycle"],
+                      "description": "The Linear event that starts a run."
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "workspaces": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear workspace ids to match."
+                        },
+                        "teams": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear team ids or keys to match."
+                        },
+                        "projects": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear project ids to match."
+                        },
+                        "statuses": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue statuses to match after the change."
+                        },
+                        "from_statuses": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue statuses to match before the change."
+                        },
+                        "status_transitions": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Status transitions to match, e.g. Todo->In Progress."
+                        },
+                        "priorities": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Issue priorities to match."
+                        },
+                        "actors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear user ids of the actor that fired the event."
+                        },
+                        "labels": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Match when any of these labels is present."
+                        },
+                        "assignees": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear user ids of the assignee to match."
+                        },
+                        "cycles": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Linear cycle ids to match."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which Linear events start a run. A condition matches when the event matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type", "event"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["incoming_webhook"]
+                    },
+                    "conditions": {
+                      "type": "object",
+                      "properties": {
+                        "contains": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Run only when the request body contains one of these substrings."
+                        },
+                        "excludes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "Skip when the request body contains one of these substrings."
+                        },
+                        "regex": {
+                          "type": "string",
+                          "description": "Run only when the request body matches this regular expression."
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Filters that narrow which incoming requests start a run. A condition matches when the request matches any of its listed values."
+                    },
+                    "run_when": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "minLength": 1,
+                          "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["type"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["on_demand"]
+                    }
+                  },
+                  "required": ["type"],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "modelId": {
+                    "type": "string"
+                  },
+                  "reasoningMode": {
+                    "type": "string",
+                    "enum": ["none", "minimal", "low", "medium", "high", "xhigh", "max"]
+                  },
+                  "modes": {
+                    "type": "object",
+                    "properties": {
+                      "fast": {
+                        "type": "boolean"
+                      },
+                      "pro": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["modelId"],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The pinned model, or null when the automation is unpinned and each run resolves the run-as principal's default model at run creation."
+          },
+          "repos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "repo": {
+                  "type": "string"
+                },
+                "branch": {
+                  "type": "string"
+                }
+              },
+              "required": ["repo", "branch"],
+              "additionalProperties": false
+            }
+          },
+          "threadMode": {
+            "type": "string",
+            "enum": ["new", "single"]
+          },
+          "mcpOverrides": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "enabled_server_keys": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "External MCP server keys to enable for this automation's runs, beyond the project defaults. A key may not appear in both lists."
+                  },
+                  "disabled_server_keys": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "External MCP server keys to disable for this automation's runs."
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxRunsPerDay": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "machineSize": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["small", "medium", "large", "ultra", "hyper", "bigguy"]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "disabledReason": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": ["run_as_unavailable"]
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "runAsKind": {
+            "type": "string",
+            "enum": ["human", "service"]
+          },
+          "runAsId": {
+            "type": "string"
+          },
+          "runCount": {
+            "type": "integer"
+          },
+          "lastTriggeredAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "webhookUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "projectId",
+          "name",
+          "description",
+          "prompt",
+          "triggers",
+          "model",
+          "repos",
+          "threadMode",
+          "mcpOverrides",
+          "maxRunsPerDay",
+          "machineSize",
+          "enabled",
+          "deleted",
+          "disabledReason",
+          "runAsKind",
+          "runAsId",
+          "runCount",
+          "lastTriggeredAt",
+          "createdAt",
+          "updatedAt",
+          "webhookUrl"
+        ],
+        "additionalProperties": false
+      },
+      "capy_Forbidden": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["capy/Forbidden"]
+          }
+        },
+        "required": ["_tag"],
+        "additionalProperties": false
+      },
+      "capy_InvalidRequest": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["capy/InvalidRequest"]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["_tag", "message"],
+        "additionalProperties": false
+      },
+      "capy_PaidFeatureUnavailable": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["capy/PaidFeatureUnavailable"]
+          },
+          "feature": {
+            "type": "string",
+            "enum": ["bigguy"]
+          }
+        },
+        "required": ["_tag", "feature"],
+        "additionalProperties": false
+      },
+      "capy_BillingAuthorityUnavailable": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["capy/BillingAuthorityUnavailable"]
+          }
+        },
+        "required": ["_tag"],
+        "additionalProperties": false
+      },
+      "capy_AutomationNotFound": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["capy/AutomationNotFound"]
+          },
+          "automationId": {
+            "type": "string"
+          }
+        },
+        "required": ["_tag", "automationId"],
+        "additionalProperties": false
+      },
       "UsageTotals": {
         "type": "object",
         "properties": {
@@ -1681,6 +4785,16 @@
               }
             ]
           },
+          "authorId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "title": {
             "anyOf": [
               {
@@ -1742,6 +4856,7 @@
         "required": [
           "id",
           "projectId",
+          "authorId",
           "title",
           "titleCustom",
           "status",
@@ -1780,31 +4895,6 @@
           }
         },
         "required": ["items", "cursor"],
-        "additionalProperties": false
-      },
-      "capy_ProjectNotFound": {
-        "type": "object",
-        "properties": {
-          "_tag": {
-            "type": "string",
-            "enum": ["capy/ProjectNotFound"]
-          },
-          "projectId": {
-            "type": "string"
-          }
-        },
-        "required": ["_tag", "projectId"],
-        "additionalProperties": false
-      },
-      "capy_Unauthorized": {
-        "type": "object",
-        "properties": {
-          "_tag": {
-            "type": "string",
-            "enum": ["capy/Unauthorized"]
-          }
-        },
-        "required": ["_tag"],
         "additionalProperties": false
       },
       "capy_ThreadNotFound": {
@@ -1873,35 +4963,12 @@
           "machineSize": {
             "type": "string",
             "enum": ["small", "medium", "large", "ultra", "hyper", "bigguy"]
+          },
+          "authorId": {
+            "type": "string"
           }
         },
         "required": ["requestId", "projectId", "message"],
-        "additionalProperties": false
-      },
-      "capy_PaidFeatureUnavailable": {
-        "type": "object",
-        "properties": {
-          "_tag": {
-            "type": "string",
-            "enum": ["capy/PaidFeatureUnavailable"]
-          },
-          "feature": {
-            "type": "string",
-            "enum": ["bigguy"]
-          }
-        },
-        "required": ["_tag", "feature"],
-        "additionalProperties": false
-      },
-      "capy_BillingAuthorityUnavailable": {
-        "type": "object",
-        "properties": {
-          "_tag": {
-            "type": "string",
-            "enum": ["capy/BillingAuthorityUnavailable"]
-          }
-        },
-        "required": ["_tag"],
         "additionalProperties": false
       },
       "RenameThreadRequest": {
@@ -1919,6 +4986,148 @@
           }
         },
         "required": ["title"],
+        "additionalProperties": false
+      },
+      "Folder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["pinned", "custom"]
+          },
+          "visibility": {
+            "type": "string",
+            "enum": ["private", "shared"]
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "kind", "visibility", "createdAt", "updatedAt"],
+        "additionalProperties": false
+      },
+      "FolderList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Folder"
+            }
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "FolderThreadPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Thread"
+            }
+          },
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "allOf": [
+                  {
+                    "pattern": "^-?\\d{1,15}:.+"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["items", "cursor"],
+        "additionalProperties": false
+      },
+      "capy_ThreadOrganizationNotFound": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["capy/ThreadOrganizationNotFound"]
+          }
+        },
+        "required": ["_tag"],
+        "additionalProperties": false
+      },
+      "FileThreadsRequest": {
+        "type": "object",
+        "properties": {
+          "threadIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["threadIds"],
+        "additionalProperties": false
+      },
+      "ThreadOutcome": {
+        "type": "object",
+        "properties": {
+          "threadId": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": ["ok", "not_found", "not_allowed"]
+          }
+        },
+        "required": ["threadId", "outcome"],
+        "additionalProperties": false
+      },
+      "FileThreadsResult": {
+        "type": "object",
+        "properties": {
+          "outcomes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThreadOutcome"
+            }
+          }
+        },
+        "required": ["outcomes"],
+        "additionalProperties": false
+      },
+      "PinThreadsRequest": {
+        "type": "object",
+        "properties": {
+          "threadIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "userId": {
+            "type": "string"
+          }
+        },
+        "required": ["threadIds"],
         "additionalProperties": false
       },
       "Task": {
@@ -2380,17 +5589,6 @@
           }
         },
         "required": ["repo"],
-        "additionalProperties": false
-      },
-      "capy_Forbidden": {
-        "type": "object",
-        "properties": {
-          "_tag": {
-            "type": "string",
-            "enum": ["capy/Forbidden"]
-          }
-        },
-        "required": ["_tag"],
         "additionalProperties": false
       },
       "ReviewBillingTransferOffer": {
@@ -3002,18 +6200,57 @@
         "required": ["from", "to", "totals", "tokens", "members", "models", "images"],
         "additionalProperties": false
       },
-      "capy_InvalidRequest": {
+      "User": {
         "type": "object",
         "properties": {
-          "_tag": {
-            "type": "string",
-            "enum": ["capy/InvalidRequest"]
-          },
-          "message": {
+          "id": {
             "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "firstName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
-        "required": ["_tag", "message"],
+        "required": ["id", "email", "firstName", "lastName"],
+        "additionalProperties": false
+      },
+      "UserList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          }
+        },
+        "required": ["items"],
         "additionalProperties": false
       }
     },
@@ -3033,7 +6270,13 @@
   ],
   "tags": [
     {
+      "name": "automations"
+    },
+    {
       "name": "threads"
+    },
+    {
+      "name": "folders"
     },
     {
       "name": "tasks"
@@ -3046,6 +6289,9 @@
     },
     {
       "name": "usage"
+    },
+    {
+      "name": "users"
     }
   ],
   "servers": [

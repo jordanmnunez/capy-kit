@@ -13,6 +13,3 @@ coverage/
 .vitest/
 *.log
 .bun/
-
-# internal planning doc — keep local, do not publish
-docs/local-hq-and-fleet.md

@@ -4,6 +4,92 @@
  */
 
 export interface paths {
+    "/api/v1/automations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List automations */
+        get: operations["automations.list"];
+        put?: never;
+        /** Create automation */
+        post: operations["automations.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/automations/{automationId}/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enable automation */
+        post: operations["automations.enable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/automations/{automationId}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Disable automation */
+        post: operations["automations.disable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/automations/{automationId}/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Delete automation */
+        post: operations["automations.delete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/automations/{automationId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore automation */
+        post: operations["automations.restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/threads": {
         parameters: {
             query?: never;
@@ -85,6 +171,76 @@ export interface paths {
         put?: never;
         /** Regenerate thread title */
         post: operations["threads.regenerateTitle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List */
+        get: operations["folders.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/threads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Threads */
+        get: operations["folders.threads"];
+        put?: never;
+        /** File */
+        post: operations["folders.file"];
+        /** Unfile */
+        delete: operations["folders.unfile"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/threads/pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pin */
+        post: operations["folders.pin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/threads/unpin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unpin */
+        post: operations["folders.unpin"];
         delete?: never;
         options?: never;
         head?: never;
@@ -364,10 +520,623 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List organization users */
+        get: operations["users.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Automation: {
+            id: string;
+            projectId: string;
+            name: string;
+            description: string | null;
+            prompt: string;
+            triggers: ({
+                /** @enum {string} */
+                type: "schedule";
+                cron: string & unknown;
+                timezone: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "github";
+                /**
+                 * @description The GitHub event that starts a run.
+                 * @enum {string}
+                 */
+                event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
+                /** @description Filters that narrow which GitHub events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Full repository names to match, e.g. owner/repo. */
+                    repositories?: string[];
+                    /** @description Base branch names to match. */
+                    branches?: string[];
+                    /** @description Head branch names to match. */
+                    head_branches?: string[];
+                    /** @description GitHub login names of the author to match. */
+                    authors?: string[];
+                    /** @description Match when any of these labels is present. */
+                    labels?: string[];
+                    /** @description Pull request states to match. */
+                    states?: ("open" | "draft" | "closed" | "merged")[];
+                    /** @description Raw event action names to match, e.g. opened, closed. */
+                    actions?: string[];
+                    /** @description Check or workflow conclusions to match, e.g. success, failure. */
+                    conclusions?: string[];
+                    /** @description Workflow names to match. */
+                    workflows?: string[];
+                    /** @description Check run names to match. */
+                    check_names?: string[];
+                    /** @description Review states to match, e.g. approved, changes_requested. */
+                    review_states?: string[];
+                    /** @description GitHub login names of the actor that fired the event. */
+                    actors?: string[];
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "slack";
+                /**
+                 * @description The Slack event that starts a run.
+                 * @enum {string}
+                 */
+                event: "message" | "reaction" | "channel_created";
+                /** @description Filters that narrow which Slack events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Slack team ids (T...) to match. Not workspace names. */
+                    workspaces?: string[];
+                    /** @description Slack channel ids (C...) to match. Not #channel-names. */
+                    channels?: string[];
+                    /** @description Slack user ids (U...) of the message author to match. */
+                    users?: string[];
+                    /** @description Slack user ids (U...) of the actor that fired the event. */
+                    actors?: string[];
+                    /** @description Emoji names without colons, e.g. eyes. */
+                    reactions?: string[];
+                    /** @description Match top-level messages, replies, or both. */
+                    message_placements?: ("top_level" | "reply")[];
+                    /** @description Match human messages, bot messages, or both. */
+                    message_types?: ("human" | "bot")[];
+                    /** @description Include messages from bots. Defaults to false. */
+                    include_bots?: boolean;
+                    grouping_window_seconds?: number & (unknown & unknown);
+                    /** @description Run only when the message text contains one of these substrings. */
+                    contains?: string[];
+                    /** @description Skip when the message text contains one of these substrings. */
+                    excludes?: string[];
+                    /** @description Run only when the message text matches this regular expression. */
+                    regex?: string;
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "sentry";
+                /**
+                 * @description The Sentry event that starts a run.
+                 * @enum {string}
+                 */
+                event: "issue_lifecycle" | "any_issue" | "event_alert";
+                /** @description Filters that narrow which Sentry events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Sentry project slugs or ids to match. */
+                    projects?: string[];
+                    /** @description Issue levels to match, e.g. error, warning. */
+                    levels?: string[];
+                    /** @description Raw event action names to match. */
+                    actions?: string[];
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "linear";
+                /**
+                 * @description The Linear event that starts a run.
+                 * @enum {string}
+                 */
+                event: "issue_created" | "status_changed" | "end_cycle";
+                /** @description Filters that narrow which Linear events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Linear workspace ids to match. */
+                    workspaces?: string[];
+                    /** @description Linear team ids or keys to match. */
+                    teams?: string[];
+                    /** @description Linear project ids to match. */
+                    projects?: string[];
+                    /** @description Issue statuses to match after the change. */
+                    statuses?: string[];
+                    /** @description Issue statuses to match before the change. */
+                    from_statuses?: string[];
+                    /** @description Status transitions to match, e.g. Todo->In Progress. */
+                    status_transitions?: string[];
+                    /** @description Issue priorities to match. */
+                    priorities?: string[];
+                    /** @description Linear user ids of the actor that fired the event. */
+                    actors?: string[];
+                    /** @description Match when any of these labels is present. */
+                    labels?: string[];
+                    /** @description Linear user ids of the assignee to match. */
+                    assignees?: string[];
+                    /** @description Linear cycle ids to match. */
+                    cycles?: string[];
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "incoming_webhook";
+                /** @description Filters that narrow which incoming requests start a run. A condition matches when the request matches any of its listed values. */
+                conditions?: {
+                    /** @description Run only when the request body contains one of these substrings. */
+                    contains?: string[];
+                    /** @description Skip when the request body contains one of these substrings. */
+                    excludes?: string[];
+                    /** @description Run only when the request body matches this regular expression. */
+                    regex?: string;
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "on_demand";
+            })[];
+            /** @description The pinned model, or null when the automation is unpinned and each run resolves the run-as principal's default model at run creation. */
+            model: {
+                modelId: string;
+                /** @enum {string} */
+                reasoningMode?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+                modes?: {
+                    fast?: boolean;
+                    pro?: boolean;
+                };
+            } | null;
+            repos: {
+                repo: string;
+                branch: string;
+            }[];
+            /** @enum {string} */
+            threadMode: "new" | "single";
+            mcpOverrides: {
+                /** @description External MCP server keys to enable for this automation's runs, beyond the project defaults. A key may not appear in both lists. */
+                enabled_server_keys?: string[];
+                /** @description External MCP server keys to disable for this automation's runs. */
+                disabled_server_keys?: string[];
+            } | null;
+            maxRunsPerDay: number | null;
+            machineSize: ("small" | "medium" | "large" | "ultra" | "hyper" | "bigguy") | null;
+            enabled: boolean;
+            deleted: boolean;
+            disabledReason: "run_as_unavailable" | null;
+            /** @enum {string} */
+            runAsKind: "human" | "service";
+            runAsId: string;
+            runCount: number;
+            lastTriggeredAt: string | null;
+            createdAt: string;
+            updatedAt: string;
+        };
+        AutomationPage: {
+            items: components["schemas"]["Automation"][];
+            cursor: (string & unknown) | null;
+        };
+        capy_ProjectNotFound: {
+            /** @enum {string} */
+            _tag: "capy/ProjectNotFound";
+            projectId: string;
+        };
+        capy_Unauthorized: {
+            /** @enum {string} */
+            _tag: "capy/Unauthorized";
+        };
+        CreateAutomationRequest: {
+            requestId: string & (unknown & unknown);
+            projectId: string;
+            name: string & unknown;
+            description?: string;
+            prompt: string & unknown;
+            triggers: ({
+                /** @enum {string} */
+                type: "schedule";
+                cron: string & unknown;
+                timezone: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "github";
+                /**
+                 * @description The GitHub event that starts a run.
+                 * @enum {string}
+                 */
+                event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
+                /** @description Filters that narrow which GitHub events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Full repository names to match, e.g. owner/repo. */
+                    repositories?: string[];
+                    /** @description Base branch names to match. */
+                    branches?: string[];
+                    /** @description Head branch names to match. */
+                    head_branches?: string[];
+                    /** @description GitHub login names of the author to match. */
+                    authors?: string[];
+                    /** @description Match when any of these labels is present. */
+                    labels?: string[];
+                    /** @description Pull request states to match. */
+                    states?: ("open" | "draft" | "closed" | "merged")[];
+                    /** @description Raw event action names to match, e.g. opened, closed. */
+                    actions?: string[];
+                    /** @description Check or workflow conclusions to match, e.g. success, failure. */
+                    conclusions?: string[];
+                    /** @description Workflow names to match. */
+                    workflows?: string[];
+                    /** @description Check run names to match. */
+                    check_names?: string[];
+                    /** @description Review states to match, e.g. approved, changes_requested. */
+                    review_states?: string[];
+                    /** @description GitHub login names of the actor that fired the event. */
+                    actors?: string[];
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "slack";
+                /**
+                 * @description The Slack event that starts a run.
+                 * @enum {string}
+                 */
+                event: "message" | "reaction" | "channel_created";
+                /** @description Filters that narrow which Slack events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Slack team ids (T...) to match. Not workspace names. */
+                    workspaces?: string[];
+                    /** @description Slack channel ids (C...) to match. Not #channel-names. */
+                    channels?: string[];
+                    /** @description Slack user ids (U...) of the message author to match. */
+                    users?: string[];
+                    /** @description Slack user ids (U...) of the actor that fired the event. */
+                    actors?: string[];
+                    /** @description Emoji names without colons, e.g. eyes. */
+                    reactions?: string[];
+                    /** @description Match top-level messages, replies, or both. */
+                    message_placements?: ("top_level" | "reply")[];
+                    /** @description Match human messages, bot messages, or both. */
+                    message_types?: ("human" | "bot")[];
+                    /** @description Include messages from bots. Defaults to false. */
+                    include_bots?: boolean;
+                    grouping_window_seconds?: number & (unknown & unknown);
+                    /** @description Run only when the message text contains one of these substrings. */
+                    contains?: string[];
+                    /** @description Skip when the message text contains one of these substrings. */
+                    excludes?: string[];
+                    /** @description Run only when the message text matches this regular expression. */
+                    regex?: string;
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "sentry";
+                /**
+                 * @description The Sentry event that starts a run.
+                 * @enum {string}
+                 */
+                event: "issue_lifecycle" | "any_issue" | "event_alert";
+                /** @description Filters that narrow which Sentry events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Sentry project slugs or ids to match. */
+                    projects?: string[];
+                    /** @description Issue levels to match, e.g. error, warning. */
+                    levels?: string[];
+                    /** @description Raw event action names to match. */
+                    actions?: string[];
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "linear";
+                /**
+                 * @description The Linear event that starts a run.
+                 * @enum {string}
+                 */
+                event: "issue_created" | "status_changed" | "end_cycle";
+                /** @description Filters that narrow which Linear events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Linear workspace ids to match. */
+                    workspaces?: string[];
+                    /** @description Linear team ids or keys to match. */
+                    teams?: string[];
+                    /** @description Linear project ids to match. */
+                    projects?: string[];
+                    /** @description Issue statuses to match after the change. */
+                    statuses?: string[];
+                    /** @description Issue statuses to match before the change. */
+                    from_statuses?: string[];
+                    /** @description Status transitions to match, e.g. Todo->In Progress. */
+                    status_transitions?: string[];
+                    /** @description Issue priorities to match. */
+                    priorities?: string[];
+                    /** @description Linear user ids of the actor that fired the event. */
+                    actors?: string[];
+                    /** @description Match when any of these labels is present. */
+                    labels?: string[];
+                    /** @description Linear user ids of the assignee to match. */
+                    assignees?: string[];
+                    /** @description Linear cycle ids to match. */
+                    cycles?: string[];
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "incoming_webhook";
+                /** @description Filters that narrow which incoming requests start a run. A condition matches when the request matches any of its listed values. */
+                conditions?: {
+                    /** @description Run only when the request body contains one of these substrings. */
+                    contains?: string[];
+                    /** @description Skip when the request body contains one of these substrings. */
+                    excludes?: string[];
+                    /** @description Run only when the request body matches this regular expression. */
+                    regex?: string;
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "on_demand";
+            })[] & (unknown & unknown);
+            model?: {
+                modelId: string;
+                /** @enum {string} */
+                reasoningMode?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+                modes?: {
+                    fast?: boolean;
+                    pro?: boolean;
+                };
+            };
+            repos?: {
+                repo: string;
+                branch: string;
+            }[];
+            /** @enum {string} */
+            threadMode?: "new" | "single";
+            mcpOverrides?: {
+                /** @description External MCP server keys to enable for this automation's runs, beyond the project defaults. A key may not appear in both lists. */
+                enabled_server_keys?: string[];
+                /** @description External MCP server keys to disable for this automation's runs. */
+                disabled_server_keys?: string[];
+            };
+            maxRunsPerDay?: number & unknown;
+            /** @enum {string} */
+            machineSize?: "small" | "medium" | "large" | "ultra" | "hyper" | "bigguy";
+            runAs?: {
+                /** @enum {string} */
+                kind: "human";
+                user_id?: string;
+            } | {
+                /** @enum {string} */
+                kind: "service";
+                service_user_id: string;
+            };
+            enabled?: boolean;
+        };
+        AutomationCreated: {
+            id: string;
+            projectId: string;
+            name: string;
+            description: string | null;
+            prompt: string;
+            triggers: ({
+                /** @enum {string} */
+                type: "schedule";
+                cron: string & unknown;
+                timezone: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "github";
+                /**
+                 * @description The GitHub event that starts a run.
+                 * @enum {string}
+                 */
+                event: "draft_opened" | "pull_request_opened" | "pull_request_pushed" | "pull_request_merged" | "comment" | "branch_push" | "label_change" | "checks" | "issue_comment" | "pull_request_review_comment" | "pull_request_review_submitted" | "pull_request_review_thread" | "workflow_run";
+                /** @description Filters that narrow which GitHub events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Full repository names to match, e.g. owner/repo. */
+                    repositories?: string[];
+                    /** @description Base branch names to match. */
+                    branches?: string[];
+                    /** @description Head branch names to match. */
+                    head_branches?: string[];
+                    /** @description GitHub login names of the author to match. */
+                    authors?: string[];
+                    /** @description Match when any of these labels is present. */
+                    labels?: string[];
+                    /** @description Pull request states to match. */
+                    states?: ("open" | "draft" | "closed" | "merged")[];
+                    /** @description Raw event action names to match, e.g. opened, closed. */
+                    actions?: string[];
+                    /** @description Check or workflow conclusions to match, e.g. success, failure. */
+                    conclusions?: string[];
+                    /** @description Workflow names to match. */
+                    workflows?: string[];
+                    /** @description Check run names to match. */
+                    check_names?: string[];
+                    /** @description Review states to match, e.g. approved, changes_requested. */
+                    review_states?: string[];
+                    /** @description GitHub login names of the actor that fired the event. */
+                    actors?: string[];
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "slack";
+                /**
+                 * @description The Slack event that starts a run.
+                 * @enum {string}
+                 */
+                event: "message" | "reaction" | "channel_created";
+                /** @description Filters that narrow which Slack events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Slack team ids (T...) to match. Not workspace names. */
+                    workspaces?: string[];
+                    /** @description Slack channel ids (C...) to match. Not #channel-names. */
+                    channels?: string[];
+                    /** @description Slack user ids (U...) of the message author to match. */
+                    users?: string[];
+                    /** @description Slack user ids (U...) of the actor that fired the event. */
+                    actors?: string[];
+                    /** @description Emoji names without colons, e.g. eyes. */
+                    reactions?: string[];
+                    /** @description Match top-level messages, replies, or both. */
+                    message_placements?: ("top_level" | "reply")[];
+                    /** @description Match human messages, bot messages, or both. */
+                    message_types?: ("human" | "bot")[];
+                    /** @description Include messages from bots. Defaults to false. */
+                    include_bots?: boolean;
+                    grouping_window_seconds?: number & (unknown & unknown);
+                    /** @description Run only when the message text contains one of these substrings. */
+                    contains?: string[];
+                    /** @description Skip when the message text contains one of these substrings. */
+                    excludes?: string[];
+                    /** @description Run only when the message text matches this regular expression. */
+                    regex?: string;
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "sentry";
+                /**
+                 * @description The Sentry event that starts a run.
+                 * @enum {string}
+                 */
+                event: "issue_lifecycle" | "any_issue" | "event_alert";
+                /** @description Filters that narrow which Sentry events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Sentry project slugs or ids to match. */
+                    projects?: string[];
+                    /** @description Issue levels to match, e.g. error, warning. */
+                    levels?: string[];
+                    /** @description Raw event action names to match. */
+                    actions?: string[];
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "linear";
+                /**
+                 * @description The Linear event that starts a run.
+                 * @enum {string}
+                 */
+                event: "issue_created" | "status_changed" | "end_cycle";
+                /** @description Filters that narrow which Linear events start a run. A condition matches when the event matches any of its listed values. */
+                conditions?: {
+                    /** @description Linear workspace ids to match. */
+                    workspaces?: string[];
+                    /** @description Linear team ids or keys to match. */
+                    teams?: string[];
+                    /** @description Linear project ids to match. */
+                    projects?: string[];
+                    /** @description Issue statuses to match after the change. */
+                    statuses?: string[];
+                    /** @description Issue statuses to match before the change. */
+                    from_statuses?: string[];
+                    /** @description Status transitions to match, e.g. Todo->In Progress. */
+                    status_transitions?: string[];
+                    /** @description Issue priorities to match. */
+                    priorities?: string[];
+                    /** @description Linear user ids of the actor that fired the event. */
+                    actors?: string[];
+                    /** @description Match when any of these labels is present. */
+                    labels?: string[];
+                    /** @description Linear user ids of the assignee to match. */
+                    assignees?: string[];
+                    /** @description Linear cycle ids to match. */
+                    cycles?: string[];
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "incoming_webhook";
+                /** @description Filters that narrow which incoming requests start a run. A condition matches when the request matches any of its listed values. */
+                conditions?: {
+                    /** @description Run only when the request body contains one of these substrings. */
+                    contains?: string[];
+                    /** @description Skip when the request body contains one of these substrings. */
+                    excludes?: string[];
+                    /** @description Run only when the request body matches this regular expression. */
+                    regex?: string;
+                };
+                run_when?: string & unknown;
+            } | {
+                /** @enum {string} */
+                type: "on_demand";
+            })[];
+            /** @description The pinned model, or null when the automation is unpinned and each run resolves the run-as principal's default model at run creation. */
+            model: {
+                modelId: string;
+                /** @enum {string} */
+                reasoningMode?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+                modes?: {
+                    fast?: boolean;
+                    pro?: boolean;
+                };
+            } | null;
+            repos: {
+                repo: string;
+                branch: string;
+            }[];
+            /** @enum {string} */
+            threadMode: "new" | "single";
+            mcpOverrides: {
+                /** @description External MCP server keys to enable for this automation's runs, beyond the project defaults. A key may not appear in both lists. */
+                enabled_server_keys?: string[];
+                /** @description External MCP server keys to disable for this automation's runs. */
+                disabled_server_keys?: string[];
+            } | null;
+            maxRunsPerDay: number | null;
+            machineSize: ("small" | "medium" | "large" | "ultra" | "hyper" | "bigguy") | null;
+            enabled: boolean;
+            deleted: boolean;
+            disabledReason: "run_as_unavailable" | null;
+            /** @enum {string} */
+            runAsKind: "human" | "service";
+            runAsId: string;
+            runCount: number;
+            lastTriggeredAt: string | null;
+            createdAt: string;
+            updatedAt: string;
+            webhookUrl: string | null;
+        };
+        capy_Forbidden: {
+            /** @enum {string} */
+            _tag: "capy/Forbidden";
+        };
+        capy_InvalidRequest: {
+            /** @enum {string} */
+            _tag: "capy/InvalidRequest";
+            message: string;
+        };
+        capy_PaidFeatureUnavailable: {
+            /** @enum {string} */
+            _tag: "capy/PaidFeatureUnavailable";
+            /** @enum {string} */
+            feature: "bigguy";
+        };
+        capy_BillingAuthorityUnavailable: {
+            /** @enum {string} */
+            _tag: "capy/BillingAuthorityUnavailable";
+        };
+        capy_AutomationNotFound: {
+            /** @enum {string} */
+            _tag: "capy/AutomationNotFound";
+            automationId: string;
+        };
         UsageTotals: {
             llmCredits: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
             imageCredits: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
@@ -377,6 +1146,7 @@ export interface components {
         Thread: {
             id: string;
             projectId: string | null;
+            authorId: string | null;
             title: string | null;
             titleCustom: boolean;
             /** @enum {string} */
@@ -391,15 +1161,6 @@ export interface components {
         ThreadPage: {
             items: components["schemas"]["Thread"][];
             cursor: (string & unknown) | null;
-        };
-        capy_ProjectNotFound: {
-            /** @enum {string} */
-            _tag: "capy/ProjectNotFound";
-            projectId: string;
-        };
-        capy_Unauthorized: {
-            /** @enum {string} */
-            _tag: "capy/Unauthorized";
         };
         capy_ThreadNotFound: {
             /** @enum {string} */
@@ -422,19 +1183,46 @@ export interface components {
             };
             /** @enum {string} */
             machineSize?: "small" | "medium" | "large" | "ultra" | "hyper" | "bigguy";
-        };
-        capy_PaidFeatureUnavailable: {
-            /** @enum {string} */
-            _tag: "capy/PaidFeatureUnavailable";
-            /** @enum {string} */
-            feature: "bigguy";
-        };
-        capy_BillingAuthorityUnavailable: {
-            /** @enum {string} */
-            _tag: "capy/BillingAuthorityUnavailable";
+            authorId?: string;
         };
         RenameThreadRequest: {
             title: string | null;
+        };
+        Folder: {
+            id: string;
+            name: string | null;
+            /** @enum {string} */
+            kind: "pinned" | "custom";
+            /** @enum {string} */
+            visibility: "private" | "shared";
+            createdAt: string;
+            updatedAt: string;
+        };
+        FolderList: {
+            items: components["schemas"]["Folder"][];
+        };
+        FolderThreadPage: {
+            items: components["schemas"]["Thread"][];
+            cursor: (string & unknown) | null;
+        };
+        capy_ThreadOrganizationNotFound: {
+            /** @enum {string} */
+            _tag: "capy/ThreadOrganizationNotFound";
+        };
+        FileThreadsRequest: {
+            threadIds: string[];
+        };
+        ThreadOutcome: {
+            threadId: string;
+            /** @enum {string} */
+            outcome: "ok" | "not_found" | "not_allowed";
+        };
+        FileThreadsResult: {
+            outcomes: components["schemas"]["ThreadOutcome"][];
+        };
+        PinThreadsRequest: {
+            threadIds: string[];
+            userId?: string;
         };
         Task: {
             id: string;
@@ -537,10 +1325,6 @@ export interface components {
             postInvestigate?: boolean;
             postNotes?: boolean;
         };
-        capy_Forbidden: {
-            /** @enum {string} */
-            _tag: "capy/Forbidden";
-        };
         ReviewBillingTransferOffer: {
             fromOrgId: string;
             toOrgId: string;
@@ -616,10 +1400,14 @@ export interface components {
             models: components["schemas"]["UsageModelDollars"][];
             images: components["schemas"]["UsageImageDollars"][];
         };
-        capy_InvalidRequest: {
-            /** @enum {string} */
-            _tag: "capy/InvalidRequest";
-            message: string;
+        User: {
+            id: string;
+            email: string | null;
+            firstName: string | null;
+            lastName: string | null;
+        };
+        UserList: {
+            items: components["schemas"]["User"][];
         };
     };
     responses: never;
@@ -630,6 +1418,331 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "automations.list": {
+        parameters: {
+            query?: {
+                projectId?: string;
+                limit?: number;
+                cursor?: string & unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description AutomationPage */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationPage"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ProjectNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ProjectNotFound"];
+                };
+            };
+        };
+    };
+    "automations.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAutomationRequest"];
+            };
+        };
+        responses: {
+            /** @description AutomationCreated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutomationCreated"];
+                };
+            };
+            /** @description capy/InvalidRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_InvalidRequest"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/PaidFeatureUnavailable */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_PaidFeatureUnavailable"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/ProjectNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ProjectNotFound"];
+                };
+            };
+            /** @description capy/BillingAuthorityUnavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_BillingAuthorityUnavailable"];
+                };
+            };
+        };
+    };
+    "automations.enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Automation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
+            };
+            /** @description capy/InvalidRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_InvalidRequest"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/AutomationNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_AutomationNotFound"];
+                };
+            };
+        };
+    };
+    "automations.disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Automation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/AutomationNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_AutomationNotFound"];
+                };
+            };
+        };
+    };
+    "automations.delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Automation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/AutomationNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_AutomationNotFound"];
+                };
+            };
+        };
+    };
+    "automations.restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                automationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Automation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Automation"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/AutomationNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_AutomationNotFound"];
+                };
+            };
+        };
+    };
     "threads.list": {
         parameters: {
             query: {
@@ -693,6 +1806,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Thread"];
+                };
+            };
+            /** @description capy/InvalidRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_InvalidRequest"];
                 };
             };
             /** @description capy/Unauthorized */
@@ -933,6 +2055,322 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["capy_ThreadNotFound"];
+                };
+            };
+        };
+    };
+    "folders.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description FolderList */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderList"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+        };
+    };
+    "folders.threads": {
+        parameters: {
+            query?: {
+                after?: string & unknown;
+                limit?: string & unknown;
+            };
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description FolderThreadPage */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderThreadPage"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/ThreadOrganizationNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadOrganizationNotFound"];
+                };
+            };
+        };
+    };
+    "folders.file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FileThreadsRequest"];
+            };
+        };
+        responses: {
+            /** @description FileThreadsResult */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileThreadsResult"];
+                };
+            };
+            /** @description capy/InvalidRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_InvalidRequest"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/ThreadOrganizationNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadOrganizationNotFound"];
+                };
+            };
+        };
+    };
+    "folders.unfile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FileThreadsRequest"];
+            };
+        };
+        responses: {
+            /** @description FileThreadsResult */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileThreadsResult"];
+                };
+            };
+            /** @description capy/InvalidRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_InvalidRequest"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+            /** @description capy/ThreadOrganizationNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ThreadOrganizationNotFound"];
+                };
+            };
+        };
+    };
+    "folders.pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinThreadsRequest"];
+            };
+        };
+        responses: {
+            /** @description FileThreadsResult */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileThreadsResult"];
+                };
+            };
+            /** @description capy/InvalidRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_InvalidRequest"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
+                };
+            };
+        };
+    };
+    "folders.unpin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinThreadsRequest"];
+            };
+        };
+        responses: {
+            /** @description FileThreadsResult */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileThreadsResult"];
+                };
+            };
+            /** @description capy/InvalidRequest */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_InvalidRequest"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Forbidden"];
                 };
             };
         };
@@ -1695,6 +3133,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["capy_InvalidRequest"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+        };
+    };
+    "users.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description UserList */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserList"];
                 };
             };
             /** @description capy/Unauthorized */
