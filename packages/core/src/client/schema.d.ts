@@ -90,6 +90,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List projects */
+        get: operations["projects.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{projectId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get project */
+        get: operations["projects.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/threads": {
         parameters: {
             query?: never;
@@ -623,6 +657,7 @@ export interface components {
                     regex?: string;
                 };
                 run_when?: string & unknown;
+                ack_reaction?: string & (unknown & unknown);
             } | {
                 /** @enum {string} */
                 type: "sentry";
@@ -822,6 +857,7 @@ export interface components {
                     regex?: string;
                 };
                 run_when?: string & unknown;
+                ack_reaction?: string & (unknown & unknown);
             } | {
                 /** @enum {string} */
                 type: "sentry";
@@ -1008,6 +1044,7 @@ export interface components {
                     regex?: string;
                 };
                 run_when?: string & unknown;
+                ack_reaction?: string & (unknown & unknown);
             } | {
                 /** @enum {string} */
                 type: "sentry";
@@ -1137,6 +1174,22 @@ export interface components {
             _tag: "capy/AutomationNotFound";
             automationId: string;
         };
+        ProjectRepo: {
+            repoFullName: string;
+            baseBranch: string;
+        };
+        Project: {
+            id: string;
+            name: string;
+            description: string | null;
+            code: string & (unknown & unknown);
+            repos: components["schemas"]["ProjectRepo"][];
+            createdAt: string;
+            updatedAt: string;
+        };
+        ProjectList: {
+            items: components["schemas"]["Project"][];
+        };
         UsageTotals: {
             llmCredits: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
             imageCredits: (number | "NaN" | "Infinity" | "-Infinity") | ("Infinity" | "-Infinity" | "NaN");
@@ -1233,6 +1286,7 @@ export interface components {
             title: string | null;
             /** @enum {string} */
             status: "working" | "waiting" | "idle" | "done" | "failed";
+            archived: boolean;
             usage: components["schemas"]["UsageTotals"];
             createdAt: string;
             updatedAt: string;
@@ -1739,6 +1793,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["capy_AutomationNotFound"];
+                };
+            };
+        };
+    };
+    "projects.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ProjectList */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectList"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+        };
+    };
+    "projects.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Project */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Project"];
+                };
+            };
+            /** @description capy/Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_Unauthorized"];
+                };
+            };
+            /** @description capy/ProjectNotFound */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["capy_ProjectNotFound"];
                 };
             };
         };

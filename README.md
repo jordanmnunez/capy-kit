@@ -17,10 +17,9 @@ export CAPY_API_KEY=capy_…
 
 The default base URL is `https://api.capy.ai/api/v1`. The public API is organization-key scoped.
 
-The public API requires a project ID for thread lists and creates, but cannot list or retrieve
-projects. Configure the IDs you already know with `capy init`; give each a name and select a
-primary project. Later use `capy projects` to add or update IDs and change the primary project
-without prompting for or replacing the API key. For example:
+The public API lists and retrieves the projects accessible to the API key. Thread lists and creates
+still require a project ID; discover it with `capy projects list`, then optionally save a friendly
+local alias and select a primary project with `capy config projects`. For example:
 
 ```json
 {
@@ -37,7 +36,7 @@ without prompting for or replacing the API key. For example:
 ```
 
 Commands use that primary project by default. Use `--project secondary` to select another configured
-name, or `--project <project-id>` for an explicit raw-ID override. `--profile work` uses that profile's project and author defaults and ignores ambient `CAPY_PROJECT_ID` and `CAPY_AUTHOR_ID`; this makes profile identity fail closed. `CAPY_PROJECT_ID` and `CAPY_AUTHOR_ID` remain useful for non-interactive CLI use. `capy projects` edits these local aliases; it does not call a project-discovery API.
+name, or `--project <project-id>` for an explicit raw-ID override. `--profile work` uses that profile's project and author defaults and ignores ambient `CAPY_PROJECT_ID` and `CAPY_AUTHOR_ID`; this makes profile identity fail closed. `CAPY_PROJECT_ID` and `CAPY_AUTHOR_ID` remain useful for non-interactive CLI use. `capy config projects` edits local aliases; `capy projects` reads the public project API.
 
 ```bash
 capy delegate 'Investigate the failing integration' caller-stable-request-id --model-id openai/gpt-5.6-sol --json
@@ -45,6 +44,8 @@ capy delegate 'Investigate the failing integration' caller-stable-request-id --m
 capy delegate 'Investigate without attribution' caller-stable-request-id --model-id openai/gpt-5.6-sol --profile work --no-author
 capy threads list --status active --json
 capy threads list --project secondary --json
+capy projects list --json
+capy projects get proj_123 --json
 capy users list --json
 capy folders list --json
 capy folders threads fld_123 --json

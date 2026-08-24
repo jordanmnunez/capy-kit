@@ -18,7 +18,7 @@ Core owns validation and API logic; shells only parse, render, and transport. Th
 
 ## Current public contract
 
-The vendored official OpenAPI document is `spec/capy.openapi.json`, refreshed from `https://docs.capy.ai/openapi.json` on **2026-08-20**. It has **31 paths and 37 operations**, all under the `https://api.capy.ai/api/v1` base URL. Run:
+The vendored official OpenAPI document is `spec/capy.openapi.json`, refreshed from `https://docs.capy.ai/openapi.json` on **2026-08-24**. It has **33 paths and 39 operations**, all under the `https://api.capy.ai/api/v1` base URL. Run:
 
 ```bash
 npm run gen        # regenerate packages/core/src/client/schema.d.ts
@@ -30,18 +30,18 @@ The generated type file is committed. Derive every endpoint, field, enum, and er
 The public surface consists of:
 
 - threads and messages, including author attribution, title controls, and queued-message control;
-- organization users, folders, filing, and per-user pinning;
+- organization users, project listing/retrieval, folders, filing, and per-user pinning;
 - read-only task trees and transcripts;
 - review settings, billing-transfer controls, and review start;
 - organization usage.
 
-Project discovery, models, tags, setup, snapshots, environment variables, session tokens, task mutation/diffs, and attachments remain unavailable. Automations are published in the official contract but intentionally out of scope for capy-kit. Do not call undocumented replacements or project unsupported operations into core or CLI.
+Models, tags, setup, snapshots, environment variables, session tokens, task mutation/diffs, and attachments remain unavailable. Automations are published in the official contract but intentionally out of scope for capy-kit. Do not call undocumented replacements or project unsupported operations into core or CLI.
 
 ## Runtime and conventions
 
 - Node **>=18** is the runtime contract; Bun is a development fast path. Binaries build as ESM with `tsup`. Do not casually upgrade Citty, `@clack/prompts`, or Zod.
 - `CAPY_API_KEY` is the credential name. `CAPY_PROJECT_ID` and `CAPY_AUTHOR_ID` provide ambient CLI defaults. `~/.capy/config.json` and `~/.capy/.env` must be mode 0600.
-- Thread list/create calls require a known project ID. Keep aliases in local config; the API cannot discover projects.
+- Thread list/create calls require a project ID. `projects.list` discovers accessible IDs; local aliases remain an optional selection convenience.
 - `--profile <name>` selects project and author defaults from config and ignores ambient project/author variables. Explicit `--project`, `--author-id`, and `--no-author` remain per-command overrides.
 - Thread creation requires a caller-stable `requestId` and an explicit model. Retries can converge. Messages do not have caller idempotency and are not retried automatically.
 - Thread lists use `cursor`; message and task lists use `after`. All lists return `{items,cursor}` and a null cursor ends pagination.

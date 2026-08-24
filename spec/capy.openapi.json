@@ -440,6 +440,95 @@
         "summary": "Restore automation"
       }
     },
+    "/api/v1/projects": {
+      "get": {
+        "tags": ["projects"],
+        "operationId": "projects.list",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ProjectList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List projects"
+      }
+    },
+    "/api/v1/projects/{projectId}": {
+      "get": {
+        "tags": ["projects"],
+        "operationId": "projects.get",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "capy/Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "capy/ProjectNotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/capy_ProjectNotFound"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get project"
+      }
+    },
     "/api/v1/threads": {
       "get": {
         "tags": ["threads"],
@@ -2721,11 +2810,11 @@
                           "type": "integer",
                           "allOf": [
                             {
-                              "minimum": 1
+                              "minimum": 0
                             },
                             {
                               "maximum": 300,
-                              "description": "Seconds to group a burst of messages into one run. Defaults to 10."
+                              "description": "Seconds to group a burst of messages into one run. Defaults to 0 - no grouping, one run per matched message immediately."
                             }
                           ]
                         },
@@ -2757,6 +2846,22 @@
                         {
                           "minLength": 1,
                           "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    },
+                    "ack_reaction": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "allOf": [
+                            {
+                              "minLength": 1
+                            },
+                            {
+                              "maxLength": 64
+                            }
+                          ],
+                          "description": "Emoji name to react with on a top-level triggering message when this trigger matches, e.g. `eyes`. Replies and an absent value post no reaction."
                         }
                       ]
                     }
@@ -3487,11 +3592,11 @@
                           "type": "integer",
                           "allOf": [
                             {
-                              "minimum": 1
+                              "minimum": 0
                             },
                             {
                               "maximum": 300,
-                              "description": "Seconds to group a burst of messages into one run. Defaults to 10."
+                              "description": "Seconds to group a burst of messages into one run. Defaults to 0 - no grouping, one run per matched message immediately."
                             }
                           ]
                         },
@@ -3523,6 +3628,22 @@
                         {
                           "minLength": 1,
                           "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    },
+                    "ack_reaction": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "allOf": [
+                            {
+                              "minLength": 1
+                            },
+                            {
+                              "maxLength": 64
+                            }
+                          ],
+                          "description": "Emoji name to react with on a top-level triggering message when this trigger matches, e.g. `eyes`. Replies and an absent value post no reaction."
                         }
                       ]
                     }
@@ -4139,11 +4260,11 @@
                           "type": "integer",
                           "allOf": [
                             {
-                              "minimum": 1
+                              "minimum": 0
                             },
                             {
                               "maximum": 300,
-                              "description": "Seconds to group a burst of messages into one run. Defaults to 10."
+                              "description": "Seconds to group a burst of messages into one run. Defaults to 0 - no grouping, one run per matched message immediately."
                             }
                           ]
                         },
@@ -4175,6 +4296,22 @@
                         {
                           "minLength": 1,
                           "description": "Natural-language gate checked against each event before a run starts; non-matching events are skipped, so keep it to one sentence. To remove the gate, omit this field from the trigger; null is rejected."
+                        }
+                      ]
+                    },
+                    "ack_reaction": {
+                      "type": "string",
+                      "allOf": [
+                        {
+                          "allOf": [
+                            {
+                              "minLength": 1
+                            },
+                            {
+                              "maxLength": 64
+                            }
+                          ],
+                          "description": "Emoji name to react with on a top-level triggering message when this trigger matches, e.g. `eyes`. Replies and an absent value post no reaction."
                         }
                       ]
                     }
@@ -4652,6 +4789,78 @@
           }
         },
         "required": ["_tag", "automationId"],
+        "additionalProperties": false
+      },
+      "ProjectRepo": {
+        "type": "object",
+        "properties": {
+          "repoFullName": {
+            "type": "string"
+          },
+          "baseBranch": {
+            "type": "string"
+          }
+        },
+        "required": ["repoFullName", "baseBranch"],
+        "additionalProperties": false
+      },
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "code": {
+            "type": "string",
+            "allOf": [
+              {
+                "minLength": 1
+              },
+              {
+                "maxLength": 255
+              }
+            ]
+          },
+          "repos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectRepo"
+            }
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "description", "code", "repos", "createdAt", "updatedAt"],
+        "additionalProperties": false
+      },
+      "ProjectList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          }
+        },
+        "required": ["items"],
         "additionalProperties": false
       },
       "UsageTotals": {
@@ -5169,6 +5378,9 @@
             "type": "string",
             "enum": ["working", "waiting", "idle", "done", "failed"]
           },
+          "archived": {
+            "type": "boolean"
+          },
           "usage": {
             "$ref": "#/components/schemas/UsageTotals"
           },
@@ -5197,6 +5409,7 @@
           "projectId",
           "title",
           "status",
+          "archived",
           "usage",
           "createdAt",
           "updatedAt",
@@ -6271,6 +6484,9 @@
   "tags": [
     {
       "name": "automations"
+    },
+    {
+      "name": "projects"
     },
     {
       "name": "threads"

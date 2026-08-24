@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CapyError, delegate, foldersFile, foldersPin, threadsMessage, threadsRename } from "@capy-kit/core";
+import { CapyError, delegate, foldersFile, foldersPin, projectsGet, projectsList, threadsMessage, threadsRename } from "@capy-kit/core";
 import { apiArgsForOp, argsForOp } from "../src/build.js";
 
 describe("CLI API projection", () => {
@@ -30,5 +30,10 @@ describe("CLI API projection", () => {
     expect(argsForOp(threadsRename)).toHaveProperty("clearTitle");
     expect(apiArgsForOp(threadsRename, { id: "jam_1", clearTitle: true })).toEqual({ id: "jam_1", title: null });
     expect(() => apiArgsForOp(threadsRename, { id: "jam_1", title: "Manual", clearTitle: true })).toThrow(CapyError);
+  });
+
+  it("projects project inspection without a project selector", () => {
+    expect(argsForOp(projectsList)).toEqual({});
+    expect(argsForOp(projectsGet)).toMatchObject({ id: { type: "positional", required: true } });
   });
 });

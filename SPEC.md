@@ -15,9 +15,9 @@ capy-kit is a faithful typed interface to Capy’s current public API, plus smal
 
 ## Source of truth and boundary
 
-`spec/capy.openapi.json` is vendored from `https://docs.capy.ai/openapi.json`; the current **2026-08-20** snapshot has 31 paths and 37 operations. `npm run gen` creates the checked-in `packages/core/src/client/schema.d.ts`; `npm run gen:check` detects drift.
+`spec/capy.openapi.json` is vendored from `https://docs.capy.ai/openapi.json`; the current **2026-08-24** snapshot has 33 paths and 39 operations. `npm run gen` creates the checked-in `packages/core/src/client/schema.d.ts`; `npm run gen:check` detects drift.
 
-The supported contract covers threads/messages (including `authorId`), folders and pins, organization users, read-only tasks, review controls, and usage. It does not publicly offer project discovery, model discovery, configuration or snapshots, tags, personal environment variables, session tokens, task mutation, task diffs, or attachments. Automations are published but intentionally out of scope: their persistent event-driven behavior exceeds capy-kit’s mechanical control surface.
+The supported contract covers threads/messages (including `authorId`), folders and pins, organization users, project discovery and retrieval, read-only tasks, review controls, and usage. It does not publicly offer model discovery, configuration or snapshots, tags, personal environment variables, session tokens, task mutation, task diffs, or attachments. Automations are published but intentionally out of scope: their persistent event-driven behavior exceeds capy-kit’s mechanical control surface.
 
 ## Layers
 
@@ -42,7 +42,7 @@ Resources are typed, small mappings over the published wire protocol. Ops own va
 
 - Base URL: `https://api.capy.ai/api/v1`; requests carry `Authorization: Bearer <key>`.
 - `CAPY_API_KEY` is the credential name.
-- Thread list/create calls require a configured project ID. `capy init` and `capy projects` maintain local aliases; no core API call invents project discovery.
+- Thread list/create calls require a selected project ID. `projects.list` discovers accessible IDs; `capy init` and `capy config projects` maintain optional local aliases.
 - Author attribution resolves from explicit input, `CAPY_AUTHOR_ID`, a named profile, or top-level config. Explicit `--no-author` suppresses a configured default.
 - Named profiles fail closed for project and author identity: ambient `CAPY_PROJECT_ID` and `CAPY_AUTHOR_ID` do not leak into an explicitly selected profile.
 - Organization users provide canonical author IDs. Folder listing, filing, and pinning are organization-scoped; the public API does not create folders.

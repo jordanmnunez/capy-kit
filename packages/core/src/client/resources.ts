@@ -24,6 +24,9 @@ export type FileThreadsResult = components["schemas"]["FileThreadsResult"];
 export type PinThreadsBody = components["schemas"]["PinThreadsRequest"];
 export type User = components["schemas"]["User"];
 export type UserList = components["schemas"]["UserList"];
+export type ProjectRepo = components["schemas"]["ProjectRepo"];
+export type Project = components["schemas"]["Project"];
+export type ProjectList = components["schemas"]["ProjectList"];
 export type Page<T> = { items: T[]; cursor: string | null };
 export type ThreadMessage = Message;
 export type ListThreadsResponse = Page<Thread>;
@@ -68,6 +71,10 @@ export function resources(c: CapyContext) {
     },
     users: {
       list: (s?: AbortSignal) => request<UserList>(c, { method: "GET", path: "/users", signal: s }),
+    },
+    projects: {
+      list: (s?: AbortSignal) => request<ProjectList>(c, { method: "GET", path: "/projects", signal: s }),
+      get: (id: string, s?: AbortSignal) => request<Project>(c, { method: "GET", path: `/projects/${e(id)}`, signal: s }),
     },
     usage: {
       get: (q: { from?: string; to?: string } = {}, s?: AbortSignal) => request<UsageReport>(c, { method: "GET", path: "/usage", query: q, signal: s }),

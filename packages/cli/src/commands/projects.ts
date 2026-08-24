@@ -4,11 +4,11 @@ import { join } from "node:path";
 import { readCapyConfig } from "@capy-kit/core";
 import { defineCommand } from "citty";
 
-export const projectsCommand = defineCommand({
-  meta: { name: "projects", description: "Edit named Capy projects without changing the API key." },
+export const configureProjectsCommand = defineCommand({
+  meta: { name: "projects", description: "Edit local named project aliases without changing the API key." },
   args: {},
   async run() {
-    if (!process.stdin.isTTY) throw new Error("capy projects needs an interactive terminal.");
+    if (!process.stdin.isTTY) throw new Error("capy config projects needs an interactive terminal.");
     const p = await import("@clack/prompts");
     const existing = readCapyConfig() ?? {};
     const projects: Record<string, string> = { ...(existing.projects ?? {}) };
