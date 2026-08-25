@@ -12,6 +12,8 @@ export interface CapyContext {
   baseUrl: string;
   projectId?: string;
   authorId?: string;
+  delegateAuthorId?: string;
+  delegatePinUserId?: string;
   fetch: typeof fetch;
   validate: boolean;
   timeoutMs: number;
@@ -25,6 +27,8 @@ export interface CapyContextInput {
   baseUrl?: string;
   projectId?: string;
   authorId?: string;
+  delegateAuthorId?: string;
+  delegatePinUserId?: string;
   fetch?: typeof fetch;
   validate?: boolean;
   timeoutMs?: number;
@@ -45,6 +49,8 @@ export interface CapyConfigLayer {
   baseUrl?: string;
   projectId?: string;
   authorId?: string;
+  delegateAuthorId?: string;
+  delegatePinUserId?: string;
 }
 
 export interface CapyConfigDocument extends CapyConfigLayer {
@@ -59,6 +65,8 @@ const CONFIG_STRING_FIELDS = [
   "baseUrl",
   "projectId",
   "authorId",
+  "delegateAuthorId",
+  "delegatePinUserId",
 ] as const satisfies ReadonlyArray<keyof CapyConfigLayer>;
 
 function firstString(...vals: Array<unknown>): string | undefined {
@@ -227,6 +235,8 @@ export function resolveContext(input: CapyContextInput = {}, opts?: { profile?: 
       document,
     ),
     authorId: input.authorId ?? (selection.profileSelected ? firstString(file.authorId) : pick("CAPY_AUTHOR_ID", file.authorId)),
+    delegateAuthorId: input.delegateAuthorId ?? firstString(file.delegateAuthorId),
+    delegatePinUserId: input.delegatePinUserId ?? firstString(file.delegatePinUserId),
     fetch: input.fetch ?? globalThis.fetch,
     validate: input.validate ?? toBool(env.CAPY_VALIDATE ?? dot.CAPY_VALIDATE) ?? DEFAULTS.validate,
     timeoutMs: input.timeoutMs ?? toInt(env.CAPY_TIMEOUT_MS ?? dot.CAPY_TIMEOUT_MS) ?? DEFAULTS.timeoutMs,

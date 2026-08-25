@@ -43,7 +43,8 @@ Resources are typed, small mappings over the published wire protocol. Ops own va
 - Base URL: `https://api.capy.ai/api/v1`; requests carry `Authorization: Bearer <key>`.
 - `CAPY_API_KEY` is the credential name.
 - Thread list/create calls require a selected project ID. `projects.list` discovers accessible IDs; `capy init` and `capy config projects` maintain optional local aliases.
-- Author attribution resolves from explicit input, `CAPY_AUTHOR_ID`, a named profile, or top-level config. Explicit `--no-author` suppresses a configured default.
+- Author attribution resolves from explicit input, `CAPY_AUTHOR_ID`, a named profile, or top-level config. Explicit `--noAuthor` suppresses a configured default.
+- Machine-local delegation policy can require one resolved author and automatically pin the created thread for one organization user. Author-policy violations fail before creation; pin failures preserve the created thread ID and URL for a caller-stable retry.
 - Named profiles fail closed for project and author identity: ambient `CAPY_PROJECT_ID` and `CAPY_AUTHOR_ID` do not leak into an explicitly selected profile.
 - Organization users provide canonical author IDs. Folder listing, filing, and pinning are organization-scoped; the public API does not create folders.
 - Create uses a caller-stable `requestId`, so retries converge. Message sends are intentionally not retried automatically.

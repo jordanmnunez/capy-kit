@@ -26,6 +26,8 @@ local alias and select a primary project with `capy config projects`. For exampl
   "projects": { "my-project": "your-project-id" },
   "defaultProject": "my-project",
   "authorId": "user_…",
+  "delegateAuthorId": "user_…",
+  "delegatePinUserId": "user_…",
   "profiles": {
     "work": {
       "projectId": "my-project",
@@ -41,7 +43,7 @@ name, or `--project <project-id>` for an explicit raw-ID override. `--profile wo
 ```bash
 capy delegate 'Investigate the failing integration' caller-stable-request-id --model-id openai/gpt-5.6-sol --json
 capy delegate 'Investigate the failing integration' caller-stable-request-id --model-id openai/gpt-5.6-sol --reasoning-mode high
-capy delegate 'Investigate without attribution' caller-stable-request-id --model-id openai/gpt-5.6-sol --profile work --no-author
+capy delegate 'Investigate without attribution' caller-stable-request-id --model-id openai/gpt-5.6-sol --profile work --noAuthor
 capy threads list --status active --json
 capy threads list --project secondary --json
 capy projects list --json
@@ -63,7 +65,8 @@ capy usage get --from 2026-08-01T00:00:00Z --json
 capy reviews start --repo acme/checkout --prNumber 481 --json
 ```
 
-Thread creation requires a caller-stable `requestId` and explicit `--model-id`; reuse a request ID only for retrying the same logical request. `authorId` resolves as `--author-id` > `CAPY_AUTHOR_ID` > selected profile > top-level config. Pass `--no-author` to deliberately omit the configured default. Discover organization user IDs with `capy users list`. Messages are deliberately not retried automatically. Thread lists and transcripts return `{items,cursor}`; supply a non-null cursor unchanged on the next request. The create result includes the canonical `https://capy.ai/thread/<thread-id>` URL.
+Thread creation requires a caller-stable `requestId` and explicit `--model-id`; reuse a request ID only for retrying the same logical request. `authorId` resolves as `--author-id` > `CAPY_AUTHOR_ID` > selected profile > top-level config. Pass `--noAuthor` to deliberately omit the configured default. Discover organization user IDs with `capy users list`. Messages are deliberately not retried automatically. Thread lists and transcripts return `{items,cursor}`; supply a non-null cursor unchanged on the next request. The create result includes the canonical `https://capy.ai/thread/<thread-id>` URL.
+Set `delegateAuthorId` to enforce that resolved author for every local delegation; conflicting `--author-id` and `--noAuthor` invocations fail before creation. Set `delegatePinUserId` to pin each successfully created thread for that organization user. Creation and pinning are separate API requests, so a pin failure reports the already-created thread ID and URL; retrying the same request ID safely retries the pin.
 
 Current thread statuses are `active`, `waiting`, `pending_user`, `error`, `ready_for_review`, `idle`, and `archived`.
 `ready_for_review` is only a Capy thread state; it does not prove a pull request exists, checks are green, review is approved, the change is merged, or it is deployed.
