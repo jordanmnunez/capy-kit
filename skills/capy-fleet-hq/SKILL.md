@@ -1,10 +1,20 @@
 ---
 name: capy-fleet-hq
-description: Coordinate Capy campaign ownership, handoffs, inspection triggers, and evidence-driven steering through the current Capy CLI.
+description: Coordinate Capy campaigns through the current CLI only when Jordan explicitly directs Capy use in the current request.
+disable-model-invocation: true
 allowed-tools: Bash(capy:*)
 ---
 
 # Capy Fleet HQ
+
+## Explicit authorization required
+
+Do not invoke Capy unless Jordan explicitly directs Capy use in the current
+request. This includes read-only observation and every access path, including
+CLI, MCP, API, or wrappers. Delegation, monitoring, review, parallelization,
+installed credentials, prior Capy use, and historical context do not imply
+authorization. If the current request is not explicit, do not use this skill or
+contact Capy.
 
 Use this higher-level workflow when work may span several outcomes, threads, or repository authority
 boundaries. Fleet HQ chooses ownership and records handoffs; it is not a polling supervisor. Once a
@@ -12,7 +22,7 @@ Captain accepts a coherent campaign, yield until a declared trigger or materiall
 justifies inspection.
 
 The API is organization-key scoped, but thread list/create calls require a known project ID. Use a
-configured project or named profile; project discovery is not public.
+configured project or named profile; use `capy projects list` to discover accessible project IDs when needed.
 
 ## Keep the boundary clear
 

@@ -1,18 +1,30 @@
 ---
 name: capy
-description: Use the current Capy API through the capy CLI to create, observe, steer, interrupt, and archive threads.
+description: Use the current Capy API through the capy CLI only when Jordan explicitly directs Capy use in the current request.
+disable-model-invocation: true
 allowed-tools: Bash(capy:*)
 ---
 
 # Current Capy API
 
-Set `CAPY_API_KEY` to an organization-scoped Capy API key. The base URL is `https://api.capy.ai/api/v1`. The API cannot discover projects, so thread listing and creation require a configured project ID. Run `capy init` to save named IDs and choose a primary one; use `capy projects` to edit them later without replacing the key. Commands use the primary project unless `--project <configured-name-or-raw-id>` is supplied. `--profile <name>` selects a config profile and ignores ambient project/author environment defaults.
+## Explicit authorization required
+
+Do not invoke Capy unless Jordan explicitly directs Capy use in the current
+request. This includes read-only observation and every access path, including
+CLI, MCP, API, or wrappers. Delegation, monitoring, review, parallelization,
+installed credentials, prior Capy use, and historical context do not imply
+authorization. If the current request is not explicit, do not use this skill or
+contact Capy.
+
+Set `CAPY_API_KEY` to an organization-scoped Capy API key. The base URL is `https://api.capy.ai/api/v1`. Discover accessible projects with `capy projects list`; thread listing and creation still require a selected project ID. Run `capy init` to save named IDs and choose a primary one; use `capy config projects` to edit aliases later without replacing the key. Commands use the primary project unless `--project <configured-name-or-raw-id>` is supplied. `--profile <name>` selects a config profile and ignores ambient project/author environment defaults.
 
 ```json
 {
   "projects": { "work": "project-id" },
   "defaultProject": "work",
   "authorId": "user-default",
+  "delegateAuthorId": "user-default",
+  "delegatePinUserId": "user-default",
   "profiles": {
     "operator": { "projectId": "work", "authorId": "user-operator" }
   }
@@ -24,14 +36,14 @@ Set `CAPY_API_KEY` to an organization-scoped Capy API key. The base URL is `http
 ```bash
 capy delegate 'Investigate the failing integration' caller-stable-request-id --model-id openai/gpt-5.6-sol --json
 capy delegate 'Investigate the failing integration' caller-stable-request-id --model-id openai/gpt-5.6-sol --author-id usr_123 --json
-capy delegate 'Investigate without attribution' caller-stable-request-id --model-id openai/gpt-5.6-sol --profile operator --no-author --json
+capy delegate 'Investigate without attribution' caller-stable-request-id --model-id openai/gpt-5.6-sol --profile operator --noAuthor --json
 capy threads list --status active --project work --json
 capy threads message jam_123 'Focus on the failing test' --delivery steer --json
 capy threads interrupt jam_123 --json
 capy threads archive jam_123 --json
 ```
 
-Create uses `requestId`, `message`, and an explicit `--model-id`; reuse a request ID only to retry the same logical creation. `authorId` resolves from `--author-id`, then `CAPY_AUTHOR_ID`, the selected profile, and top-level config. `--no-author` deliberately suppresses the configured default. Look up IDs with `capy users list`. The returned `url` is the canonical Capy thread link: `https://capy.ai/thread/<thread-id>`. A message uses `text` and optional `delivery` (`interrupt`, `queue`, `steer`) and is deliberately not retried automatically. The returned message `id` controls queued work:
+Create uses `requestId`, `message`, and an explicit `--model-id`; reuse a request ID only to retry the same logical creation. `authorId` resolves from `--author-id`, then `CAPY_AUTHOR_ID`, the selected profile, and top-level config. `--noAuthor` deliberately suppresses the configured default unless `delegateAuthorId` enforces a local author. When configured, `delegatePinUserId` pins every created thread for that user; retry the same request ID if the separate pin request fails. Look up IDs with `capy users list`. The returned `url` is the canonical Capy thread link: `https://capy.ai/thread/<thread-id>`. A message uses `text` and optional `delivery` (`interrupt`, `queue`, `steer`) and is deliberately not retried automatically. The returned message `id` controls queued work:
 
 ```bash
 capy threads cancel-message jam_123 evt_123 --json
